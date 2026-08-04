@@ -1,5 +1,6 @@
 <!doctype html>
 @php($brandLogo = $siteAssets['logo'] ?: asset('images/logo-hg.png'))
+@php($shareImage = $siteAssets['share'] ?: $brandLogo)
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -26,13 +27,12 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('twitter_title', $siteSettings->seo_title ?: $siteSettings->site_name)">
     <meta name="twitter:description" content="@yield('twitter_description', $siteSettings->seo_description ?: '')">
-    <meta property="og:image" content="{{ $brandLogo }}">
+    <meta property="og:image" content="@yield('og_image', $shareImage)">
+    <meta name="twitter:image" content="@yield('twitter_image', $shareImage)">
     @stack('meta')
     @yield('structured_data')
 
-    @if ($siteAssets['favicon'])
-        <link rel="icon" href="{{ $siteAssets['favicon'] }}">
-    @endif
+    <link rel="icon" href="{{ $siteAssets['favicon'] ?: $brandLogo }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">

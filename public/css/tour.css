@@ -24,8 +24,8 @@
 .tour-category-intro strong { color: var(--brand-ink); }
 .tour-sort-form { display: flex; align-items: center; gap: .5rem; }
 .tour-sort-form .form-select { min-width: 155px; }
-.tour-card { display: flex; flex-direction: column; overflow: hidden; height: 100%; border: 1px solid var(--color-ink); border-radius: 1rem; background: var(--color-surface); color: var(--brand-ink); transition: transform .25s ease, box-shadow .25s ease; }
-.tour-card:hover { box-shadow: var(--brand-shadow); transform: translateY(-5px); }
+.tour-card { display: flex; flex-direction: column; overflow: hidden; height: 100%; border: 1px solid var(--color-card-border); border-radius: 1rem; background: var(--color-surface); color: var(--brand-ink); transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.tour-card:hover { border-color: var(--color-primary-line); box-shadow: var(--brand-shadow); transform: translateY(-5px); }
 .tour-card-image { position: relative; display: block; flex: 0 0 auto; overflow: hidden; aspect-ratio: 16/10; background: var(--brand-cream); }
 .tour-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
 .tour-card:hover .tour-card-image img { transform: scale(1.06); }
@@ -40,7 +40,7 @@
 .tour-card-title a:hover { color: var(--brand-teal); }
 .tour-card-meta { display: flex; flex-wrap: wrap; gap: .75rem; color: var(--brand-muted); font-size: .78rem; }
 .tour-card-meta i { color: var(--brand-teal); }
-.tour-card-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-ink); }
+.tour-card-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--color-card-divider); }
 .tour-card-price small { display: block; color: var(--brand-muted); font-size: .7rem; }
 .tour-card-price del { display: inline-block; margin-right: .45rem; color: var(--color-ink); font-size: .76rem; }
 .tour-card-price strong { display: block; color: var(--color-price); font-size: 1.55rem; font-weight: 850; letter-spacing: -.035em; line-height: 1.15; }

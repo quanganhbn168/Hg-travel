@@ -22,6 +22,8 @@
     --color-surface-tint: #f7f0e4;
     --color-line: #ebe1d1;
     --color-line-strong: #d8c8ae;
+    --color-card-border: rgba(50,42,32,.32);
+    --color-card-divider: rgba(50,42,32,.16);
     --color-danger: var(--color-primary);
     --color-danger-soft: var(--color-primary-soft);
     --color-danger-line: var(--color-primary-line);

@@ -19,6 +19,7 @@ class GeneralSettings extends Settings
     public ?string $seo_keywords;
     public ?string $logo_url;
     public ?string $favicon_url;
+    public ?string $image_share_url;
     public ?string $page_banner_url;
     public ?string $facebook_url;
     public ?string $instagram_url;

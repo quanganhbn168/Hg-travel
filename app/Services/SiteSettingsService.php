@@ -25,6 +25,7 @@ class SiteSettingsService
             'seo_keywords' => null,
             'logo_url' => null,
             'favicon_url' => null,
+            'image_share_url' => null,
             'page_banner_url' => null,
             'facebook_url' => null,
             'instagram_url' => null,

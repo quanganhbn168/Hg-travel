@@ -24,6 +24,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'seo_keywords' => ['nullable', 'string', 'max:1000'],
             'logo_url' => ['nullable', 'string', 'max:4096'],
             'favicon_url' => ['nullable', 'string', 'max:4096'],
+            'image_share_url' => ['nullable', 'string', 'max:4096'],
             'page_banner_url' => ['nullable', 'string', 'max:4096'],
             'facebook_url' => ['nullable', 'url', 'max:4096'],
             'instagram_url' => ['nullable', 'url', 'max:4096'],

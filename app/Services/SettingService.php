@@ -20,7 +20,7 @@ class SettingService
         $general->fill(collect($data)->only([
             'site_name', 'company_name', 'contact_email', 'contact_email_secondary', 'contact_email_tertiary',
             'contact_phone', 'contact_phone_secondary', 'office_address',
-            'seo_title', 'seo_description', 'seo_keywords', 'logo_url', 'favicon_url', 'page_banner_url',
+            'seo_title', 'seo_description', 'seo_keywords', 'logo_url', 'favicon_url', 'image_share_url', 'page_banner_url',
             'facebook_url', 'instagram_url', 'youtube_url', 'zalo_url', 'messenger_url', 'whatsapp_url',
         ])->all())->save();
 

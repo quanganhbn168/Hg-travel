@@ -20,13 +20,15 @@ class MasterViewComposer
         $settings = $this->siteSettings->general();
         $phones = $this->contactPhones($settings);
         $emails = $this->contactEmails($settings);
+        $logo = $this->assetUrl($settings->logo_url) ?: asset('images/logo-hg.png');
 
         $view->with([
             'siteSettings' => $settings,
             'brandName' => $settings->site_name ?: config('app.name', env('APP_NAME', 'APP_NAME')),
             'siteAssets' => [
-                'logo' => $this->assetUrl($settings->logo_url),
-                'favicon' => $this->assetUrl($settings->favicon_url),
+                'logo' => $logo,
+                'favicon' => $this->assetUrl($settings->favicon_url) ?: $logo,
+                'share' => $this->assetUrl($settings->image_share_url) ?: asset('images/image_share.png'),
                 'page_banner' => $this->assetUrl($settings->page_banner_url) ?: asset('images/page-banner-coast-v1.png'),
             ],
             'siteLinks' => [

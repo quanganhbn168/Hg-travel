@@ -23,6 +23,7 @@
                 <x-card type="info" title="Nhận diện & media" class="mb-3">
                     <x-image-upload name="logo_url" label="Logo" :value="$settings['logo_url']" />
                     <x-image-upload name="favicon_url" label="Favicon" :value="$settings['favicon_url']" />
+                    <x-image-upload name="image_share_url" label="Ảnh chia sẻ mặc định (OG/Twitter)" :value="$settings['image_share_url']" />
                     <x-image-upload name="page_banner_url" label="Banner trang trong" :value="$settings['page_banner_url']" />
                     <x-input type="url" name="facebook_url" label="Facebook URL" :value="$settings['facebook_url']" />
                     <x-input type="url" name="instagram_url" label="Instagram URL" :value="$settings['instagram_url']" />
