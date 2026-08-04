@@ -1,0 +1,6 @@
+@extends('layouts.admin')
+@section('title','Thêm danh mục bài viết')
+@section('page-title','Thêm danh mục bài viết')
+@section('content')
+<form action="{{ route('admin.post-categories.store') }}" method="POST">@csrf<div class="row g-3"><div class="col-xl-8"><x-card type="primary" title="Thông tin"><x-input name="name" label="Tên danh mục" required/><x-input name="slug" label="Slug"/><x-textarea name="description" label="Mô tả" rows="8"/></x-card></div><div class="col-xl-4"><x-card type="info" title="Cấu hình" class="mb-3"><x-select name="parent_id" label="Danh mục cha" :options="$parents->pluck('name','id')->all()" placeholder="Không có"/><x-input name="sort_order" type="number" label="Thứ tự" value="0"/><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" checked><span class="form-check-label">Hiển thị</span></label></x-card><x-card type="secondary" title="SEO"><x-input name="seo_title" label="SEO title"/><x-textarea name="seo_description" label="SEO description" rows="3"/></x-card></div><div class="col-12 text-end"><a class="btn btn-outline-secondary" href="{{ route('admin.post-categories.index') }}">Hủy</a> <button class="btn btn-primary">Lưu</button></div></div></form>
+@endsection

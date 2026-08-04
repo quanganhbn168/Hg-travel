@@ -1,0 +1,6 @@
+@extends('layouts.admin')
+@section('title','Chỉnh sửa tài khoản')
+@section('page-title','Chỉnh sửa tài khoản admin')
+@section('content')
+<form action="{{ route('admin.users.update',$user) }}" method="POST">@csrf @method('PUT')<div class="row g-3"><div class="col-xl-8"><x-card type="primary" title="Thông tin tài khoản"><x-input name="name" label="Họ tên" :value="$user->name" required/><x-input type="email" name="email" label="Email" :value="$user->email" required/><x-input name="phone" label="Điện thoại" :value="$user->phone"/><x-input type="password" name="password" label="Mật khẩu mới"/><x-input type="password" name="password_confirmation" label="Nhập lại mật khẩu mới"/></x-card></div><div class="col-xl-4"><x-card type="info" title="Quyền truy cập"><x-select name="role" label="Vai trò" :options="$roles->all()" :selected="$user->roles->first()?->name" required/><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" @checked(old('is_active',$user->is_active))><span class="form-check-label">Kích hoạt</span></label></x-card></div><div class="col-12 text-end"><a class="btn btn-outline-secondary" href="{{ route('admin.users.index') }}">Hủy</a> <button class="btn btn-primary">Lưu thay đổi</button></div></div></form>
+@endsection

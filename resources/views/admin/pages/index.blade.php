@@ -1,0 +1,8 @@
+@extends('layouts.admin')
+@section('title', 'Trang tĩnh')
+@section('page-title', 'Trang tĩnh')
+@section('content')
+    <x-admin.index-header description="Quản lý các trang nội dung và SEO." :create-url="route('admin.pages.create')" create-label="Thêm trang" />
+    <x-admin.filter-panel title="Bộ lọc"><div class="row g-2"><div class="col-md-6"><input name="search" value="{{ request('search') }}" class="form-control" placeholder="Tìm tên hoặc slug"></div><div class="col-md-3"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="active" @selected(request('status') === 'active')>Đang hiển thị</option><option value="inactive" @selected(request('status') === 'inactive')>Đã tắt</option></select></div><div class="col-md-3"><button class="btn btn-primary">Lọc</button></div></div></x-admin.filter-panel>
+    <x-admin.table-card title="Danh sách trang"><table class="table table-hover align-middle mb-0"><thead><tr><th>Tên trang</th><th>Slug</th><th>Template</th><th>Hiển thị</th><th class="text-end">Thao tác</th></tr></thead><tbody>@forelse($pages as $page)<tr><td class="fw-semibold">{{ $page->name }}</td><td>{{ $page->slug }}</td><td>{{ $page->template }}</td><td><span class="badge text-bg-{{ $page->is_active ? 'success' : 'secondary' }}">{{ $page->is_active ? 'Bật' : 'Tắt' }}</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.pages.edit', $page) }}">Sửa</a></td></tr>@empty<tr><td colspan="5" class="text-center text-muted py-4">Chưa có trang.</td></tr>@endforelse</tbody></table><x-slot:footer>{{ $pages->links() }}</x-slot:footer></x-admin.table-card>
+@endsection

@@ -1,0 +1,8 @@
+@extends('layouts.admin')
+@section('title','Bài viết')
+@section('page-title','Bài viết')
+@section('content')
+<x-admin.index-header description="Quản lý tin tức, cẩm nang và nội dung SEO." :create-url="route('admin.posts.create')" create-label="Thêm bài viết"/>
+<x-admin.filter-panel title="Bộ lọc"><div class="row g-2"><div class="col-md-6"><input class="form-control" name="search" value="{{ request('search') }}" placeholder="Tìm bài viết"></div><div class="col-md-3"><select class="form-select" name="status"><option value="">Trạng thái</option><option value="active" @selected(request('status')==='active')>Hiển thị</option><option value="inactive" @selected(request('status')==='inactive')>Ẩn</option></select></div><div class="col-md-3"><button class="btn btn-primary">Lọc</button></div></div></x-admin.filter-panel>
+<x-admin.table-card title="Danh sách bài viết"><table class="table table-hover align-middle mb-0"><thead><tr><th>Bài viết</th><th>Danh mục</th><th>Tác giả</th><th>Hiển thị</th><th></th></tr></thead><tbody>@forelse($posts as $post)<tr><td><div class="fw-semibold">{{ $post->name }}</div><small class="text-muted">{{ $post->slug }}</small></td><td>{{ $post->category?->name ?: '—' }}</td><td>{{ $post->author?->name ?: '—' }}</td><td><span class="badge text-bg-{{ $post->is_active?'success':'secondary' }}">{{ $post->is_active?'Bật':'Tắt' }}</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.posts.edit',$post) }}">Sửa</a></td></tr>@empty<tr><td colspan="5" class="text-center text-muted py-4">Chưa có bài viết.</td></tr>@endforelse</tbody></table><x-slot:footer>{{ $posts->links() }}</x-slot:footer></x-admin.table-card>
+@endsection

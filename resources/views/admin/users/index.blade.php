@@ -1,0 +1,6 @@
+@extends('layouts.admin')
+@section('title','Tài khoản admin')
+@section('page-title','Tài khoản admin')
+@section('content')
+<x-admin.index-header description="Quản lý tài khoản truy cập khu vực quản trị." :create-url="route('admin.users.create')" create-label="Thêm tài khoản"/><x-admin.filter-panel title="Tìm kiếm"><div class="input-group"><input class="form-control" name="search" value="{{ request('search') }}" placeholder="Tên hoặc email"><button class="btn btn-primary">Lọc</button></div></x-admin.filter-panel><x-admin.table-card title="Danh sách tài khoản"><table class="table mb-0"><thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th></th></tr></thead><tbody>@forelse($users as $user)<tr><td>{{ $user->name }}</td><td>{{ $user->email }}</td><td>{{ $user->roles->pluck('name')->join(', ') }}</td><td><span class="badge text-bg-{{ $user->is_active?'success':'secondary' }}">{{ $user->is_active?'Hoạt động':'Tắt' }}</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.users.edit',$user) }}">Sửa</a></td></tr>@empty<tr><td colspan="5" class="text-center text-muted py-4">Chưa có tài khoản.</td></tr>@endforelse</tbody></table><x-slot:footer>{{ $users->links() }}</x-slot:footer></x-admin.table-card>
+@endsection
