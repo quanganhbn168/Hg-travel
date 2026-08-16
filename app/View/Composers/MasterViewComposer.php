@@ -2,8 +2,10 @@
 
 namespace App\View\Composers;
 
+use App\Models\Page;
 use App\Services\FrontendMenuService;
 use App\Services\SiteSettingsService;
+use App\Services\TravelServiceCatalog;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -13,6 +15,7 @@ class MasterViewComposer
     public function __construct(
         private readonly SiteSettingsService $siteSettings,
         private readonly FrontendMenuService $menus,
+        private readonly TravelServiceCatalog $serviceCatalog,
     ) {}
 
     public function compose(View $view): void
@@ -46,6 +49,13 @@ class MasterViewComposer
             ],
             'headerMenuItems' => $this->activeItems('header'),
             'footerMenuItems' => $this->activeItems('footer'),
+            'footerServices' => array_slice($this->serviceCatalog->all(), 0, 3),
+            'footerPages' => Page::query()
+                ->where('is_active', true)
+                ->whereIn('slug', ['chinh-sach-bao-mat', 'dieu-khoan'])
+                ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
+                ->orderBy('sort_order')
+                ->get(['name', 'slug']),
         ]);
     }
 

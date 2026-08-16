@@ -3,10 +3,16 @@
 namespace App\Traits;
 
 use App\Models\Slug;
+use App\Observers\SlugObserver;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 trait HasSlug
 {
+    public static function bootHasSlug(): void
+    {
+        static::whenBooted(fn () => static::observe(SlugObserver::class));
+    }
+
     public function getSlugSourceKey(): string
     {
         return 'slug';

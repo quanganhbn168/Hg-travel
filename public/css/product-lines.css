@@ -1,0 +1,33 @@
+.product-line-hero { padding: clamp(2rem, 5vw, 4rem) 0 clamp(5rem, 10vw, 8rem); }
+.product-line-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin-bottom: clamp(4rem, 8vw, 7rem); color: var(--color-white-muted); font-size: .78rem; }
+.product-line-breadcrumb a { color: var(--color-white-soft); }
+.product-line-breadcrumb strong { color: var(--color-white); font-weight: 650; }
+.product-line-hero-copy { max-width: 850px; }
+.product-line-hero h1 { max-width: 850px; margin: 0 0 1.15rem; color: var(--color-white); font-size: clamp(2.75rem, 7vw, 6.4rem); font-weight: 600; letter-spacing: -.07em; line-height: .96; }
+.product-line-hero p { max-width: 720px; margin: 0; color: var(--color-white-strong); font-size: clamp(1rem, 1.5vw, 1.15rem); line-height: 1.8; }
+.product-line-overview { background: var(--color-surface); }
+.product-line-lead { max-width: 760px; margin: 1.2rem 0 0; color: var(--color-muted); font-size: 1rem; line-height: 1.85; }
+.product-line-benefits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem 1.5rem; margin-top: 2rem; }
+.product-line-benefit { display: flex; gap: .7rem; color: var(--color-ink-soft); font-size: .88rem; line-height: 1.55; }
+.product-line-benefit i { flex: 0 0 auto; color: var(--color-teal); font-size: 1.05rem; }
+.product-line-contact-card { position: sticky; top: 1.5rem; padding: 1.7rem; border: 1px solid var(--color-primary-line); border-radius: var(--radius-lg); background: var(--color-primary-soft); }
+.product-line-contact-icon { display: grid; width: 52px; height: 52px; place-items: center; margin-bottom: 1.5rem; border-radius: 50%; background: var(--color-primary); color: var(--color-surface); font-size: 1.2rem; }
+.product-line-contact-card h2 { margin: .6rem 0 .7rem; font-size: 1.55rem; font-weight: 600; letter-spacing: -.04em; line-height: 1.2; }
+.product-line-contact-card p { margin: 0 0 1.25rem; color: var(--color-muted); font-size: .86rem; line-height: 1.7; }
+.product-line-tours { background: var(--color-surface-soft); }
+.product-line-services { background: var(--color-surface); }
+.product-line-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+.product-line-section-heading .section-title { max-width: 730px; margin-bottom: .65rem; }
+.product-line-service-card { display: flex; min-height: 285px; flex-direction: column; padding: 1.3rem; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface-soft); color: var(--color-ink); transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.product-line-service-card:hover { border-color: var(--color-primary-line); box-shadow: var(--brand-shadow); color: var(--color-ink); transform: translateY(-4px); }
+.product-line-service-icon { display: grid; width: 44px; height: 44px; place-items: center; margin-bottom: 1.6rem; border-radius: 50%; background: var(--color-primary-soft); color: var(--color-teal); font-size: 1rem; }
+.product-line-service-card small { color: var(--color-gold-dark); font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.product-line-service-card h3 { margin: .55rem 0 .55rem; font-size: 1.08rem; font-weight: 650; letter-spacing: -.025em; line-height: 1.25; }
+.product-line-service-card p { margin: 0; color: var(--color-muted); font-size: .8rem; line-height: 1.65; }
+.product-line-service-link { display: inline-flex; align-items: center; gap: .4rem; margin-top: auto; padding-top: 1.2rem; color: var(--color-teal); font-size: .76rem; font-weight: 800; }
+.product-line-cta { padding: 3.6rem 0; background: var(--color-primary); color: var(--color-surface); }
+.product-line-cta .container { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+.product-line-cta span { display: block; margin-bottom: .5rem; color: var(--color-gold); font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.product-line-cta h2 { max-width: 780px; margin: 0; font-size: clamp(1.45rem, 2.8vw, 2.35rem); font-weight: 600; letter-spacing: -.045em; line-height: 1.15; }
+@media (max-width: 991.98px) { .product-line-contact-card { position: static; } }
+@media (max-width: 767.98px) { .product-line-benefits { grid-template-columns: 1fr; } .product-line-section-heading, .product-line-cta .container { align-items: flex-start; flex-direction: column; gap: 1rem; } .product-line-cta .btn { width: 100%; } }

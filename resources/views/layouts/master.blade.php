@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="{{ config('app.theme_color', '#b4935f') }}">
+    <meta name="theme-color" content="{{ config('app.theme_color', '#0a1726') }}">
 
     <title>@yield('title', $siteSettings->seo_title ?: $siteSettings->site_name)</title>
     <meta name="description" content="@yield('meta_description', $siteSettings->seo_description ?: '')">
@@ -58,7 +58,7 @@
                     @endif
                 </div>
                 <div class="topbar-utility d-none d-md-flex">
-                    <a class="topbar-link" href="{{ url('/gioi-thieu') }}">Giới thiệu</a>
+                    <a class="topbar-link" href="{{ route('about') }}">Giới thiệu</a>
                     <a class="topbar-link" href="{{ route('contact') }}">Liên hệ</a>
                 </div>
             </div>
@@ -76,7 +76,7 @@
                     <button class="header-icon" type="button" data-search-toggle aria-controls="site-search-panel" aria-expanded="false" aria-label="Mở tìm kiếm">
                         <i class="bi bi-search"></i>
                     </button>
-                    <a class="btn btn-brand d-none d-sm-inline-flex" href="{{ url('/dat-tour') }}">
+                    <a class="btn btn-brand d-none d-sm-inline-flex" href="{{ route('booking.create') }}">
                         <i class="bi bi-calendar2-check"></i>Đặt tour
                     </a>
                 </div>
@@ -144,7 +144,7 @@
                 </ul>
                 <div class="mobile-menu-actions">
                     <button class="btn btn-brand w-100" type="button" data-search-toggle aria-controls="site-search-panel" aria-expanded="false"><i class="bi bi-search"></i>Tìm kiếm</button>
-                    <a class="btn btn-outline-brand w-100" href="{{ url('/dat-tour') }}"><i class="bi bi-calendar2-check"></i>Đặt tour</a>
+                    <a class="btn btn-outline-brand w-100" href="{{ route('booking.create') }}"><i class="bi bi-calendar2-check"></i>Đặt tour</a>
                 </div>
             </div>
         </div>
@@ -193,8 +193,8 @@
                         </div>
                     </div>
                     <div class="col-lg-2 col-sm-4"><h2 class="footer-title">Tour</h2><ul class="footer-links"><li><a href="{{ route('tours.index', ['scope' => 'international']) }}">Tour nước ngoài</a></li><li><a href="{{ route('tours.index', ['scope' => 'domestic']) }}">Tour trong nước</a></li><li><a href="{{ route('tours.index') }}">Tất cả tour</a></li></ul></div>
-                    <div class="col-lg-2 col-sm-4"><h2 class="footer-title">Dịch vụ</h2><ul class="footer-links"><li><a href="{{ route('services.index') }}#tour-tron-goi">Tour trọn gói</a></li><li><a href="{{ route('services.index') }}#visa-cac-nuoc">Visa các nước</a></li><li><a href="{{ route('services.index') }}#dat-phong-khach-san">Đặt phòng khách sạn</a></li></ul></div>
-                    <div class="col-lg-2 col-sm-4"><h2 class="footer-title">Thông tin</h2><ul class="footer-links"><li><a href="{{ route('posts.index') }}">Cẩm nang du lịch</a></li><li><a href="{{ route('contact') }}">Liên hệ</a></li><li><a href="{{ url('/gioi-thieu') }}">Giới thiệu</a></li></ul></div>
+                    <div class="col-lg-2 col-sm-4"><h2 class="footer-title">Dịch vụ</h2><ul class="footer-links">@forelse ($footerServices as $footerService)<li><a href="{{ route('services.show', ['service' => $footerService['slug']]) }}">{{ $footerService['title'] }}</a></li>@empty<li><span class="text-white-50">Dịch vụ đang cập nhật</span></li>@endforelse</ul></div>
+                    <div class="col-lg-2 col-sm-4"><h2 class="footer-title">Thông tin</h2><ul class="footer-links"><li><a href="{{ route('posts.index') }}">Cẩm nang du lịch</a></li><li><a href="{{ route('contact') }}">Liên hệ</a></li><li><a href="{{ route('about') }}">Giới thiệu</a></li></ul></div>
                     <div class="col-lg-2 col-md-6">
                         <h2 class="footer-title">Kết nối</h2>
                         <ul class="footer-contact">
@@ -221,7 +221,7 @@
                     </div>
                 </div>
             </div>
-            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between gap-2"><span>&copy; {{ now()->year }} {{ $siteSettings->company_name ?: $brandName }}.</span><div class="footer-bottom-links"><a href="{{ url('/chinh-sach-bao-mat') }}">Chính sách bảo mật</a><a href="{{ url('/dieu-khoan') }}">Điều khoản</a></div></div>
+            <div class="footer-bottom d-flex flex-column flex-sm-row justify-content-between gap-2"><span>&copy; {{ now()->year }} {{ $siteSettings->company_name ?: $brandName }}.</span><div class="footer-bottom-links">@foreach ($footerPages as $footerPage)<a href="{{ route('pages.show', ['page' => $footerPage->slug]) }}">{{ $footerPage->name }}</a>@endforeach</div></div>
         </div>
     </footer>
 

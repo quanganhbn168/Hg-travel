@@ -28,7 +28,12 @@
 .blog-empty i { color: var(--color-teal); font-size: 2.2rem; }
 .blog-empty strong { color: var(--color-ink); }
 .blog-empty .btn { margin-top: .75rem; }
-.blog-pagination nav { display: flex; justify-content: center; }
+.blog-pagination > nav { display: flex; justify-content: center; }
+.blog-pagination .pagination { justify-content: center; margin-bottom: 0; flex-wrap: wrap; gap: .35rem; }
+.blog-pagination .page-item:not(:first-child) .page-link { margin-left: 0; }
+.blog-pagination .page-link { border-color: var(--color-line); color: var(--color-ink); }
+.blog-pagination .page-link:hover { border-color: var(--color-teal); background: var(--color-surface-tint); color: var(--color-teal); }
+.blog-pagination .page-item.active .page-link { border-color: var(--color-teal); background: var(--color-teal); color: var(--color-surface); }
 .post-detail-meta { color: var(--color-muted); }
 .post-detail-meta i { margin-right: .3rem; color: var(--color-primary); }
 .post-detail-section { padding-top: 3rem; }

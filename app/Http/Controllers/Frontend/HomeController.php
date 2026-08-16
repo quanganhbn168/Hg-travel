@@ -11,6 +11,7 @@ use App\Models\Slider;
 use App\Models\Testimonial;
 use App\Models\Tour;
 use App\Services\SiteSettingsService;
+use App\Services\ProductLineService;
 use App\Services\StructuredDataService;
 use App\Services\TravelServiceCatalog;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,9 +21,10 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __invoke(SiteSettingsService $siteSettings, StructuredDataService $structuredData, TravelServiceCatalog $serviceCatalog): View
+    public function __invoke(SiteSettingsService $siteSettings, StructuredDataService $structuredData, ProductLineService $productLineService, TravelServiceCatalog $serviceCatalog): View
     {
         $settings = $siteSettings->general();
+        $mediaSettings = $siteSettings->media();
         $sliderItems = Slider::query()
             ->where('key', 'home')
             ->where('is_active', true)
@@ -30,7 +32,8 @@ class HomeController extends Controller
             ->first()?->items ?? collect();
 
         $siteAsset = SiteAsset::query()->where('key', 'site')->first();
-        $homepageHeroUrl = $this->mediaUrl($siteAsset, 'homepage_hero');
+        $homepageHeroUrl = $this->imageUrl($mediaSettings->homepage_hero_url)
+            ?: $this->mediaUrl($siteAsset, 'homepage_hero');
         $heroSlides = $sliderItems->map(fn ($slide): array => [
             'eyebrow' => 'Mỗi hành trình, một câu chuyện',
             'title' => $slide->title ?: 'Chạm vào những miền đất đáng nhớ',
@@ -46,13 +49,18 @@ class HomeController extends Controller
             'description' => 'Khám phá thế giới theo cách riêng của bạn với những hành trình được thiết kế chỉn chu, chân thành và đầy cảm hứng.',
             'image_url' => $homepageHeroUrl,
             'button_label' => 'Khám phá hành trình',
-            'button_url' => url('/tours'),
+            'button_url' => route('tours.index'),
         ];
 
         $featuredDestinations = $this->destinations();
+        $featuredTours = $this->featuredTours();
         $promotionalTours = $this->promotionalTours();
         $customerGallery = $this->customerGallery();
-        $aboutImageUrl = $this->mediaUrl($siteAsset, 'about_image');
+        $aboutImageUrl = $this->imageUrl($mediaSettings->about_image_url)
+            ?: $this->mediaUrl($siteAsset, 'about_image');
+        $brandImageUrl = $aboutImageUrl
+            ?: $homepageHeroUrl
+            ?: ($featuredTours[0]['image_url'] ?? null);
         $promotionFallbackUrl = collect($promotionalTours)->pluck('image_url')->filter()->first()
             ?: $aboutImageUrl
             ?: $homepageHeroUrl;
@@ -60,20 +68,22 @@ class HomeController extends Controller
             ? asset('images/promo-coastal-sunset.png')
             : $promotionFallbackUrl;
         $impactBackdropUrl = $aboutImageUrl ?: $homepageHeroUrl ?: $promotionBackdropUrl;
-        $whyChooseImageUrl = $aboutImageUrl
-            ?: $homepageHeroUrl
-            ?: ($customerGallery[1]['url'] ?? null);
         $customTourBackdropUrl = $aboutImageUrl
             ?: $homepageHeroUrl
             ?: $promotionBackdropUrl
             ?: ($customerGallery[3]['url'] ?? null);
 
+        $websiteSettings = $siteSettings->website();
+
         return view('frontend.home', [
             'heroSlides' => $heroSlides,
             'heroFallback' => $heroFallback,
             'aboutImageUrl' => $aboutImageUrl,
+            'brandImageUrl' => $brandImageUrl,
+            'brandIntroduction' => $this->brandIntroduction($websiteSettings),
+            'featuredProducts' => $productLineService->homeCards(),
             'serviceCategories' => $serviceCatalog->homeCards(),
-            'featuredTours' => $this->featuredTours(),
+            'featuredTours' => $featuredTours,
             'promotionalTours' => $promotionalTours,
             'promotionBackdropUrl' => $promotionBackdropUrl,
             'impactBackdropUrl' => $impactBackdropUrl,
@@ -89,12 +99,15 @@ class HomeController extends Controller
                 'key' => $key,
                 'label' => collect($featuredDestinations)->firstWhere('tab_key', $key)['tab_label'] ?? 'Điểm đến',
             ])->values()->all(),
-            'whyChoose' => $this->whyChoose(),
-            'whyChooseImageUrl' => $whyChooseImageUrl,
             'customTourBackdropUrl' => $customTourBackdropUrl,
-            'impactStats' => $this->impactStats(),
+            'impactTitle' => $websiteSettings->impact_title,
+            'impactStats' => $this->impactStats($websiteSettings),
             'customerGallery' => $customerGallery,
-            'partners' => $this->partners(),
+            'partners' => $this->partners($websiteSettings),
+            'customTourContent' => [
+                'title' => $websiteSettings->custom_tour_title,
+                'description' => $websiteSettings->custom_tour_description,
+            ],
             'latestPosts' => $this->posts(),
             'testimonials' => Testimonial::query()
                 ->where('is_active', true)
@@ -118,23 +131,29 @@ class HomeController extends Controller
         ]);
     }
 
-    private function whyChoose(): array
+    private function brandIntroduction(\App\Settings\WebsiteSettings $settings): array
     {
         return [
-            ['icon' => 'bi-patch-check', 'title' => 'Lịch trình chọn lọc', 'description' => 'Mỗi cung đường được cân nhắc kỹ để chuyến đi vừa đủ trải nghiệm, vừa đủ thư thái.'],
-            ['icon' => 'bi-headset', 'title' => 'Đồng hành tận tâm', 'description' => 'Đội ngũ tư vấn luôn sẵn sàng lắng nghe trước, trong và sau hành trình.'],
-            ['icon' => 'bi-shield-check', 'title' => 'Chi phí minh bạch', 'description' => 'Thông tin dịch vụ rõ ràng, tư vấn thật và không để bạn gặp bất ngờ không đáng có.'],
-            ['icon' => 'bi-stars', 'title' => 'Trải nghiệm khác biệt', 'description' => 'Không chỉ đi đến đâu, mà còn là cách bạn cảm nhận và mang ký ức về nhà.'],
+            'title' => $settings->about_title,
+            'paragraphs' => [
+                $settings->about_paragraph_one,
+                $settings->about_paragraph_two,
+            ],
+            'highlights' => [
+                ['number' => '01', 'title' => 'Thiết kế riêng', 'description' => 'Lịch trình bắt đầu từ nhu cầu thực tế, không từ một khuôn mẫu có sẵn.'],
+                ['number' => '02', 'title' => 'Vận hành chỉn chu', 'description' => 'Dịch vụ, thời gian và đầu mối phối hợp được làm rõ trước khi khởi hành.'],
+                ['number' => '03', 'title' => 'Đồng hành xuyên suốt', 'description' => 'Hỗ trợ trước, trong và sau chuyến đi để khách hàng luôn an tâm.'],
+            ],
         ];
     }
 
-    private function impactStats(): array
+    private function impactStats(\App\Settings\WebsiteSettings $settings): array
     {
         return [
-            ['number' => '15+', 'label' => 'Năm kinh nghiệm'],
-            ['number' => '5.000+', 'label' => 'Khách hàng tin chọn'],
-            ['number' => '98%', 'label' => 'Khách hàng hài lòng'],
-            ['number' => '30+', 'label' => 'Quốc gia đã khai phá'],
+            ['number' => $settings->impact_stat_one_number, 'label' => $settings->impact_stat_one_label],
+            ['number' => $settings->impact_stat_two_number, 'label' => $settings->impact_stat_two_label],
+            ['number' => $settings->impact_stat_three_number, 'label' => $settings->impact_stat_three_label],
+            ['number' => $settings->impact_stat_four_number, 'label' => $settings->impact_stat_four_label],
         ];
     }
 
@@ -150,9 +169,13 @@ class HomeController extends Controller
         ];
     }
 
-    private function partners(): array
+    private function partners(\App\Settings\WebsiteSettings $settings): array
     {
-        return ['Vietnam Airlines', 'Vietjet Air', 'Bamboo Airways', 'Turkish Airlines', 'KTO Korea', 'Visa Vietnam'];
+        return collect(preg_split('/\R/u', (string) $settings->partner_names))
+            ->map(fn (string $name): string => trim($name))
+            ->filter()
+            ->values()
+            ->all();
     }
 
     private function featuredTours(): array
@@ -161,7 +184,7 @@ class HomeController extends Controller
             ->where('is_featured', true)
             ->with(['destination', 'category', 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order')])
             ->orderBy('sort_order')
-            ->limit(6)
+            ->limit(3)
             ->get()
             ->map(fn (Tour $tour): array => $this->tourCard($tour))
             ->all();
@@ -336,7 +359,7 @@ class HomeController extends Controller
     private function linkUrl(?string $path): string
     {
         if (blank($path)) {
-            return url('/tours');
+            return route('tours.index');
         }
 
         return Str::startsWith($path, ['http://', 'https://', '#', '/', 'mailto:', 'tel:']) ? $path : url($path);

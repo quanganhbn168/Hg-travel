@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
             TourScheduleSeeder::class,
             TourItinerarySeeder::class,
             TourInclusionSeeder::class,
+            ServiceCatalogSeeder::class,
+            ProductLineSeeder::class,
             PromotionSeeder::class,
             PromotionTourSeeder::class,
             PostCategorySeeder::class,

@@ -25,6 +25,7 @@ class Tour extends Model implements HasMedia
     public function inclusions(): HasMany { return $this->hasMany(TourInclusion::class)->orderBy('sort_order'); }
     public function coupons(): BelongsToMany { return $this->belongsToMany(Coupon::class); }
     public function promotions(): BelongsToMany { return $this->belongsToMany(Promotion::class); }
+    public function productLines(): BelongsToMany { return $this->belongsToMany(ProductLine::class)->withPivot('sort_order')->withTimestamps(); }
     public function reviews(): HasMany { return $this->hasMany(TourReview::class); }
     public function registerMediaCollections(): void { $this->addMediaCollection('tour_images')->useDisk('public_media'); }
 }

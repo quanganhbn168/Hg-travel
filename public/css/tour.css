@@ -36,7 +36,7 @@
 .tour-card-category { color: var(--brand-teal); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .tour-card-destination { overflow: hidden; color: var(--brand-muted); font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
 .tour-card-destination i { color: var(--brand-teal); }
-.tour-card-title { display: -webkit-box; min-height: 2.6em; margin: .35rem 0 .6rem; overflow: hidden; font-size: 1.05rem; font-weight: 800; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.tour-card-title { display: -webkit-box; min-height: 2.6em; margin: .35rem 0 .6rem; overflow: hidden; font-size: 1.08rem; font-weight: 600; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .tour-card-title a:hover { color: var(--brand-teal); }
 .tour-card-meta { display: flex; flex-wrap: wrap; gap: .75rem; color: var(--brand-muted); font-size: .78rem; }
 .tour-card-meta i { color: var(--brand-teal); }
@@ -47,8 +47,9 @@
 .tour-card-price .tour-card-sale-price { color: var(--color-price); }
 .tour-card-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .9rem; }
 .tour-card-actions .btn { width: 100%; white-space: nowrap; }
-.tour-pagination nav { display: flex; justify-content: center; }
-.tour-pagination .pagination { margin-bottom: 0; }
+.tour-pagination > nav { display: flex; justify-content: center; }
+.tour-pagination .pagination { justify-content: center; margin-bottom: 0; flex-wrap: wrap; gap: .35rem; }
+.tour-pagination .page-item:not(:first-child) .page-link { margin-left: 0; }
 .tour-pagination .page-link { border-color: var(--brand-line); color: var(--brand-ink); }
 .tour-pagination .page-item.active .page-link { border-color: var(--brand-teal); background: var(--brand-teal); color: var(--color-surface); }
 @keyframes tour-sale-burst-pulse { 50% { filter: brightness(1.18); transform: scale(1.08) rotate(-5deg); } }

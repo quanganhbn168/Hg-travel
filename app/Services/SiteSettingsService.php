@@ -2,31 +2,80 @@
 
 namespace App\Services;
 
-use App\Settings\GeneralSettings;
+use App\Data\SiteSettingsData;
+use App\Settings\BusinessSettings;
+use App\Settings\ContactSettings;
 use App\Settings\MediaSettings;
+use App\Settings\SeoSettings;
+use App\Settings\WebsiteSettings;
 use Spatie\LaravelSettings\Settings;
 use Throwable;
 
 class SiteSettingsService
 {
-    public function general(): GeneralSettings
+    public function website(): WebsiteSettings
     {
-        return $this->load(GeneralSettings::class, [
+        return $this->load(WebsiteSettings::class, [
             'site_name' => config('app.name', 'Du lịch'),
+            'about_title' => 'Hành trình đáng nhớ bắt đầu từ cách nó được thiết kế.',
+            'about_paragraph_one' => 'HG TRIP xây dựng những chuyến đi phù hợp với mục đích, nhịp độ và kỳ vọng riêng của từng khách hàng — từ gia đình, nhóm bạn đến doanh nghiệp.',
+            'about_paragraph_two' => 'Nền tảng kinh nghiệm thực tiễn của đội ngũ giúp mỗi hành trình được chuẩn bị chỉn chu, vận hành minh bạch và luôn có người đồng hành ở mọi chặng đường.',
+            'custom_tour_title' => 'Thiết kế tour du lịch theo yêu cầu',
+            'custom_tour_description' => 'HG lắng nghe sở thích, ngân sách và nhịp điệu của riêng bạn để cùng tạo nên một hành trình thật vừa vặn.',
+            'impact_title' => 'HG trong những con số',
+            'impact_stat_one_number' => '20+',
+            'impact_stat_one_label' => 'Năm kinh nghiệm lãnh đạo',
+            'impact_stat_two_number' => '03',
+            'impact_stat_two_label' => 'Thị trường hoạt động',
+            'impact_stat_three_number' => '24/7',
+            'impact_stat_three_label' => 'Hỗ trợ khẩn cấp',
+            'impact_stat_four_number' => '02',
+            'impact_stat_four_label' => 'Văn phòng đại diện quốc tế',
+            'partner_names' => 'Vietnam Airlines'.PHP_EOL.'Vietjet Air'.PHP_EOL.'Bamboo Airways'.PHP_EOL.'Turkish Airlines'.PHP_EOL.'KTO Korea'.PHP_EOL.'Visa Vietnam',
+        ]);
+    }
+
+    public function business(): BusinessSettings
+    {
+        return $this->load(BusinessSettings::class, [
             'company_name' => null,
+            'legal_representative' => null,
+            'tax_code' => null,
+        ]);
+    }
+
+    public function media(): MediaSettings
+    {
+        return $this->load(MediaSettings::class, [
+            'media_allowed_extensions' => 'jpg,jpeg,png,webp,gif,pdf,doc,docx',
+            'media_max_size' => 10,
+            'logo_url' => null,
+            'favicon_url' => null,
+            'image_share_url' => null,
+            'page_banner_url' => null,
+            'homepage_hero_url' => null,
+            'about_image_url' => null,
+        ]);
+    }
+
+    public function seo(): SeoSettings
+    {
+        return $this->load(SeoSettings::class, [
+            'seo_title' => config('app.name', 'Du lịch'),
+            'seo_description' => null,
+            'seo_keywords' => null,
+        ]);
+    }
+
+    public function contact(): ContactSettings
+    {
+        return $this->load(ContactSettings::class, [
             'contact_email' => null,
             'contact_email_secondary' => null,
             'contact_email_tertiary' => null,
             'contact_phone' => null,
             'contact_phone_secondary' => null,
             'office_address' => null,
-            'seo_title' => config('app.name', 'Du lịch'),
-            'seo_description' => null,
-            'seo_keywords' => null,
-            'logo_url' => null,
-            'favicon_url' => null,
-            'image_share_url' => null,
-            'page_banner_url' => null,
             'facebook_url' => null,
             'instagram_url' => null,
             'youtube_url' => null,
@@ -36,12 +85,39 @@ class SiteSettingsService
         ]);
     }
 
-    public function media(): MediaSettings
+    public function general(): SiteSettingsData
     {
-        return $this->load(MediaSettings::class, [
-            'media_allowed_extensions' => 'jpg,jpeg,png,webp,gif,pdf,doc,docx',
-            'media_max_size' => 10,
-        ]);
+        $website = $this->website();
+        $business = $this->business();
+        $media = $this->media();
+        $seo = $this->seo();
+        $contact = $this->contact();
+
+        return new SiteSettingsData(
+            site_name: $website->site_name,
+            company_name: $business->company_name,
+            legal_representative: $business->legal_representative,
+            tax_code: $business->tax_code,
+            contact_email: $contact->contact_email,
+            contact_email_secondary: $contact->contact_email_secondary,
+            contact_email_tertiary: $contact->contact_email_tertiary,
+            contact_phone: $contact->contact_phone,
+            contact_phone_secondary: $contact->contact_phone_secondary,
+            office_address: $contact->office_address,
+            seo_title: $seo->seo_title,
+            seo_description: $seo->seo_description,
+            seo_keywords: $seo->seo_keywords,
+            logo_url: $media->logo_url,
+            favicon_url: $media->favicon_url,
+            image_share_url: $media->image_share_url,
+            page_banner_url: $media->page_banner_url,
+            facebook_url: $contact->facebook_url,
+            instagram_url: $contact->instagram_url,
+            youtube_url: $contact->youtube_url,
+            zalo_url: $contact->zalo_url,
+            messenger_url: $contact->messenger_url,
+            whatsapp_url: $contact->whatsapp_url,
+        );
     }
 
     /**

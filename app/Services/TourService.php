@@ -12,7 +12,7 @@ class TourService
 {
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $query = Tour::with(['category', 'destination'])->latest();
+        $query = Tour::with(['category', 'destination'])->orderBy('sort_order')->orderByDesc('id');
         $search = trim((string) ($filters['search'] ?? ''));
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
         if (! empty($filters['status'])) $query->where('status', $filters['status']);

@@ -19,6 +19,7 @@ class BookingController extends Controller
     {
         return view('admin.bookings.index', [
             'bookings' => $this->bookingService->paginate($request->validated()),
+            'statuses' => BookingService::STATUSES,
         ]);
     }
 

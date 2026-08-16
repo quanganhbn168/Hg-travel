@@ -38,7 +38,7 @@
                             <span class="home-hero-eyebrow">{{ $slide['eyebrow'] }}</span>
                             <h2 class="home-hero-title">{{ $slide['title'] }}</h2>
                             <p class="home-hero-description">{{ $slide['description'] }}</p>
-                            <div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $slide['button_url'] }}">{{ $slide['button_label'] }} <i class="bi bi-arrow-right"></i></a><a class="btn btn-outline-light btn-lg rounded-pill" href="{{ url('/gioi-thieu') }}">Về chúng tôi</a></div>
+                            <div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $slide['button_url'] }}">{{ $slide['button_label'] }} <i class="bi bi-arrow-right"></i></a><a class="btn btn-outline-light btn-lg rounded-pill" href="{{ route('about') }}">Về chúng tôi</a></div>
                         </div></div>
                     </article>
                 @endforeach
@@ -55,7 +55,7 @@
                 <div class="home-hero-shade"></div>
                 <div class="container"><div class="home-hero-content">
                     <span class="home-hero-eyebrow">{{ $heroFallback['eyebrow'] }}</span><h1 class="home-hero-title">{{ $heroFallback['title'] }}</h1><p class="home-hero-description">{{ $heroFallback['description'] }}</p>
-                    <div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $heroFallback['button_url'] }}">{{ $heroFallback['button_label'] }} <i class="bi bi-arrow-right"></i></a><a class="btn btn-outline-light btn-lg rounded-pill" href="{{ url('/gioi-thieu') }}">Về chúng tôi</a></div>
+                    <div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $heroFallback['button_url'] }}">{{ $heroFallback['button_label'] }} <i class="bi bi-arrow-right"></i></a><a class="btn btn-outline-light btn-lg rounded-pill" href="{{ route('about') }}">Về chúng tôi</a></div>
                 </div></div>
             </article>
         @endif
@@ -78,15 +78,73 @@
         </div>
     </section>
 
-    <section class="home-services-section section-space pt-0" aria-labelledby="services-title" data-aos="fade-up">
-        <div class="container"><div class="section-heading text-center mx-auto"><h2 id="services-title" class="section-title">Dịch vụ của chúng tôi</h2></div>
-            <div class="row g-3">@foreach ($serviceCategories as $service)<div class="col-md-4"><a class="service-card" href="{{ url($service['url']) }}"><span class="service-card-icon"><i class="bi {{ $service['icon'] }}"></i></span><h3>{{ $service['title'] }}</h3><p>{{ $service['description'] }}</p><span class="service-card-link">Khám phá <i class="bi bi-arrow-up-right"></i></span></a></div>@endforeach</div>
+    <section class="section-space home-focus-section" aria-labelledby="focus-products-title" data-aos="fade-up">
+        <div class="container">
+            <div class="section-heading home-focus-heading"><div><span class="section-eyebrow">Năng lực chuyên biệt</span><h2 id="focus-products-title" class="section-title">Giải pháp du lịch trọng tâm</h2></div><p class="section-description">Khám phá những dòng sản phẩm chủ lực được HG thiết kế theo mục tiêu chuyến đi.</p></div>
+            <div class="home-focus-grid">
+                @foreach ($featuredProducts as $product)
+                    <a class="home-focus-card" href="{{ $product['url'] }}">
+                        <div class="home-focus-card-top"><span>{{ $product['number'] }}</span><i class="bi {{ $product['icon'] }}"></i></div>
+                        <div class="home-focus-card-copy"><small>{{ $product['detail'] }}</small><h3>{{ $product['title'] }}</h3><p>{{ $product['description'] }}</p></div>
+                        <span class="home-focus-card-action" aria-hidden="true"><i class="bi bi-arrow-up-right"></i></span>
+                    </a>
+                @endforeach
+            </div>
         </div>
     </section>
 
+    <section class="section-space home-about-section" aria-labelledby="about-title" data-aos="fade-up">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="home-about-media">
+                        @if ($brandImageUrl)
+                            <img src="{{ $brandImageUrl }}" alt="Trải nghiệm hành trình cùng HG TRIP" loading="lazy">
+                        @else
+                            <div class="home-placeholder-image home-placeholder-image-tall"><i class="bi bi-image"></i></div>
+                        @endif
+                        <div class="home-about-signature"><span>HG TRIP</span><strong>See the world<br>from different angles</strong></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="home-about-copy">
+                        <span class="section-eyebrow">Về HG TRIP</span>
+                        <h2 id="about-title">{{ $brandIntroduction['title'] }}</h2>
+                        @foreach ($brandIntroduction['paragraphs'] as $paragraph)<p>{{ $paragraph }}</p>@endforeach
+                        <a class="section-more home-about-link" href="{{ route('about') }}">Khám phá câu chuyện HG TRIP <i class="bi bi-arrow-up-right"></i></a>
+                    </div>
+                    <div class="home-about-principles">
+                        @foreach ($brandIntroduction['highlights'] as $highlight)
+                            <article class="home-about-principle"><span>{{ $highlight['number'] }}</span><div><h3>{{ $highlight['title'] }}</h3><p>{{ $highlight['description'] }}</p></div></article>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-impact-section {{ $impactBackdropUrl ? 'has-impact-backdrop' : '' }}" aria-labelledby="impact-title" data-aos="fade-up" data-home-parallax>
+        @if ($impactBackdropUrl)
+            <div class="home-parallax-backdrop home-impact-backdrop" aria-hidden="true" style="--impact-image: url('{{ $impactBackdropUrl }}');"></div>
+        @endif
+        <div class="home-impact-overlay" aria-hidden="true"></div>
+        <div class="container home-impact-content"><div class="section-heading text-center mx-auto"><h2 id="impact-title" class="section-title">{{ $impactTitle }}</h2></div><div class="row g-0">@foreach ($impactStats as $stat)<div class="col-6 col-lg-3"><div class="impact-stat"><strong>{{ $stat['number'] }}</strong><span>{{ $stat['label'] }}</span></div></div>@endforeach</div></div>
+    </section>
+
     <section class="section-space home-surface-section" aria-labelledby="featured-tours-title" data-aos="fade-up">
-        <div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><h2 id="featured-tours-title" class="section-title">Tour nổi bật</h2><p class="section-description">Lựa chọn nổi bật cho những ngày nghỉ đáng nhớ, được sắp xếp chỉn chu từ điểm đến đến trải nghiệm.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả <i class="bi bi-arrow-up-right"></i></a></div>
-            <div class="row g-4">@forelse ($featuredTours as $tour)<div class="col-md-6 col-xl-4">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="col-12"><div class="home-empty-state"><i class="bi bi-map"></i><strong>Tour nổi bật đang được cập nhật</strong><span>Hành trình sẽ xuất hiện tại đây khi được đánh dấu nổi bật trong hệ thống quản trị.</span></div></div>@endforelse</div>
+        <div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><span class="section-eyebrow">Được lựa chọn nhiều</span><h2 id="featured-tours-title" class="section-title">Hành trình nổi bật</h2><p class="section-description">Những hành trình tiêu biểu đang mở bán, cân bằng giữa trải nghiệm, thời gian và chất lượng dịch vụ.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả hành trình <i class="bi bi-arrow-up-right"></i></a></div>
+            <div class="home-featured-tours-grid">@forelse ($featuredTours as $tour)<div class="home-featured-tour-item">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="home-empty-state"><i class="bi bi-map"></i><strong>Hành trình nổi bật đang được cập nhật</strong><span>Hành trình sẽ xuất hiện tại đây khi được đánh dấu nổi bật trong hệ thống quản trị.</span></div>@endforelse</div>
+        </div>
+    </section>
+
+    <section class="section-space home-services-section" aria-labelledby="services-title" data-aos="fade-up">
+        <div class="container">
+            <div class="section-heading home-services-heading"><div><span class="section-eyebrow">Dịch vụ cung cấp</span><h2 id="services-title" class="section-title">Mọi dịch vụ cần thiết cho một hành trình trọn vẹn</h2></div><div><p class="section-description">Từng hạng mục được kết nối trong một kế hoạch thống nhất, rõ đầu mối và dễ kiểm soát.</p><a class="section-more" href="{{ route('services.index') }}">Xem toàn bộ dịch vụ <i class="bi bi-arrow-up-right"></i></a></div></div>
+            <div class="home-service-list">
+                @foreach ($serviceCategories as $service)
+                    <a class="home-service-item" href="{{ url($service['url']) }}"><span class="home-service-icon"><i class="bi {{ $service['icon'] }}"></i></span><span class="home-service-copy"><strong>{{ $service['title'] }}</strong><small>{{ $service['description'] }}</small></span><i class="bi bi-arrow-up-right home-service-arrow"></i></a>
+                @endforeach
+            </div>
         </div>
     </section>
 
@@ -96,14 +154,11 @@
         @endif
         <div class="home-promo-overlay" aria-hidden="true"></div>
         <div class="container home-promo-content">
-            <div class="promo-showcase">
-                <div class="promo-showcase-copy"><span class="section-eyebrow section-eyebrow-light">Ưu đãi đặc biệt</span><h2 id="promotion-title" class="section-title">Ưu đãi đang diễn ra</h2><p>Những hành trình có chương trình tốt đang mở bán — chọn lịch khởi hành phù hợp để giữ chỗ sớm.</p><a class="btn btn-outline-light rounded-pill" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
-                <div class="promo-showcase-total"><span>Đang mở bán</span><strong>{{ count($promotionalTours) }}</strong><small>hành trình ưu đãi</small></div>
-            </div>
             @if ($promotionalTours)
-                <div class="promo-slider-heading"><div><span>Chọn hành trình</span><h3>Ưu đãi dành cho chuyến đi sắp tới</h3></div><p>Kéo để xem thêm các tour đang có ưu đãi.</p></div>
+                <div class="promo-slider-heading"><div><span>Ưu đãi đặc biệt</span><h2 id="promotion-title">Ưu đãi đang diễn ra</h2><p>Chọn lịch khởi hành phù hợp để giữ chỗ sớm.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
                 <div class="home-promo-slider-wrap"><div class="home-promo-slider swiper" data-promo-swiper aria-label="Các tour đang ưu đãi"><div class="swiper-wrapper">@foreach ($promotionalTours as $tour)<div class="swiper-slide">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@endforeach</div></div><div class="home-promo-slider-navigation" aria-label="Điều khiển tour ưu đãi"><button type="button" data-promo-prev aria-label="Ưu đãi trước"><i class="bi bi-arrow-left"></i></button><button type="button" data-promo-next aria-label="Ưu đãi tiếp theo"><i class="bi bi-arrow-right"></i></button></div></div>
             @else
+                <h2 id="promotion-title" class="visually-hidden">Ưu đãi đang diễn ra</h2>
                 <div class="home-empty-state home-empty-state-dark"><i class="bi bi-ticket-perforated"></i><strong>Ưu đãi mới đang được chuẩn bị</strong><span>Các tour có chương trình đang diễn ra sẽ được hiển thị tại đây.</span></div>
             @endif
         </div>
@@ -122,24 +177,12 @@
             <div class="home-parallax-backdrop home-custom-tour-backdrop" aria-hidden="true" style="--custom-tour-image: url('{{ $customTourBackdropUrl }}');"></div>
         @endif
         <div class="home-custom-tour-overlay" aria-hidden="true"></div>
-        <div class="container home-custom-tour-content"><div class="home-custom-tour-copy"><span class="section-eyebrow section-eyebrow-light">Hành trình của riêng bạn</span><h2 id="custom-tour-title">Thiết kế tour du lịch theo yêu cầu</h2><p>HG lắng nghe sở thích, ngân sách và nhịp điệu của riêng bạn để cùng tạo nên một hành trình thật vừa vặn.</p><a class="btn btn-brand btn-brand-gold" href="{{ url('/lien-he') }}">Nhận tư vấn miễn phí <i class="bi bi-arrow-right"></i></a></div></div>
-    </section>
-
-    <section class="section-space home-why-section" aria-labelledby="why-title" data-aos="fade-up">
-        <div class="container"><div class="row align-items-center g-5"><div class="col-lg-6"><div class="home-why-copy"><h2 id="why-title" class="section-title">Vì sao chọn HG</h2><p class="section-description">Chúng tôi tin rằng một chuyến đi tốt bắt đầu từ sự tử tế trong từng tư vấn nhỏ và sự kỹ lưỡng trong từng chi tiết.</p></div><div class="row g-3 home-why-card-grid">@foreach ($whyChoose as $item)<div class="col-sm-6"><article class="why-card"><span class="why-card-icon"><i class="bi {{ $item['icon'] }}"></i></span><h3>{{ $item['title'] }}</h3><p>{{ $item['description'] }}</p></article></div>@endforeach</div><a class="btn btn-brand mt-4" href="{{ url('/gioi-thieu') }}">Tìm hiểu về HG <i class="bi bi-arrow-right"></i></a></div><div class="col-lg-6"><div class="home-why-image">@if ($whyChooseImageUrl)<img src="{{ $whyChooseImageUrl }}" alt="Hành trình cùng HG" loading="lazy">@else<div class="home-placeholder-image home-placeholder-image-tall"><i class="bi bi-image"></i></div>@endif</div></div></div></div>
-    </section>
-
-    <section class="home-impact-section {{ $impactBackdropUrl ? 'has-impact-backdrop' : '' }}" aria-labelledby="impact-title" data-aos="fade-up" data-home-parallax>
-        @if ($impactBackdropUrl)
-            <div class="home-parallax-backdrop home-impact-backdrop" aria-hidden="true" style="--impact-image: url('{{ $impactBackdropUrl }}');"></div>
-        @endif
-        <div class="home-impact-overlay" aria-hidden="true"></div>
-        <div class="container home-impact-content"><div class="section-heading text-center mx-auto"><h2 id="impact-title" class="section-title">HG trong những con số</h2></div><div class="row g-0">@foreach ($impactStats as $stat)<div class="col-6 col-lg-3"><div class="impact-stat"><strong>{{ $stat['number'] }}</strong><span>{{ $stat['label'] }}</span></div></div>@endforeach</div></div>
+        <div class="container home-custom-tour-content"><div class="home-custom-tour-copy"><span class="section-eyebrow section-eyebrow-light">Hành trình của riêng bạn</span><h2 id="custom-tour-title">{{ $customTourContent['title'] }}</h2><p>{{ $customTourContent['description'] }}</p><a class="btn btn-brand btn-brand-gold" href="{{ route('contact') }}">Nhận tư vấn miễn phí <i class="bi bi-arrow-right"></i></a></div></div>
     </section>
 
     <section class="section-space" aria-labelledby="testimonial-title"><div class="container"><div class="section-heading text-center mx-auto"><h2 id="testimonial-title" class="section-title">Khách hàng nói gì về chúng tôi</h2></div>@if ($testimonials)<div class="row g-4">@foreach ($testimonials as $testimonial)<div class="col-md-4"><article class="testimonial-card"><div class="testimonial-card-head">@if ($testimonial['avatar_url'])<img src="{{ $testimonial['avatar_url'] }}" alt="{{ $testimonial['name'] }}" loading="lazy">@else<span class="testimonial-avatar"><i class="bi bi-person"></i></span>@endif<div><strong>{{ $testimonial['name'] }}</strong>@if ($testimonial['title'])<span>{{ $testimonial['title'] }}</span>@endif</div></div><div class="testimonial-stars" aria-label="{{ $testimonial['rating'] }} trên 5 sao">@for ($rating = 1; $rating <= 5; $rating++)<i class="bi {{ $rating <= $testimonial['rating'] ? 'bi-star-fill' : 'bi-star' }}"></i>@endfor</div><p class="testimonial-content">“{{ $testimonial['content'] }}”</p></article></div>@endforeach</div>@else<div class="home-empty-state"><i class="bi bi-chat-heart"></i><strong>Cảm nhận khách hàng đang được cập nhật</strong><span>Những câu chuyện sau hành trình sẽ xuất hiện tại đây.</span></div>@endif</div></section>
 
-    <section class="section-space home-gallery-section" aria-labelledby="gallery-title"><div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><h2 id="gallery-title" class="section-title">Khoảnh khắc cùng HG</h2><p class="section-description">Đi để nhìn thấy thế giới, và để những khoảnh khắc đẹp ở lại thật lâu.</p></div><a class="section-more" href="{{ url('/lien-he') }}">Chia sẻ ảnh của bạn <i class="bi bi-arrow-up-right"></i></a></div><div class="home-gallery-grid">@foreach ($customerGallery as $photo)<a class="home-gallery-item" href="{{ $photo['url'] }}" target="_blank" rel="noopener noreferrer"><img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy"></a>@endforeach</div></div></section>
+    <section class="section-space home-gallery-section" aria-labelledby="gallery-title"><div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><h2 id="gallery-title" class="section-title">Khoảnh khắc cùng HG</h2><p class="section-description">Đi để nhìn thấy thế giới, và để những khoảnh khắc đẹp ở lại thật lâu.</p></div><a class="section-more" href="{{ route('contact') }}">Chia sẻ ảnh của bạn <i class="bi bi-arrow-up-right"></i></a></div><div class="home-gallery-grid">@foreach ($customerGallery as $photo)<a class="home-gallery-item" href="{{ $photo['url'] }}" target="_blank" rel="noopener noreferrer"><img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy"></a>@endforeach</div></div></section>
 
     <section class="home-partners-section" aria-labelledby="partners-title"><div class="container"><div class="section-heading text-center mx-auto"><h2 id="partners-title" class="section-title">Đồng hành cùng những thương hiệu uy tín</h2></div><div class="partner-marquee" aria-label="Các đối tác">@foreach (array_merge($partners, $partners) as $partner)<span class="partner-pill"><i class="bi bi-shield-check"></i>{{ $partner }}</span>@endforeach</div></div></section>
 

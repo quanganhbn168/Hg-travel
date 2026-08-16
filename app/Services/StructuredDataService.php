@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Settings\GeneralSettings;
+use App\Data\SiteSettingsData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
@@ -16,7 +16,7 @@ class StructuredDataService
         ) ?: '{}';
     }
 
-    public function home(GeneralSettings $settings): array
+    public function home(SiteSettingsData $settings): array
     {
         $siteUrl = rtrim(url('/'), '/');
         $siteName = $settings->company_name ?: $settings->site_name ?: config('app.name', 'Du lịch');
@@ -183,6 +183,46 @@ class StructuredDataService
                 ],
                 $this->breadcrumb($breadcrumbItems + [['name' => $tour['name'], 'url' => $canonical]], $canonical.'#breadcrumb'),
                 $trip,
+            ],
+        ];
+    }
+
+    public function productLine(array $page): array
+    {
+        $canonical = url('/giai-phap/'.$page['slug']);
+        $breadcrumbItems = [
+            ['name' => 'Trang chủ', 'url' => url('/')],
+            ['name' => 'Giải pháp du lịch', 'url' => url('/#focus-products-title')],
+            ['name' => $page['name'], 'url' => $canonical],
+        ];
+        $itemListId = $canonical.'#tours';
+
+        return [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'WebPage',
+                    '@id' => $canonical.'#webpage',
+                    'name' => $page['seo_title'],
+                    'description' => $page['seo_description'],
+                    'url' => $canonical,
+                    'isPartOf' => ['@id' => rtrim(url('/'), '/').'#website'],
+                    'breadcrumb' => ['@id' => $canonical.'#breadcrumb'],
+                    'mainEntity' => ['@id' => $itemListId],
+                ],
+                $this->breadcrumb($breadcrumbItems, $canonical.'#breadcrumb'),
+                [
+                    '@type' => 'ItemList',
+                    '@id' => $itemListId,
+                    'name' => 'Hành trình thuộc '.$page['name'],
+                    'numberOfItems' => count($page['tours']),
+                    'itemListElement' => collect($page['tours'])->values()->map(fn (array $tour, int $index): array => [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'name' => $tour['name'],
+                        'url' => url('/tours/'.$tour['slug']),
+                    ])->all(),
+                ],
             ],
         ];
     }

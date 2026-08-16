@@ -55,7 +55,7 @@ class FrontendMenuService
             ->all();
 
         return $location === 'header'
-            ? $this->attachTourMenus($items)
+            ? $this->attachServiceMenus($this->attachTourMenus($items))
             : array_values(array_filter($items, fn (array $item): bool => $item['title'] !== 'Điểm đến nổi bật'));
     }
 
@@ -87,21 +87,58 @@ class FrontendMenuService
     {
         $items = $location === 'footer'
             ? [
-                ['title' => 'Tour du lịch', 'url' => url('/tours')],
-                ['title' => 'Cẩm nang du lịch', 'url' => url('/cam-nang')],
-                ['title' => 'Về chúng tôi', 'url' => url('/gioi-thieu')],
+                ['title' => 'Tour du lịch', 'url' => route('tours.index')],
+                ['title' => 'Cẩm nang du lịch', 'url' => route('posts.index')],
+                ['title' => 'Về chúng tôi', 'url' => route('about')],
             ]
             : [
                 ['title' => 'Trang chủ', 'url' => route('home')],
                 ['title' => 'Tour nước ngoài', 'url' => route('tours.index', ['scope' => 'international'])],
                 ['title' => 'Tour trong nước', 'url' => route('tours.index', ['scope' => 'domestic'])],
                 ['title' => 'Dịch vụ', 'url' => route('services.index')],
-                ['title' => 'Blog & cẩm nang', 'url' => url('/cam-nang')],
+                ['title' => 'Blog & cẩm nang', 'url' => route('posts.index')],
             ];
 
         $items = array_map(fn (array $item): array => $item + ['route_name' => null, 'target' => '_self', 'children' => []], $items);
 
-        return $location === 'header' ? $this->attachTourMenus($items) : $items;
+        return $location === 'header' ? $this->attachServiceMenus($this->attachTourMenus($items)) : $items;
+    }
+
+    /**
+     * Keep the managed top-level menu while replacing stale service anchors
+     * with the current category/detail URLs from the shared service catalog.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function attachServiceMenus(array $items): array
+    {
+        $catalog = app(TravelServiceCatalog::class);
+
+        return array_map(function (array $item) use ($catalog): array {
+            if ($item['title'] !== 'Dịch vụ') {
+                return $item;
+            }
+
+            $item['url'] = route('services.index');
+            $item['children'] = array_map(function (array $category) use ($catalog): array {
+                return [
+                    'title' => $category['label'],
+                    'url' => route('services.category', ['category' => $category['slug']]),
+                    'route_name' => null,
+                    'target' => '_self',
+                    'children' => array_map(fn (array $service): array => [
+                        'title' => $service['title'],
+                        'url' => route('services.show', ['service' => $service['slug']]),
+                        'route_name' => null,
+                        'target' => '_self',
+                        'children' => [],
+                    ], $catalog->byCategory($category['slug'])),
+                ];
+            }, $catalog->categories());
+
+            return $item;
+        }, $items);
     }
 
     /**

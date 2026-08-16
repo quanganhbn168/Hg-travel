@@ -14,13 +14,8 @@
     ];
 
     $toolbarActions = is_array($actions) && $actions !== [] ? $actions : [];
-    if ($toolbarActions === [] && $resource) {
-        $toolbarActions = [];
-        foreach (\App\Services\BulkActionService::actionsFor($resource) as $action) {
-            if (array_key_exists($action, $actionLabels)) {
-                $toolbarActions[$action] = $actionLabels[$action];
-            }
-        }
+    if ($resource) {
+        $toolbarActions = \App\Support\AdminIndexRegistry::bulkActionsFor($resource) ?: $toolbarActions;
     }
 
     if ($toolbarActions === []) {

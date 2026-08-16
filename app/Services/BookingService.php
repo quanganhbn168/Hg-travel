@@ -24,6 +24,26 @@ class BookingService
 
     public function formContext(?Booking $booking = null): array { return ['booking' => $booking ?: new Booking(['status' => 'pending', 'payment_status' => 'unpaid', 'currency' => 'VND']), 'tours' => Tour::where('is_active', true)->where('booking_open', true)->orderBy('name')->get(), 'statuses' => self::STATUSES, 'paymentStatuses' => self::PAYMENT_STATUSES]; }
 
+    public function publicFormContext(?Tour $selectedTour = null): array
+    {
+        return [
+            'tours' => Tour::query()->where('is_active', true)->where('booking_open', true)->where('status', 'published')->orderBy('name')->get(),
+            'selectedTour' => $selectedTour,
+        ];
+    }
+
+    public function createPublic(array $data): Booking
+    {
+        $tour = Tour::query()->whereKey($data['tour_id'])->where('is_active', true)->where('booking_open', true)->where('status', 'published')->firstOrFail();
+
+        return $this->create([
+            ...$data,
+            'unit_price' => $tour->starting_price,
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
+        ]);
+    }
+
     public function create(array $data): Booking
     {
         return DB::transaction(function () use ($data): Booking {

@@ -40,6 +40,7 @@
     <script src="{{ asset('vendor/adminlte4/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('vendor/dropzone/dropzone.min.js') }}"></script>
+    <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}"></script>
     @stack('js')
     @if (session('success'))

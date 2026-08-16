@@ -8,27 +8,39 @@
     'maximizable' => true,
     'resource' => null,
     'bulkActions' => [],
-    'bulkDeleteWarning' => 'Dữ liệu đã xóa không thể khôi phục.',
-    'reorderable' => false,
-    'reorderEnabled' => true,
+    'bulkDeleteWarning' => null,
+    'reorderable' => null,
+    'reorderEnabled' => null,
     'orderStart' => 1,
 ])
 
 @php
     $resource = is_string($resource) && $resource !== '' ? $resource : null;
-    $hasBulkActions = $resource !== null && \App\Services\BulkActionService::actionsFor($resource) !== [];
+    $registryActions = $resource ? \App\Support\AdminIndexRegistry::bulkActionsFor($resource) : [];
+    $bulkActions = $registryActions !== [] ? $registryActions : $bulkActions;
+    $bulkDeleteWarning = $resource
+        ? \App\Support\AdminIndexRegistry::deleteWarningFor($resource)
+        : ($bulkDeleteWarning ?: 'Dữ liệu đã xóa không thể khôi phục.');
+    $hasBulkActions = $resource !== null && $registryActions !== [];
+    $canReorderResource = $resource !== null && \App\Support\AdminIndexRegistry::orderColumnFor($resource) !== null;
+    // Registry capabilities are authoritative; legacy props remain accepted for compatibility.
+    $reorderConfigured = $canReorderResource;
+    $reorderEnabled = ! request()->hasAny(
+        $resource ? \App\Support\AdminIndexRegistry::reorderFiltersFor($resource) : []
+    );
     $canReorder = $resource !== null
-        && $reorderable
+        && $reorderConfigured
         && $reorderEnabled
-        && in_array($resource, \App\Services\ReorderService::resources(), true);
-    $bulkFormId = $resource ? 'admin-bulk-'.$resource.'-form' : null;
+        && $canReorderResource;
+    $showReorder = $resource !== null && $reorderConfigured && $canReorderResource;
+    $bulkFormId = $resource ? \App\Support\AdminIndexRegistry::formIdFor($resource) : null;
 @endphp
 
 <div
     data-admin-index
     @if($resource) data-index-resource="{{ $resource }}" @endif
     @if($hasBulkActions) data-bulk-form-id="{{ $bulkFormId }}" @endif
-    @if($reorderable) data-reorderable="1" data-reorder-enabled="{{ $canReorder ? '1' : '0' }}" data-reorder-url="{{ route('admin.common.reorder') }}" data-order-start="{{ $orderStart }}" @endif
+    @if($showReorder) data-reorderable="1" data-reorder-enabled="{{ $canReorder ? '1' : '0' }}" data-reorder-url="{{ route('admin.common.reorder') }}" data-order-start="{{ $orderStart }}" @endif
     {{ $attributes }}
 >
     <x-admin.index-header :description="$description" :create-url="$createUrl" :create-label="$createLabel" />
@@ -44,7 +56,7 @@
     <x-admin.table-card :title="$title">
         <x-slot:tools>
             @isset($actions){{ $actions }}@endisset
-            @if($reorderable)
+            @if($showReorder)
                 <button type="button" class="btn btn-default btn-sm" data-reorder-toggle @disabled(! $canReorder) aria-pressed="false">
                     <i class="bi bi-arrow-down-up me-1"></i><span data-reorder-label>Sắp xếp</span>
                 </button>

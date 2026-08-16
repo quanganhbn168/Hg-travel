@@ -3,7 +3,7 @@
 @section('title', $tour['seo_title'] ?: $tour['name'].' | '.$siteSettings->site_name)
 @section('meta_description', $tour['seo_description'] ?: $tour['summary'] ?: 'Thông tin chi tiết '.$tour['name'])
 @section('meta_keywords', 'tour '.$tour['name'].', '.$tour['category'].', tour du lịch')
-@section('canonical', url('/tours/'.$tour['slug']))
+@section('canonical', route('tours.show', ['tour' => $tour['slug']]))
 @section('body_class', 'tour-detail-page')
 
 @push('page_styles')
@@ -123,8 +123,8 @@
                         </div>
 
                         <div class="tour-showcase-actions">
-                            @if ($tour['booking_open'] && $siteLinks['phone_href'])
-                                <a class="btn btn-brand btn-lg" href="{{ $siteLinks['phone_href'] }}">Đặt tour ngay</a>
+                            @if ($tour['booking_open'])
+                                <a class="btn btn-brand btn-lg" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">Đặt tour ngay</a>
                             @elseif ($siteLinks['email'])
                                 <a class="btn btn-brand btn-lg" href="mailto:{{ $siteLinks['email'] }}?subject={{ rawurlencode('Tư vấn tour '.$tour['name']) }}">Nhận tư vấn tour</a>
                             @else
@@ -287,8 +287,8 @@
                             <span><i class="bi bi-upc-scan"></i>Mã tour: {{ $tour['code'] }}</span>
                         </div>
 
-                        @if ($tour['booking_open'] && $siteLinks['phone_href'])
-                            <a class="btn btn-brand btn-lg w-100" href="{{ $siteLinks['phone_href'] }}"><i class="bi bi-telephone me-2"></i>Đặt tour ngay</a>
+                        @if ($tour['booking_open'])
+                            <a class="btn btn-brand btn-lg w-100" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}"><i class="bi bi-calendar2-check me-2"></i>Đặt tour ngay</a>
                         @elseif ($siteLinks['email'])
                             <a class="btn btn-brand btn-lg w-100" href="mailto:{{ $siteLinks['email'] }}?subject={{ rawurlencode('Tư vấn tour '.$tour['name']) }}"><i class="bi bi-envelope me-2"></i>Nhận tư vấn tour</a>
                         @else

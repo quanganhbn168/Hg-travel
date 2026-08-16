@@ -2,8 +2,11 @@
 
 return [
     'settings' => [
-        App\Settings\GeneralSettings::class,
+        App\Settings\WebsiteSettings::class,
+        App\Settings\BusinessSettings::class,
         App\Settings\MediaSettings::class,
+        App\Settings\SeoSettings::class,
+        App\Settings\ContactSettings::class,
     ],
     'setting_class_path' => app_path('Settings'),
     'migrations_paths' => [database_path('settings')],
