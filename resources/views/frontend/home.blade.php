@@ -91,7 +91,7 @@
                             <img class="home-focus-card-image" src="{{ $type['cover_image_url'] }}" alt="{{ $type['title'] }}" loading="lazy">
                         @endif
                         <span class="home-focus-card-shade" aria-hidden="true"></span>
-                        <div class="home-focus-card-copy"><small>{{ $type['detail'] }}</small><strong>{{ $type['title'] }}</strong>@if ($type['description'])<div class="home-focus-card-description">{!! $type['description'] !!}</div>@endif</div>
+                        <div class="home-focus-card-copy"><strong>{{ $type['title'] }}</strong>@if ($type['description'])<div class="home-focus-card-description">{!! $type['description'] !!}</div>@endif</div>
                     </a>
                 @endforeach
             </div>
