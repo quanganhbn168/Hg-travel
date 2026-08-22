@@ -208,24 +208,24 @@ class HomeController extends Controller
             ->where('is_active', true)
             ->where('is_home', true)
             ->withCount(['tours' => fn (Builder $query) => $this->publishedTours($query)])
+            ->with(['tours' => fn ($query) => $this->publishedTours($query)
+                ->with(['images' => fn ($imageQuery) => $imageQuery->orderByDesc('is_cover')->orderBy('sort_order')])])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(fn (TourCategory $category, int $index): array => [
-                'number' => str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
-                'icon' => match ($category->slug) {
-                    'tour-nghi-duong' => 'bi-stars',
-                    'tour-gia-dinh' => 'bi-people',
-                    'tour-team-building' => 'bi-people-fill',
-                    'tour-thien-nhien-mao-hiem' => 'bi-signpost-split',
-                    'tour-van-hoa-trai-nghiem' => 'bi-bank',
-                    default => 'bi-compass',
-                },
-                'title' => $category->name,
-                'description' => $category->description,
-                'detail' => $category->tours_count.' hành trình',
-                'url' => route('tours.category', ['category' => $category->slug]),
-            ])
+            ->map(function (TourCategory $category): array {
+                $tourCover = $category->tours->first()?->images->first()?->path;
+
+                return [
+                    'title' => $category->name,
+                    'description' => $category->description,
+                    'detail' => $category->tours_count.' hành trình',
+                    'cover_image_url' => $this->imageUrl($category->cover_image)
+                        ?: $this->mediaUrl($category, 'cover')
+                        ?: $this->imageUrl($tourCover),
+                    'url' => route('tours.category', ['category' => $category->slug]),
+                ];
+            })
             ->values()
             ->all();
     }

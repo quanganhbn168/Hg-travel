@@ -87,9 +87,11 @@
             <div class="home-focus-grid">
                 @foreach ($tourTypes as $type)
                     <a class="home-focus-card" href="{{ $type['url'] }}">
-                        <div class="home-focus-card-top"><span>{{ $type['number'] }}</span><i class="bi {{ $type['icon'] }}"></i></div>
-                        <div class="home-focus-card-copy"><small>{{ $type['detail'] }}</small><h3>{{ $type['title'] }}</h3><p>{{ $type['description'] }}</p></div>
-                        <span class="home-focus-card-action" aria-hidden="true"><i class="bi bi-arrow-up-right"></i></span>
+                        @if ($type['cover_image_url'])
+                            <img class="home-focus-card-image" src="{{ $type['cover_image_url'] }}" alt="{{ $type['title'] }}" loading="lazy">
+                        @endif
+                        <span class="home-focus-card-shade" aria-hidden="true"></span>
+                        <div class="home-focus-card-copy"><small>{{ $type['detail'] }}</small><strong>{{ $type['title'] }}</strong>@if ($type['description'])<div class="home-focus-card-description">{!! $type['description'] !!}</div>@endif</div>
                     </a>
                 @endforeach
             </div>
