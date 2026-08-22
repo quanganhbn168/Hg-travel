@@ -7,11 +7,11 @@ use App\Http\Controllers\Admin\DestinationController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\Admin\ProductLineController;
 use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\ContactSubmissionController;
@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\ServiceCategoryController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\TourCategoryController;
 use App\Http\Controllers\Admin\TourController;
+use App\Http\Controllers\Admin\TourImportController;
+use App\Http\Controllers\Admin\TravelMomentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\AboutController;
@@ -29,7 +31,6 @@ use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use App\Http\Controllers\Admin\AboutPageController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 use App\Http\Controllers\Frontend\PostController as FrontendPostController;
-use App\Http\Controllers\Frontend\ProductLineController as FrontendProductLineController;
 use App\Http\Controllers\Frontend\ServiceController as FrontendServiceController;
 use App\Http\Controllers\Frontend\SlugController;
 use App\Http\Controllers\Frontend\TourController as FrontendTourController;
@@ -43,7 +44,6 @@ Route::get('/tours/{tour:slug}', [FrontendTourController::class, 'show'])->name(
 Route::get('/dich-vu', [FrontendServiceController::class, 'index'])->name('services.index');
 Route::get('/dich-vu/danh-muc/{category}', [FrontendServiceController::class, 'category'])->name('services.category');
 Route::get('/dich-vu/{service}', [FrontendServiceController::class, 'show'])->name('services.show');
-Route::get('/giai-phap/{productLine:slug}', [FrontendProductLineController::class, 'show'])->name('product-lines.show');
 Route::get('/dat-tour', [FrontendBookingController::class, 'create'])->name('booking.create');
 Route::post('/dat-tour', [FrontendBookingController::class, 'store'])->middleware('throttle:10,1')->name('booking.store');
 Route::get('/trang/{page:slug}', [FrontendPageController::class, 'show'])->name('pages.show');
@@ -58,7 +58,7 @@ Route::middleware('guest:admin')->prefix('admin')->name('admin.')->group(functio
 
 Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('auth:admin')->name('admin.logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin'])->group(function (): void {
+Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admin.permission'])->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('about', [AboutPageController::class, 'edit'])->name('about.edit');
     Route::put('about', [AboutPageController::class, 'update'])->name('about.update');
@@ -66,6 +66,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin'])->gro
     Route::get('media/list', [MediaController::class, 'list'])->name('media.list');
     Route::post('media/upload/temp', [MediaController::class, 'uploadTemp'])->name('media.upload.temp');
     Route::post('media/upload/editor', [MediaController::class, 'uploadEditor'])->name('media.upload.editor');
+    Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::get('settings/website', [SettingController::class, 'website'])->name('settings.website');
     Route::put('settings/website', [SettingController::class, 'updateWebsite'])->name('settings.website.update');
     Route::get('settings/business', [SettingController::class, 'business'])->name('settings.business');
@@ -76,14 +77,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin'])->gro
     Route::put('settings/seo', [SettingController::class, 'updateSeo'])->name('settings.seo.update');
     Route::get('settings/contact', [SettingController::class, 'contact'])->name('settings.contact');
     Route::put('settings/contact', [SettingController::class, 'updateContact'])->name('settings.contact.update');
+    Route::get('settings/tour', [SettingController::class, 'tour'])->name('settings.tour');
+    Route::put('settings/tour', [SettingController::class, 'updateTour'])->name('settings.tour.update');
     Route::resource('destinations', DestinationController::class)->except('show');
     Route::resource('tour-categories', TourCategoryController::class)->except('show')->parameters(['tour-categories' => 'tourCategory']);
-    Route::resource('product-lines', ProductLineController::class)->except('show')->parameters(['product-lines' => 'productLine']);
     Route::resource('service-categories', ServiceCategoryController::class)->except('show')->parameters(['service-categories' => 'serviceCategory']);
     Route::resource('services', ServiceController::class)->except('show');
     Route::post('common/bulk-action', [CommonController::class, 'bulkAction'])->name('common.bulk-action');
     Route::post('common/reorder', [CommonController::class, 'reorder'])->name('common.reorder');
+    Route::get('tours/import', [TourImportController::class, 'create'])->name('tours.import.create');
+    Route::post('tours/import/package', [TourImportController::class, 'importPackage'])->name('tours.import.package');
+    Route::post('tours/import/schedules/prepare', [TourImportController::class, 'prepareSchedules'])->name('tours.import.schedules.prepare');
+    Route::post('tours/import/schedules/confirm', [TourImportController::class, 'confirmSchedules'])->name('tours.import.schedules.confirm');
     Route::resource('tours', TourController::class)->except('show');
+    Route::resource('travel-moments', TravelMomentController::class)->except('show')->parameters(['travel-moments' => 'travelMoment']);
     Route::resource('bookings', BookingController::class)->only(['index', 'create', 'store', 'edit', 'update']);
     Route::resource('pages', PageController::class)->except('show');
     Route::resource('post-categories', PostCategoryController::class)->except('show')->parameters(['post-categories' => 'postCategory']);
@@ -103,6 +110,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin'])->gro
     Route::get('contact-submissions/{contactSubmission}/edit', [ContactSubmissionController::class, 'edit'])->name('contact-submissions.edit');
     Route::put('contact-submissions/{contactSubmission}', [ContactSubmissionController::class, 'update'])->name('contact-submissions.update');
     Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+    Route::resource('roles', RoleController::class)->except('show');
 });
 
 Route::get('/{domain}/{slug}', [SlugController::class, 'showByDomain'])

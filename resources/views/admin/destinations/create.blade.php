@@ -19,7 +19,7 @@
                     <x-input name="name" label="Tên điểm đến" required />
                     <x-input name="slug" label="Slug" required />
                     <x-textarea name="summary" label="Mô tả ngắn" rows="3" />
-                    <x-textarea name="description" label="Mô tả chi tiết" rows="8" />
+                    <x-tinymce name="description" label="Mô tả chi tiết" rows="8" />
                 </x-card>
             </div>
             <div class="col-xl-4">

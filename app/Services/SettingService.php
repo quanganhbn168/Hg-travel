@@ -6,6 +6,7 @@ use App\Settings\BusinessSettings;
 use App\Settings\ContactSettings;
 use App\Settings\MediaSettings;
 use App\Settings\SeoSettings;
+use App\Settings\TourSettings;
 use App\Settings\WebsiteSettings;
 use Spatie\LaravelSettings\Settings;
 
@@ -36,6 +37,11 @@ class SettingService
     public function contact(): ContactSettings
     {
         return $this->siteSettings->contact();
+    }
+
+    public function tour(): TourSettings
+    {
+        return $this->siteSettings->tour();
     }
 
     /** @param array<string, mixed> $data */
@@ -78,6 +84,12 @@ class SettingService
             'contact_phone', 'contact_phone_secondary', 'office_address',
             'facebook_url', 'instagram_url', 'youtube_url', 'zalo_url', 'messenger_url', 'whatsapp_url',
         ]);
+    }
+
+    /** @param array<string, mixed> $data */
+    public function updateTour(array $data): void
+    {
+        $this->save($this->tour(), $data, ['show_schedules', 'show_seat_availability', 'schedule_note']);
     }
 
     /** @param array<string, mixed> $data @param list<string> $fields */

@@ -83,11 +83,45 @@
         });
     };
 
+    const initHomeCountdowns = () => {
+        const countdowns = [...document.querySelectorAll('[data-home-countdown]')];
+        if (!countdowns.length) return;
+
+        const pad = (value) => String(value).padStart(2, '0');
+        const update = () => {
+            countdowns.forEach((countdown) => {
+                const target = Date.parse(countdown.dataset.homeCountdown || '');
+                const value = countdown.querySelector('[data-home-countdown-value]');
+
+                if (!value || Number.isNaN(target)) return;
+
+                const remaining = Math.max(0, target - Date.now());
+                const totalSeconds = Math.floor(remaining / 1000);
+                const days = Math.floor(totalSeconds / 86400);
+                const hours = Math.floor((totalSeconds % 86400) / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                countdown.classList.toggle('is-expired', remaining === 0);
+                value.textContent = remaining === 0
+                    ? 'Đang khởi hành'
+                    : days > 0
+                        ? `${days} ngày ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+                        : `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            });
+        };
+
+        update();
+        const interval = window.setInterval(update, 1000);
+        window.addEventListener('pagehide', () => window.clearInterval(interval), { once: true });
+    };
+
     const init = () => {
         activateTabs('[data-home-tab]', '[data-home-panel]');
         activateTabs('[data-destination-tab]', '[data-destination-item]');
         initHomeAos();
         initHomeParallax();
+        initHomeCountdowns();
     };
 
     if (document.readyState === 'loading') {

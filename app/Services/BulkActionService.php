@@ -17,20 +17,25 @@ class BulkActionService
 
         $statusUpdate = AdminIndexRegistry::statusUpdatesFor($resource)[$action] ?? null;
         if ($statusUpdate) {
-            $modelClass::query()->whereKey($ids)->update([
-                'status' => $statusUpdate['value'],
-            ]);
+            $attributes = $statusUpdate['attributes'] ?? ['status' => $statusUpdate['value']];
+            $modelClass::query()->whereKey($ids)->update($attributes);
 
             return $statusUpdate['message'];
         }
 
+        $query = $modelClass::query()->whereKey($ids);
+
+        if ($resource === 'destination') {
+            $query->where('is_system', false);
+        }
+
         if ($action === 'delete') {
-            $modelClass::query()->whereKey($ids)->get()->each->delete();
+            $query->get()->each->delete();
 
             return "Đã xóa các {$label} được chọn.";
         }
 
-        $modelClass::query()->whereKey($ids)->update([
+        $query->update([
             'is_active' => $action === 'activate',
         ]);
 

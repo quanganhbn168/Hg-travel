@@ -7,9 +7,12 @@ use App\Models\Destination;
 use App\Models\Promotion;
 use App\Models\Tour;
 use App\Models\TourCategory;
+use App\Models\TourSchedule;
+use App\Settings\TourSettings;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -19,6 +22,7 @@ class TourController extends Controller
     public function __construct(
         private readonly SiteSettingsService $siteSettings,
         private readonly StructuredDataService $structuredData,
+        private readonly TourSettings $tourSettings,
     ) {}
 
     public function index(Request $request): View
@@ -26,9 +30,13 @@ class TourController extends Controller
         return $this->listing($request);
     }
 
-    public function category(Request $request, TourCategory $category): View
+    public function category(Request $request, TourCategory $category): View|RedirectResponse
     {
-        abort_unless($category->is_active, 404);
+        if (! $category->is_active) {
+            return redirect()->route('tours.index', array_filter([
+                'scope' => $this->legacyCategoryScope($category->slug),
+            ]), 301);
+        }
 
         return $this->listing($request, $category);
     }
@@ -38,12 +46,14 @@ class TourController extends Controller
         abort_unless($this->isPublished($tour), 404);
 
         $tour->load([
-            'category',
-            'destination',
+            'categories',
+            'destinations',
             'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order'),
             'itineraries',
+            'sections',
             'inclusions',
             'schedules' => fn ($query) => $query
+                ->when(! $this->tourSettings->show_schedules, fn ($scheduleQuery) => $scheduleQuery->whereRaw('1 = 0'))
                 ->where('status', 'open')
                 ->whereDate('departure_date', '>=', today())
                 ->orderBy('departure_date'),
@@ -56,10 +66,10 @@ class TourController extends Controller
         $tourData = $this->detailData($tour);
         $relatedTours = $this->withNextDeparture($this->publishedQuery())
             ->whereKeyNot($tour->getKey())
-            ->when($tour->tour_category_id, fn (Builder $query) => $query->where('tour_category_id', $tour->tour_category_id))
+            ->when($tour->categories->isNotEmpty(), fn (Builder $query) => $query->whereHas('categories', fn (Builder $categoryQuery) => $categoryQuery->whereIn('tour_categories.id', $tour->categories->modelKeys())))
             ->with([
-                'category',
-                'destination',
+                'categories',
+                'destinations',
                 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order'),
                 'promotions' => fn ($query) => $this->activePromotions($query)->orderBy('discount_value'),
             ])
@@ -84,8 +94,8 @@ class TourController extends Controller
     {
         $filters = $this->filters($request);
         $query = $this->withNextDeparture($this->publishedQuery())->with([
-            'category',
-            'destination',
+            'categories',
+            'destinations',
             'images' => fn ($imageQuery) => $imageQuery->orderByDesc('is_cover')->orderBy('sort_order'),
             'promotions' => fn ($promotionQuery) => $this->activePromotions($promotionQuery)->orderBy('discount_value'),
         ]);
@@ -108,12 +118,21 @@ class TourController extends Controller
                     ->where('name', 'like', $search)
                     ->orWhere('code', 'like', $search)
                     ->orWhere('summary', 'like', $search)
-                    ->orWhereHas('destination', fn (Builder $destinationQuery) => $destinationQuery->where('name', 'like', $search));
+                    ->orWhereHas('destinations', fn (Builder $destinationQuery) => $destinationQuery->where('name', 'like', $search));
             });
         }
 
         if ($filters['destination'] !== '') {
-            $query->whereHas('destination', fn (Builder $destinationQuery) => $destinationQuery->where('slug', $filters['destination']));
+            $selectedDestination = Destination::query()
+                ->where('is_active', true)
+                ->where('slug', $filters['destination'])
+                ->first();
+
+            if ($selectedDestination) {
+                $query->whereHas('destinations', fn (Builder $destinationQuery) => $destinationQuery->whereIn('destinations.id', $this->destinationBranchIds($selectedDestination)));
+            } else {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         if ($filters['scope'] !== '') {
@@ -158,7 +177,7 @@ class TourController extends Controller
         $page = [
             'title' => $activeCategory ? 'Tour '.$activeCategory->name : ($scopeTitle ?: 'Tour du lịch'),
             'description' => $activeCategory?->seo_description ?: 'Khám phá những hành trình được tuyển chọn kỹ lưỡng, rõ lịch trình và phù hợp với cách bạn muốn tận hưởng chuyến đi.',
-            'eyebrow' => $activeCategory ? 'Danh mục tour' : 'Khám phá hành trình',
+            'eyebrow' => $activeCategory ? 'Loại hình tour' : 'Khám phá hành trình',
         ];
 
         return view('frontend.tours.index', [
@@ -234,23 +253,54 @@ class TourController extends Controller
 
     private function destinationOptions(string $scope = ''): array
     {
-        $query = Destination::query()
+        $destinations = Destination::query()
             ->where('is_active', true)
-            ->whereHas('tours', fn (Builder $tourQuery) => $this->publishedScope($tourQuery));
-
-        if ($scope !== '') {
-            $this->applyDestinationScopeToDestinations($query, $scope);
-        }
-
-        return $query
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['name', 'slug'])
-            ->map(fn (Destination $destination): array => [
-                'name' => $destination->name,
-                'slug' => $destination->slug,
-            ])
+            ->get(['id', 'parent_id', 'name', 'slug', 'sort_order']);
+
+        $publishedDestinationIds = Destination::query()
+            ->where('is_active', true)
+            ->whereHas('tours', function (Builder $tourQuery) use ($scope): void {
+                $this->publishedScope($tourQuery);
+
+                if ($scope !== '') {
+                    $this->applyDestinationScope($tourQuery, $scope);
+                }
+            })
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
             ->all();
+
+        $byId = $destinations->keyBy('id');
+        $visibleIds = [];
+
+        foreach ($publishedDestinationIds as $destinationId) {
+            $currentId = $destinationId;
+
+            while ($currentId && isset($byId[$currentId])) {
+                $visibleIds[$currentId] = true;
+                $currentId = $byId[$currentId]->parent_id;
+            }
+        }
+
+        $byParent = $destinations
+            ->filter(fn (Destination $destination): bool => isset($visibleIds[$destination->id]))
+            ->groupBy(fn (Destination $destination): string => (string) ($destination->parent_id ?? 0));
+
+        $buildOptions = function (int $parentId, int $depth = 0) use (&$buildOptions, $byParent): array {
+            return collect($byParent->get((string) $parentId, []))
+                ->flatMap(function (Destination $destination) use (&$buildOptions, $depth): array {
+                    return [[
+                        'name' => str_repeat('— ', $depth).$destination->name,
+                        'slug' => $destination->slug,
+                    ], ...$buildOptions((int) $destination->getKey(), $depth + 1)];
+                })
+                ->values()
+                ->all();
+        };
+
+        return $buildOptions(0);
     }
 
     private function categoryNavigation(string $scope = ''): array
@@ -310,7 +360,7 @@ class TourController extends Controller
 
     private function applyCategoryScope(Builder $query, TourCategory $category): void
     {
-        $query->whereIn('tour_category_id', $this->categoryBranchIds($category));
+        $query->whereHas('categories', fn (Builder $categoryQuery) => $categoryQuery->whereIn('tour_categories.id', $this->categoryBranchIds($category)));
     }
 
     private function categoryBranchIds(TourCategory $category): array
@@ -333,6 +383,19 @@ class TourController extends Controller
         return $ids;
     }
 
+    private function legacyCategoryScope(string $slug): ?string
+    {
+        if ($slug === 'tour-trong-nuoc' || str_starts_with($slug, 'tour-mien-')) {
+            return 'domestic';
+        }
+
+        if ($slug === 'tour-nuoc-ngoai' || str_starts_with($slug, 'tour-chau-') || in_array($slug, ['tour-nhat-ban', 'tour-han-quoc'], true)) {
+            return 'international';
+        }
+
+        return null;
+    }
+
     private function applyDestinationScope(Builder $query, string $scope): void
     {
         $domesticRootId = Destination::query()->where('slug', 'viet-nam')->value('id');
@@ -341,16 +404,27 @@ class TourController extends Controller
             return;
         }
 
-        $query->whereHas('destination', fn (Builder $destinationQuery) => $this->scopeDestinationQuery($destinationQuery, $scope, $domesticRootId));
+        $query->whereHas('destinations', fn (Builder $destinationQuery) => $this->scopeDestinationQuery($destinationQuery, $scope, $domesticRootId));
     }
 
-    private function applyDestinationScopeToDestinations(Builder $query, string $scope): void
+    private function destinationBranchIds(Destination $destination): array
     {
-        $domesticRootId = Destination::query()->where('slug', 'viet-nam')->value('id');
+        $ids = [(int) $destination->getKey()];
+        $parentIds = $ids;
 
-        if ($domesticRootId) {
-            $this->scopeDestinationQuery($query, $scope, $domesticRootId);
+        while ($parentIds !== []) {
+            $childIds = Destination::query()
+                ->where('is_active', true)
+                ->whereIn('parent_id', $parentIds)
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->all();
+
+            $parentIds = array_values(array_diff($childIds, $ids));
+            $ids = [...$ids, ...$parentIds];
         }
+
+        return $ids;
     }
 
     private function scopeDestinationQuery(Builder $query, string $scope, int $domesticRootId): void
@@ -376,18 +450,35 @@ class TourController extends Controller
         $price = (float) $tour->starting_price;
         $discountPercent = $this->discountPercent($price, $promotion);
 
+        $destinations = $tour->relationLoaded('destinations')
+            ? $tour->getRelation('destinations')
+            : $tour->destinations()->get();
+        $primaryDestination = $destinations->first();
+        $categories = $tour->relationLoaded('categories')
+            ? $tour->getRelation('categories')
+            : $tour->categories()->get();
+
         return [
             'id' => $tour->getKey(),
             'name' => $tour->name,
             'slug' => $tour->slug,
             'summary' => $tour->summary,
             'image_url' => $this->tourImageUrl($tour),
-            'category' => $tour->category?->name,
-            'category_slug' => $tour->category?->slug,
-            'destination' => $tour->destination?->name,
-            'destination_slug' => $tour->destination?->slug,
+            'category' => $categories->pluck('name')->filter()->implode(' · '),
+            'category_slug' => $categories->first()?->slug,
+            'categories' => $categories->map(fn (TourCategory $category): array => [
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ])->values()->all(),
+            'destination' => $destinations->pluck('name')->filter()->implode(' · '),
+            'destination_slug' => $primaryDestination?->slug,
+            'destinations' => $destinations->map(fn (Destination $destination): array => [
+                'name' => $destination->name,
+                'slug' => $destination->slug,
+            ])->values()->all(),
             'duration' => $this->durationLabel((int) $tour->duration_days, (int) $tour->duration_nights),
             'duration_days' => (int) $tour->duration_days,
+            'transport' => $tour->transport ?: 'Theo chương trình',
             'next_departure' => filled($tour->getAttribute('next_departure_date'))
                 ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
                 : null,
@@ -461,23 +552,53 @@ class TourController extends Controller
                 'meals' => $itinerary->meals,
                 'accommodation' => $itinerary->accommodation,
             ])->values()->all(),
+            'sections' => $tour->sections
+                ->filter(fn ($section): bool => filled($section->title) || filled($section->content))
+                ->map(fn ($section): array => [
+                    'type' => $section->type,
+                    'title' => $section->title,
+                    'content' => $section->content,
+                ])->values()->all(),
             'inclusions' => $tour->inclusions->map(fn ($inclusion): array => [
                 'type' => $inclusion->type,
                 'content' => $inclusion->content,
             ])->values()->all(),
-            'schedules' => $tour->schedules->map(fn ($schedule): array => [
-                'departure_date' => $schedule->departure_date?->format('d/m/Y'),
-                'return_date' => $schedule->return_date?->format('d/m/Y'),
-                'seats_left' => max(0, (int) $schedule->seats_total - (int) $schedule->seats_reserved),
-                'price_label' => $this->moneyLabel($schedule->price, $tour->currency),
-                'notes' => $schedule->notes,
-            ])->values()->all(),
+            'schedules' => $tour->schedules->map(fn (TourSchedule $schedule): array => $this->scheduleData($schedule, $tour))->values()->all(),
+            'show_seat_availability' => (bool) $this->tourSettings->show_seat_availability,
+            'schedule_note' => $this->tourSettings->schedule_note,
             'reviews' => $tour->reviews->map(fn ($review): array => [
                 'name' => $review->user?->name ?: 'Khách hàng',
                 'rating' => min(5, max(1, (int) $review->rating)),
                 'title' => $review->title,
                 'content' => $review->content,
             ])->values()->all(),
+        ];
+    }
+
+    private function scheduleData(TourSchedule $schedule, Tour $tour): array
+    {
+        $seatsLeft = $schedule->seatsLeft();
+        $regularPrice = (float) $schedule->price;
+        $salePrice = (float) $schedule->sale_price;
+        $hasSalePrice = $salePrice > 0 && ($regularPrice <= 0 || $salePrice < $regularPrice);
+        $effectivePrice = $schedule->effectivePrice();
+
+        return [
+            'id' => $schedule->getKey(),
+            'departure_date' => $schedule->departure_date?->format('d/m/Y'),
+            'departure_date_value' => $schedule->departure_date?->format('Y-m-d'),
+            'return_date' => $schedule->return_date?->format('d/m/Y'),
+            'seats_total' => (int) $schedule->seats_total > 0 ? (int) $schedule->seats_total : null,
+            'seats_reserved' => max(0, (int) $schedule->seats_reserved),
+            'seats_left' => $seatsLeft,
+            'slot_label' => $schedule->slotLabel(),
+            'slot_class' => $seatsLeft === null ? 'is-unknown' : ($seatsLeft <= 3 ? 'is-limited' : 'is-available'),
+            'is_available' => $schedule->isAvailable(),
+            'price_label' => $this->moneyLabel($effectivePrice, $tour->currency),
+            'regular_price_label' => $hasSalePrice ? $this->moneyLabel($regularPrice, $tour->currency) : null,
+            'sale_price_label' => $hasSalePrice ? $this->moneyLabel($salePrice, $tour->currency) : null,
+            'has_sale_price' => $hasSalePrice,
+            'notes' => $schedule->notes,
         ];
     }
 

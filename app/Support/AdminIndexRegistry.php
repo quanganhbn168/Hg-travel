@@ -9,7 +9,6 @@ use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\PostCategory;
-use App\Models\ProductLine;
 use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\ServiceCategory;
@@ -17,7 +16,9 @@ use App\Models\Slider;
 use App\Models\Testimonial;
 use App\Models\Tour;
 use App\Models\TourCategory;
+use App\Models\TravelMoment;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 final class AdminIndexRegistry
 {
@@ -32,15 +33,22 @@ final class AdminIndexRegistry
             'label' => 'điểm đến',
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Điểm đến đã xóa không thể khôi phục.',
+        ],
+        'travel_moment' => [
+            'model' => TravelMoment::class,
+            'table' => 'travel_moments',
+            'label' => 'khoảnh khắc',
+            'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
+            'delete_warning' => 'Khoảnh khắc đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
-            'reorder_filters' => ['search', 'status'],
+            'reorder_filters' => [],
         ],
         'tour_category' => [
             'model' => TourCategory::class,
             'table' => 'tour_categories',
             'label' => 'danh mục tour',
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
-            'delete_warning' => 'Danh mục tour đã xóa không thể khôi phục.',
+            'delete_warning' => 'Loại hình tour đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
             'reorder_filters' => ['search', 'status', 'home'],
         ],
@@ -48,7 +56,17 @@ final class AdminIndexRegistry
             'model' => Tour::class,
             'table' => 'tours',
             'label' => 'tour',
-            'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
+            'actions' => ['publish' => 'Xuất bản & nhận booking', 'unpublish' => 'Chuyển về nháp', 'delete' => 'Xóa'],
+            'status_updates' => [
+                'publish' => [
+                    'attributes' => ['status' => 'published', 'is_active' => true, 'booking_open' => true],
+                    'message' => 'Đã xuất bản và mở nhận booking cho các tour được chọn.',
+                ],
+                'unpublish' => [
+                    'attributes' => ['status' => 'draft', 'is_active' => false, 'booking_open' => false],
+                    'message' => 'Đã chuyển các tour được chọn về nháp và tắt nhận booking.',
+                ],
+            ],
             'delete_warning' => 'Dữ liệu tour đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
             'reorder_filters' => ['search', 'status', 'active'],
@@ -63,15 +81,6 @@ final class AdminIndexRegistry
                 'cancel' => ['value' => 'cancelled', 'message' => 'Đã hủy các booking được chọn.'],
                 'complete' => ['value' => 'completed', 'message' => 'Đã hoàn tất các booking được chọn.'],
             ],
-        ],
-        'product_line' => [
-            'model' => ProductLine::class,
-            'table' => 'product_lines',
-            'label' => 'giải pháp',
-            'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
-            'delete_warning' => 'Giải pháp đã xóa không thể khôi phục.',
-            'order_column' => 'sort_order',
-            'reorder_filters' => ['search', 'status', 'home'],
         ],
         'service_category' => [
             'model' => ServiceCategory::class,
@@ -158,6 +167,12 @@ final class AdminIndexRegistry
             'table' => 'users',
             'label' => 'tài khoản',
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt'],
+        ],
+        'role' => [
+            'model' => Role::class,
+            'table' => 'roles',
+            'label' => 'vai trò',
+            'actions' => [],
         ],
     ];
 

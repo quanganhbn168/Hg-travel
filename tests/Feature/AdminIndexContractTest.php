@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Support\AdminIndexRegistry;
+use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -67,5 +68,22 @@ class AdminIndexContractTest extends TestCase
 
         $this->assertStringNotContainsString('const RESOURCES', file_get_contents(app_path('Services/BulkActionService.php')));
         $this->assertStringNotContainsString('const RESOURCES', file_get_contents(app_path('Services/ReorderService.php')));
+    }
+
+    #[Test]
+    public function sidebar_items_have_real_routes_and_no_placeholder_links(): void
+    {
+        foreach (config('sidebar.menu', []) as $item) {
+            if (($item['type'] ?? 'link') === 'header') {
+                continue;
+            }
+
+            $this->assertTrue(
+                Route::has($item['route'] ?? ''),
+                "Sidebar item must use a registered route: {$item['label']}",
+            );
+        }
+
+        $this->assertStringNotContainsString('href="#"', file_get_contents(resource_path('views/admin/partials/sidebar.blade.php')));
     }
 }

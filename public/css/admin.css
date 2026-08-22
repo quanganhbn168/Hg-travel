@@ -36,37 +36,22 @@
     .admin-index-header { align-items: stretch; flex-direction: column; }
     .admin-index-header .btn { width: 100%; }
 }
-/* Settings section navigation */
-.admin-settings-nav {
-    display: flex;
-    gap: .5rem;
-    padding: .5rem;
-    overflow-x: auto;
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: .5rem;
-}
+/* Settings workspace follows AdminLTE cards and nav-pills. */
+.admin-settings-sidebar { position: sticky; top: 1rem; }
+.admin-settings-nav__item { display: flex; gap: .6rem; align-items: flex-start; padding: .65rem .75rem; }
+.admin-settings-nav__item-icon { width: 1.1rem; flex: 0 0 1.1rem; text-align: center; }
+.admin-settings-nav__item-copy { min-width: 0; }
+.admin-settings-nav__item-copy strong { font-size: .875rem; line-height: 1.2; }
+.admin-settings-nav__item-copy small { margin-top: .15rem; color: var(--bs-secondary-color); font-size: .72rem; line-height: 1.25; }
+.admin-settings-nav__item.active .admin-settings-nav__item-copy small,
+.admin-settings-nav__item.active .admin-settings-nav__item-arrow { color: rgba(255, 255, 255, .78); }
+.admin-settings-nav__item-arrow { color: var(--bs-secondary-color); font-size: .7rem; }
+.admin-settings-content { min-width: 0; }
+.admin-settings-content > .card > .card-body > form > .row { --bs-gutter-y: 1rem; }
+.admin-settings-content > .card > .card-body > form .card { box-shadow: none; }
 
-.admin-settings-nav__item {
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    flex: 0 0 auto;
-    padding: .55rem .8rem;
-    color: var(--bs-body-color);
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: .4rem;
-}
-
-.admin-settings-nav__item:hover {
-    color: var(--bs-primary, #0d6efd);
-    background: var(--bs-tertiary-bg);
-}
-
-.admin-settings-nav__item.is-active {
-    color: #fff;
-    background: var(--bs-primary, #0d6efd);
+@media (max-width: 991.98px) {
+    .admin-settings-sidebar { position: static; }
 }
 
 .admin-product-thumb {

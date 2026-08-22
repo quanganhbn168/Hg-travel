@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactSubmission;
-use App\Services\ProductLineService;
 use App\Services\TravelServiceCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,10 +11,10 @@ use Illuminate\View\View;
 
 class ContactController extends Controller
 {
-    public function create(TravelServiceCatalog $serviceCatalog, ProductLineService $productLineService): View
+    public function create(TravelServiceCatalog $serviceCatalog): View
     {
         return view('frontend.contact', [
-            'contactSubjects' => collect($productLineService->contactSubjects())
+            'contactSubjects' => collect(['Tư vấn tour'])
                 ->merge($serviceCatalog->contactSubjects())
                 ->unique()
                 ->values()

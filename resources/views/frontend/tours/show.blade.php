@@ -24,7 +24,7 @@
 @endsection
 
 @section('breadcrumb')
-    <nav aria-label="Breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li><li class="breadcrumb-item"><a href="{{ route('tours.index') }}">Tour du lịch</a></li>@if ($tour['category'])<li class="breadcrumb-item"><a href="{{ route('tours.category', ['category' => $tour['category_slug']]) }}">{{ $tour['category'] }}</a></li>@endif<li class="breadcrumb-item active" aria-current="page">{{ $tour['name'] }}</li></ol></nav>
+                    <nav aria-label="Breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li><li class="breadcrumb-item"><a href="{{ route('tours.index') }}">Tour du lịch</a></li>@if ($tour['category'])<li class="breadcrumb-item"><a href="{{ route('tours.category', ['category' => $tour['category_slug']]) }}">{{ $tour['category'] }}</a></li>@endif<li class="breadcrumb-item active" aria-current="page">{{ $tour['name'] }}</li></ol></nav>
 @endsection
 
 @section('content')
@@ -124,11 +124,9 @@
 
                         <div class="tour-showcase-actions">
                             @if ($tour['booking_open'])
-                                <a class="btn btn-brand btn-lg" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">Đặt tour ngay</a>
-                            @elseif ($siteLinks['email'])
-                                <a class="btn btn-brand btn-lg" href="mailto:{{ $siteLinks['email'] }}?subject={{ rawurlencode('Tư vấn tour '.$tour['name']) }}">Nhận tư vấn tour</a>
+                                <a class="btn btn-brand btn-lg" href="#tour-booking-modal" data-bs-toggle="modal" data-bs-target="#tour-booking-modal">Đăng ký & giữ chỗ</a>
                             @else
-                                <a class="btn btn-brand btn-lg" href="{{ route('contact') }}">Liên hệ tư vấn</a>
+                                <span class="btn btn-outline-secondary btn-lg disabled" aria-disabled="true">Tạm ngừng nhận booking</span>
                             @endif
                             @if ($tour['schedules'])
                                 <a class="tour-showcase-calendar" href="#lich-khoi-hanh" aria-label="Xem lịch khởi hành"><i class="bi bi-calendar3"></i></a>
@@ -148,7 +146,7 @@
                 @if ($tour['itineraries'])<a href="#lich-trinh">Lịch trình</a>@endif
                 @if ($tour['inclusions'])<a href="#dich-vu">Dịch vụ</a>@endif
                 @if ($tour['reviews'])<a href="#danh-gia">Đánh giá</a>@endif
-                <a class="tour-detail-navigation-cta" href="#tour-booking">Đặt tour</a>
+                @if ($tour['booking_open'])<a class="tour-detail-navigation-cta" href="#tour-booking-modal" data-bs-toggle="modal" data-bs-target="#tour-booking-modal">Đặt tour</a>@endif
             </div>
         </div>
     </nav>
@@ -176,22 +174,20 @@
                                     <span class="section-eyebrow">Giá tour</span>
                                     <h2>Lịch khởi hành</h2>
                                 </div>
-                                <div class="tour-departure-table-wrap">
-                                    <table class="tour-departure-table">
-                                        <thead><tr><th>Ngày khởi hành</th><th>Ngày về</th><th>Giá từ / khách</th><th>Chỗ còn</th></tr></thead>
-                                        <tbody>
-                                            @foreach ($tour['schedules'] as $schedule)
-                                                <tr>
-                                                    <td><strong>{{ $schedule['departure_date'] }}</strong></td>
-                                                    <td>{{ $schedule['return_date'] ?: 'Đang cập nhật' }}</td>
-                                                    <td><strong class="tour-departure-price">{{ $schedule['price_label'] }}</strong></td>
-                                                    <td>{{ $schedule['seats_left'] }} chỗ</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <p class="tour-departure-note mb-0">Giá và lịch được cập nhật theo từng đợt khởi hành.</p>
+                                <x-frontend.tour-schedule-picker
+                                    :schedules="$tour['schedules']"
+                                    :booking-open="$tour['booking_open']"
+                                    :show-seat-availability="$tour['show_seat_availability']"
+                                    :note="$tour['schedule_note']"
+                                />
+                            </section>
+                        @endif
+
+                        @if ($tour['booking_open'])
+                            <x-frontend.tour-booking-form :tour="$tour" />
+                        @else
+                            <section class="tour-detail-section tour-booking-form-section" id="tour-booking-form">
+                                <div class="tour-detail-section-heading mb-0"><span class="section-eyebrow">Đăng ký tour</span><h2>Tour đang tạm ngừng nhận booking</h2><p>HG sẽ mở lại biểu mẫu khi có lịch khởi hành phù hợp.</p></div>
                             </section>
                         @endif
 
@@ -211,7 +207,7 @@
                                             </summary>
                                             <div class="tour-itinerary-content">
                                                 @if ($itinerary['description'])
-                                                    <p>{{ $itinerary['description'] }}</p>
+                                                    <div class="tour-rich-text">{!! $itinerary['description'] !!}</div>
                                                 @endif
                                                 @if ($itinerary['meals'] || $itinerary['accommodation'])
                                                     <div class="tour-itinerary-meta">
@@ -224,6 +220,17 @@
                                     @endforeach
                                 </div>
                             </section>
+                        @endif
+
+                        @if ($tour['sections'])
+                            @foreach ($tour['sections'] as $section)
+                                <section class="tour-detail-section">
+                                    <div class="tour-detail-section-heading">
+                                        <h2>{{ $section['title'] ?: 'Thông tin hành trình' }}</h2>
+                                    </div>
+                                    @if ($section['content'])<div class="tour-rich-text">{!! $section['content'] !!}</div>@endif
+                                </section>
+                            @endforeach
                         @endif
 
                         @if ($tour['inclusions'])
@@ -288,11 +295,9 @@
                         </div>
 
                         @if ($tour['booking_open'])
-                            <a class="btn btn-brand btn-lg w-100" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}"><i class="bi bi-calendar2-check me-2"></i>Đặt tour ngay</a>
-                        @elseif ($siteLinks['email'])
-                            <a class="btn btn-brand btn-lg w-100" href="mailto:{{ $siteLinks['email'] }}?subject={{ rawurlencode('Tư vấn tour '.$tour['name']) }}"><i class="bi bi-envelope me-2"></i>Nhận tư vấn tour</a>
+                            <a class="btn btn-brand btn-lg w-100" href="#tour-booking-modal" data-bs-toggle="modal" data-bs-target="#tour-booking-modal"><i class="bi bi-calendar2-check me-2"></i>Đăng ký & giữ chỗ</a>
                         @else
-                            <a class="btn btn-brand btn-lg w-100" href="{{ route('tours.index') }}">Xem các tour khác</a>
+                            <span class="btn btn-outline-secondary btn-lg w-100 disabled" aria-disabled="true">Tạm ngừng nhận booking</span>
                         @endif
                         <a class="btn btn-link text-muted w-100 mt-2" href="{{ route('tours.index') }}"><i class="bi bi-arrow-left me-1"></i>Quay lại danh sách tour</a>
                     </div>

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Destination;
 use App\Models\Menu;
 use App\Models\MenuItem;
-use App\Models\TourCategory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -142,8 +141,8 @@ class FrontendMenuService
     }
 
     /**
-     * Build a three-level tour menu from the curated category roots and the
-     * actual destinations that currently have published tours.
+     * Build a three-level tour menu from destination groups and the actual
+     * destinations that currently have published tours.
      *
      * @param array<int, array<string, mixed>> $items
      * @return array<int, array<string, mixed>>
@@ -153,25 +152,18 @@ class FrontendMenuService
         $definitions = [
             'Tour nước ngoài' => [
                 'scope' => 'international',
-                'categories' => ['tour-chau-a', 'tour-chau-au', 'tour-chau-uc', 'tour-chau-my', 'tour-chau-phi'],
+                'destinations' => ['chau-a', 'chau-au', 'chau-uc', 'chau-my', 'chau-phi'],
             ],
             'Tour trong nước' => [
                 'scope' => 'domestic',
-                'categories' => ['tour-mien-bac', 'tour-mien-trung', 'tour-mien-nam', 'tour-mien-tay'],
+                'destinations' => ['mien-bac', 'mien-trung', 'mien-nam', 'mien-tay'],
             ],
         ];
 
-        $categorySlugs = collect($definitions)->pluck('categories')->flatten()->all();
-        $categories = TourCategory::query()
-            ->whereIn('slug', $categorySlugs)
+        $destinationRoots = Destination::query()
+            ->whereIn('slug', collect($definitions)->pluck('destinations')->flatten()->all())
             ->where('is_active', true)
             ->get(['id', 'name', 'slug'])
-            ->keyBy('slug');
-
-        $destinationRoots = Destination::query()
-            ->whereIn('slug', collect($categorySlugs)->map(fn (string $slug): string => Str::after($slug, 'tour-'))->all())
-            ->where('is_active', true)
-            ->get(['id', 'slug'])
             ->keyBy('slug');
 
         $publishedDestinations = Destination::query()
@@ -187,20 +179,19 @@ class FrontendMenuService
             ->get(['id', 'parent_id', 'name', 'slug'])
             ->groupBy('parent_id');
 
-        return array_map(function (array $item) use ($definitions, $categories, $destinationRoots, $publishedDestinations): array {
+        return array_map(function (array $item) use ($definitions, $destinationRoots, $publishedDestinations): array {
             if (! isset($definitions[$item['title']])) {
                 return $item;
             }
 
             $definition = $definitions[$item['title']];
             $item['url'] = route('tours.index', ['scope' => $definition['scope']]);
-            $item['children'] = collect($definition['categories'])->map(function (string $categorySlug) use ($categories, $destinationRoots, $publishedDestinations): array {
-                $category = $categories->get($categorySlug);
-                $destinationRoot = $destinationRoots->get(Str::after($categorySlug, 'tour-'));
+            $item['children'] = collect($definition['destinations'])->map(function (string $destinationSlug) use ($destinationRoots, $publishedDestinations): array {
+                $destinationRoot = $destinationRoots->get($destinationSlug);
 
                 return [
-                    'title' => $category?->name ?: Str::headline(Str::after($categorySlug, 'tour-')),
-                    'url' => $category ? route('tours.index', ['category' => $category->slug]) : route('tours.index'),
+                    'title' => $destinationRoot?->name ?: Str::headline($destinationSlug),
+                    'url' => $destinationRoot ? route('tours.index', ['destination' => $destinationRoot->slug]) : route('tours.index'),
                     'route_name' => null,
                     'target' => '_self',
                     'children' => collect($destinationRoot ? $publishedDestinations->get($destinationRoot->id, collect()) : [])

@@ -29,10 +29,10 @@ class ServiceCatalogSeeder extends Seeder
             ],
             [
                 'slug' => 'doanh-nghiep-su-kien',
-                'name' => 'Doanh nghiệp & sự kiện',
+                'name' => 'MICE & sự kiện',
                 'kicker' => '03 · Đi cùng mục tiêu tổ chức',
                 'icon' => 'bi-buildings',
-                'description' => 'Kết nối du lịch, hội nghị và hoạt động gắn kết trong một kế hoạch thống nhất cho doanh nghiệp.',
+                'description' => 'Kết nối du lịch, hội nghị, khen thưởng, hội thảo và hoạt động gắn kết trong một kế hoạch thống nhất cho doanh nghiệp.',
                 'sort_order' => 3,
             ],
         ]);
@@ -52,6 +52,7 @@ class ServiceCatalogSeeder extends Seeder
             ['slug' => 'dich-vu-san-bay', 'category' => 'tai-diem-den', 'icon' => 'bi-airplane', 'name' => 'Dịch vụ sân bay', 'description' => 'Đón tiễn, hỗ trợ thủ tục, phòng chờ và dịch vụ ưu tiên theo nhu cầu.', 'intro' => 'Các dịch vụ tại sân bay được lựa chọn theo từng hành trình, giúp khách hàng tiết kiệm thời gian và chủ động hơn tại điểm khởi hành cũng như điểm đến.', 'benefits' => ['Đón tiễn và hỗ trợ thủ tục', 'Tư vấn phòng chờ và dịch vụ ưu tiên', 'Kết nối cùng chuyến bay và phương tiện đưa đón']],
             ['slug' => 'huong-dan-vien', 'category' => 'tai-diem-den', 'icon' => 'bi-person-badge', 'name' => 'Hướng dẫn viên', 'description' => 'Kết nối hướng dẫn viên chuyên nghiệp, am hiểu điểm đến, văn hóa và lịch sử địa phương.', 'intro' => 'HG bố trí hướng dẫn viên theo thị trường, ngôn ngữ và đặc điểm đoàn để mỗi trải nghiệm tại điểm đến rõ ràng, gần gũi và giàu thông tin hơn.', 'benefits' => ['Phù hợp thị trường và ngôn ngữ', 'Am hiểu văn hóa, lịch sử địa phương', 'Phối hợp chặt chẽ cùng bộ phận điều hành']],
             ['slug' => 'to-chuc-su-kien', 'category' => 'doanh-nghiep-su-kien', 'icon' => 'bi-calendar-event', 'name' => 'Tổ chức sự kiện', 'description' => 'Triển khai hội nghị, hội thảo, tiệc tối và hoạt động gắn kết kết hợp cùng chuyến đi.', 'intro' => 'Từ ý tưởng đến vận hành tại điểm đến, HG phối hợp các hạng mục sự kiện và du lịch trong một kế hoạch thống nhất, phù hợp mục tiêu của doanh nghiệp.', 'benefits' => ['Xây dựng kịch bản theo mục tiêu chương trình', 'Điều phối địa điểm, lưu trú và di chuyển', 'Một đầu mối theo sát toàn bộ hoạt động']],
+            ['slug' => 'mice-tron-goi', 'category' => 'doanh-nghiep-su-kien', 'icon' => 'bi-people', 'name' => 'MICE trọn gói', 'description' => 'Thiết kế chương trình hội họp, khen thưởng, hội nghị và triển lãm kết hợp du lịch.', 'intro' => 'HG xây dựng phương án MICE theo mục tiêu, quy mô và ngân sách của doanh nghiệp, từ địa điểm, lưu trú, di chuyển đến nội dung gắn kết tại điểm đến.', 'benefits' => ['Tư vấn concept và kịch bản chương trình', 'Kết hợp tour, hội nghị, gala và team building', 'Điều phối một đầu mối xuyên suốt']],
         ] as $sortOrder => $service) {
             Service::updateOrCreate(['slug' => $service['slug']], [
                 'service_category_id' => $categoryModels[$service['category']]->id,

@@ -19,6 +19,12 @@
     resource="tour"
     :order-start="$tours->firstItem() ?? 1"
 >
+    <x-slot:actions>
+        <a href="{{ route('admin.tours.import.create') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-file-earmark-arrow-up me-1"></i>Nhập Excel / ZIP
+        </a>
+    </x-slot:actions>
+
     <x-slot:filters>
         <form action="{{ route('admin.tours.index') }}" method="GET" class="row g-3 align-items-end">
             <div class="col-lg-5">
@@ -79,12 +85,17 @@
                                 <span class="d-block">{{ $tour->name }}</span>
                             </a>
                         </td>
-                        <td>{{ $tour->category?->name ?? '—' }}</td>
-                        <td>{{ $tour->destination?->name ?? '—' }}</td>
+                        <td>{{ $tour->categories->pluck('name')->join(' · ') ?: '—' }}</td>
+                        <td>{{ $tour->destinations->pluck('name')->join(' · ') ?: '—' }}</td>
                         <td>{{ $tour->duration_days }} ngày / {{ $tour->duration_nights }} đêm</td>
                         <td class="text-nowrap">{{ number_format($tour->starting_price, 0, ',', '.') }} ₫</td>
                         <td>
-                            <span class="badge text-bg-{{ $tour->is_active ? 'success' : 'secondary' }}">{{ $tour->status }}</span>
+                            @php($status = [
+                                'draft' => ['label' => 'Nháp', 'class' => 'secondary'],
+                                'published' => ['label' => 'Đã xuất bản', 'class' => 'success'],
+                                'archived' => ['label' => 'Lưu trữ', 'class' => 'dark'],
+                            ][$tour->status] ?? ['label' => $tour->status, 'class' => 'secondary'])
+                            <span class="badge text-bg-{{ $status['class'] }}">{{ $status['label'] }}</span>
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">

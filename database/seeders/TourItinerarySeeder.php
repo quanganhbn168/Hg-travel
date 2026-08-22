@@ -10,7 +10,7 @@ class TourItinerarySeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (Tour::query()->where('status', 'published')->with('destination')->get() as $tour) {
+        foreach (Tour::query()->where('status', 'published')->with('destinations')->get() as $tour) {
             $totalDays = max(1, (int) $tour->duration_days);
 
             foreach (range(1, $totalDays) as $day) {
@@ -20,7 +20,7 @@ class TourItinerarySeeder extends Seeder
                 TourItinerary::updateOrCreate(['tour_id' => $tour->id, 'day_number' => $day], [
                     'title' => $isFirstDay
                         ? 'Khởi hành · nhận phòng'
-                        : ($isLastDay ? 'Tạm biệt hành trình · trở về' : 'Khám phá '.($tour->destination?->name ?: 'điểm đến')),
+                        : ($isLastDay ? 'Tạm biệt hành trình · trở về' : 'Khám phá '.($tour->destinations->pluck('name')->first() ?: 'điểm đến')),
                     'description' => $isFirstDay
                         ? 'Đoàn tập trung, di chuyển theo chương trình, nhận phòng và nghỉ ngơi trước hoạt động buổi tối.'
                         : ($isLastDay
@@ -31,6 +31,8 @@ class TourItinerarySeeder extends Seeder
                     'sort_order' => $day,
                 ]);
             }
+
+            $tour->itineraries()->where('day_number', '>', $totalDays)->delete();
         }
     }
 }

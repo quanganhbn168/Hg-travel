@@ -7,6 +7,7 @@ return [
         App\Settings\MediaSettings::class,
         App\Settings\SeoSettings::class,
         App\Settings\ContactSettings::class,
+        App\Settings\TourSettings::class,
     ],
     'setting_class_path' => app_path('Settings'),
     'migrations_paths' => [database_path('settings')],

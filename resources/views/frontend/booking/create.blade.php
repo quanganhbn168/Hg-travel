@@ -39,16 +39,31 @@
                         @endif
 
                         @if ($tours->isEmpty())
-                            <div class="alert alert-info mb-0">Hiện chưa có tour mở booking. Anh/chị có thể <a href="{{ route('contact') }}">gửi yêu cầu tư vấn</a> để HG hỗ trợ.</div>
+                            <div class="alert alert-info mb-0">Hiện chưa có tour mở booking. HG sẽ mở biểu mẫu ngay khi có lịch phù hợp.</div>
                         @else
                             <form action="{{ route('booking.store') }}" method="POST" novalidate>
                                 @csrf
+                                <input type="hidden" name="source" value="booking_page">
                                 <div class="row g-3">
                                     <div class="col-md-6"><label class="form-label" for="booking-name">Họ và tên *</label><input id="booking-name" class="form-control @error('customer_name') is-invalid @enderror" name="customer_name" value="{{ old('customer_name') }}" required>@error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                     <div class="col-md-6"><label class="form-label" for="booking-phone">Số điện thoại *</label><input id="booking-phone" class="form-control @error('customer_phone') is-invalid @enderror" name="customer_phone" value="{{ old('customer_phone') }}" inputmode="tel" required>@error('customer_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                     <div class="col-md-6"><label class="form-label" for="booking-email">Email *</label><input id="booking-email" type="email" class="form-control @error('customer_email') is-invalid @enderror" name="customer_email" value="{{ old('customer_email') }}" required>@error('customer_email')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                     <div class="col-md-6"><label class="form-label" for="booking-tour">Hành trình *</label><select id="booking-tour" class="form-select @error('tour_id') is-invalid @enderror" name="tour_id" required><option value="">Chọn tour</option>@foreach ($tours as $tour)<option value="{{ $tour->id }}" @selected((string) old('tour_id', $selectedTour?->id) === (string) $tour->id)>{{ $tour->name }} — từ {{ number_format((float) $tour->starting_price, 0, ',', '.') }} {{ $tour->currency }}</option>@endforeach</select>@error('tour_id')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
-                                    <div class="col-md-6"><label class="form-label" for="booking-date">Ngày khởi hành dự kiến</label><input id="booking-date" type="date" class="form-control @error('departure_date') is-invalid @enderror" name="departure_date" value="{{ old('departure_date') }}">@error('departure_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    @if ($selectedSchedule)
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="booking-selected-schedule">Lịch khởi hành đã chọn</label>
+                                            <div id="booking-selected-schedule" class="booking-selected-schedule">
+                                                <strong>{{ $selectedSchedule->departure_date?->format('d/m/Y') }}</strong>
+                                                <span>{{ $selectedSchedule->return_date?->format('d/m/Y') ?: 'Ngày về đang cập nhật' }}</span>
+                                                <small><i class="bi bi-people me-1"></i>{{ $selectedSchedule->slotLabel() }}</small>
+                                            </div>
+                                            <input type="hidden" name="tour_schedule_id" value="{{ $selectedSchedule->getKey() }}">
+                                            <input type="hidden" name="departure_date" value="{{ $selectedSchedule->departure_date?->format('Y-m-d') }}">
+                                            @error('tour_schedule_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                        </div>
+                                    @else
+                                        <div class="col-md-6"><label class="form-label" for="booking-date">Ngày khởi hành dự kiến</label><input id="booking-date" type="date" class="form-control @error('departure_date') is-invalid @enderror" name="departure_date" value="{{ old('departure_date') }}">@error('departure_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                                    @endif
                                     <div class="col-md-3"><label class="form-label" for="booking-adults">Người lớn *</label><input id="booking-adults" type="number" min="1" max="100" class="form-control @error('adults') is-invalid @enderror" name="adults" value="{{ old('adults', 1) }}" required>@error('adults')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                     <div class="col-md-3"><label class="form-label" for="booking-children">Trẻ em</label><input id="booking-children" type="number" min="0" max="100" class="form-control @error('children') is-invalid @enderror" name="children" value="{{ old('children', 0) }}">@error('children')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                                     <div class="col-12"><label class="form-label" for="booking-address">Địa chỉ</label><input id="booking-address" class="form-control" name="customer_address" value="{{ old('customer_address') }}"></div>

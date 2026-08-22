@@ -12,7 +12,7 @@ class EnsureAdminAccess
     {
         $user = $request->user('admin');
 
-        if (! $user || ! $user->is_active || ! $user->hasRole('admin')) {
+        if (! $user || ! $user->is_active || ! $user->roles()->exists()) {
             abort(403, 'Bạn không có quyền truy cập khu vực quản trị.');
         }
 

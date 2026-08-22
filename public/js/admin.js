@@ -171,9 +171,13 @@ const initTomSelect = () => {
         const treeOrder = select.getAttribute('data-tom-select-sort') === 'tree';
 
         new TomSelect(select, {
+            plugins: select.multiple ? {
+                remove_button: { title: 'Xóa lựa chọn' },
+            } : {},
             placeholder: select.getAttribute('data-placeholder') || null,
             allowEmptyOption: true,
             create: allowCreate,
+            closeAfterSelect: !select.multiple,
             sortField: treeOrder
                 ? [{ field: '$order', direction: 'asc' }]
                 : { field: 'text', direction: 'asc' },

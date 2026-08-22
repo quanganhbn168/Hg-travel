@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') | {{ config('app.name', 'Du lịch') }}</title>
+    <link rel="icon" href="{{ $adminFavicon }}">
+    <link rel="shortcut icon" href="{{ $adminFavicon }}">
     <link rel="stylesheet" href="{{ asset('vendor/overlayscrollbars/overlayscrollbars.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte4/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/tom-select/css/tom-select.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/dropzone.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
     @stack('css')
@@ -41,6 +44,7 @@
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('vendor/dropzone/dropzone.min.js') }}"></script>
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
+    <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}"></script>
     @stack('js')
     @if (session('success'))

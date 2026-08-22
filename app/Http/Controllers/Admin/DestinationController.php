@@ -37,11 +37,14 @@ class DestinationController extends Controller
 
     public function edit(Destination $destination): View
     {
+        abort_if($destination->is_system, 404);
+
         return view('admin.destinations.edit', $this->destinationService->formContext($destination));
     }
 
     public function update(UpdateDestinationRequest $request, Destination $destination): RedirectResponse
     {
+        abort_if($destination->is_system, 404);
         $this->destinationService->update($destination, $request->validated());
 
         return back()->with('success', 'Đã cập nhật điểm đến.');
@@ -49,6 +52,7 @@ class DestinationController extends Controller
 
     public function destroy(Destination $destination): RedirectResponse
     {
+        abort_if($destination->is_system, 404);
         $this->destinationService->delete($destination);
 
         return back()->with('success', 'Đã xóa điểm đến.');

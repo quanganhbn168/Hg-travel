@@ -10,8 +10,9 @@ use App\Models\SiteAsset;
 use App\Models\Slider;
 use App\Models\Testimonial;
 use App\Models\Tour;
+use App\Models\TourCategory;
+use App\Models\TravelMoment;
 use App\Services\SiteSettingsService;
-use App\Services\ProductLineService;
 use App\Services\StructuredDataService;
 use App\Services\TravelServiceCatalog;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +22,7 @@ use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __invoke(SiteSettingsService $siteSettings, StructuredDataService $structuredData, ProductLineService $productLineService, TravelServiceCatalog $serviceCatalog): View
+    public function __invoke(SiteSettingsService $siteSettings, StructuredDataService $structuredData, TravelServiceCatalog $serviceCatalog): View
     {
         $settings = $siteSettings->general();
         $mediaSettings = $siteSettings->media();
@@ -53,6 +54,7 @@ class HomeController extends Controller
         ];
 
         $featuredDestinations = $this->destinations();
+        $tourTypes = $this->tourTypes();
         $featuredTours = $this->featuredTours();
         $promotionalTours = $this->promotionalTours();
         $customerGallery = $this->customerGallery();
@@ -81,7 +83,7 @@ class HomeController extends Controller
             'aboutImageUrl' => $aboutImageUrl,
             'brandImageUrl' => $brandImageUrl,
             'brandIntroduction' => $this->brandIntroduction($websiteSettings),
-            'featuredProducts' => $productLineService->homeCards(),
+            'tourTypes' => $tourTypes,
             'serviceCategories' => $serviceCatalog->homeCards(),
             'featuredTours' => $featuredTours,
             'promotionalTours' => $promotionalTours,
@@ -159,14 +161,24 @@ class HomeController extends Controller
 
     private function customerGallery(): array
     {
-        return [
-            ['url' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khách hàng tận hưởng biển xanh'],
-            ['url' => 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khách hàng khám phá núi rừng'],
-            ['url' => 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khách hàng trải nghiệm phố cổ'],
-            ['url' => 'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khách hàng trên hành trình khám phá'],
-            ['url' => 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khách hàng tại điểm đến châu Âu'],
-            ['url' => 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=85', 'alt' => 'Khoảnh khắc đáng nhớ của khách hàng'],
-        ];
+        return TravelMoment::query()
+            ->where('is_active', true)
+            ->whereHas('group', fn (Builder $query) => $query->where('is_active', true))
+            ->with('group')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (TravelMoment $moment): array => [
+                'url' => $this->imageUrl($moment->image_url),
+                'alt' => $moment->alt_text ?: $moment->title,
+                'title' => $moment->title,
+                'caption' => $moment->caption,
+                'group_slug' => $moment->group->slug,
+                'group_name' => $moment->group->name,
+            ])
+            ->filter(fn (array $moment): bool => filled($moment['url']))
+            ->values()
+            ->all();
     }
 
     private function partners(\App\Settings\WebsiteSettings $settings): array
@@ -182,7 +194,7 @@ class HomeController extends Controller
     {
         return $this->withNextDeparture($this->publishedTours())
             ->where('is_featured', true)
-            ->with(['destination', 'category', 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order')])
+            ->with(['destinations', 'categories', 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->limit(3)
             ->get()
@@ -190,17 +202,46 @@ class HomeController extends Controller
             ->all();
     }
 
+    private function tourTypes(): array
+    {
+        return TourCategory::query()
+            ->where('is_active', true)
+            ->whereHas('tours', fn (Builder $query) => $this->publishedTours($query))
+            ->withCount(['tours' => fn (Builder $query) => $this->publishedTours($query)])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (TourCategory $category, int $index): array => [
+                'number' => str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
+                'icon' => match ($category->slug) {
+                    'tour-nghi-duong' => 'bi-stars',
+                    'tour-gia-dinh' => 'bi-people',
+                    'tour-team-building' => 'bi-people-fill',
+                    'tour-thien-nhien-mao-hiem' => 'bi-signpost-split',
+                    'tour-van-hoa-trai-nghiem' => 'bi-bank',
+                    default => 'bi-compass',
+                },
+                'title' => $category->name,
+                'description' => $category->description,
+                'detail' => $category->tours_count.' hành trình',
+                'url' => route('tours.category', ['category' => $category->slug]),
+            ])
+            ->values()
+            ->all();
+    }
+
     private function promotionalTours(): array
     {
         return $this->withNextDeparture($this->publishedTours())
+            ->whereHas('schedules', fn (Builder $query) => $this->availableSchedule($query))
             ->whereHas('promotions', fn (Builder $query) => $this->activePromotion($query))
             ->with([
-                'destination',
-                'category',
+                'destinations',
+                'categories',
                 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order'),
                 'promotions' => fn ($query) => $this->activePromotion($query)->orderBy('discount_value'),
             ])
-            ->orderBy('sort_order')
+            ->orderBy('next_departure_date')
             ->limit(6)
             ->get()
             ->map(fn (Tour $tour): array => $this->tourCard($tour, $tour->promotions->first()))
@@ -272,11 +313,36 @@ class HomeController extends Controller
             ->where(fn (Builder $dateQuery) => $dateQuery->whereNull('ends_at')->orWhere('ends_at', '>=', now()));
     }
 
+    private function availableSchedule(Builder|Relation $query): Builder|Relation
+    {
+        return $query
+            ->where('status', 'open')
+            ->whereDate('departure_date', '>=', today())
+            ->where(function (Builder $seatQuery): void {
+                $seatQuery
+                    ->where('seats_total', 0)
+                    ->orWhereColumn('seats_reserved', '<', 'seats_total');
+            });
+    }
+
     private function tourCard(Tour $tour, ?Promotion $promotion = null): array
     {
         $price = (float) $tour->starting_price;
         $salePrice = $this->salePrice($price, $promotion);
         $discountPercent = $this->discountPercent($price, $promotion);
+        $nextSchedule = $this->nextSchedule($tour);
+        $nextDeparture = $nextSchedule?->departure_date
+            ?: (filled($tour->getAttribute('next_departure_date'))
+                ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))
+                : null);
+
+        $destinations = $tour->relationLoaded('destinations')
+            ? $tour->getRelation('destinations')
+            : $tour->destinations()->get();
+        $primaryDestination = $destinations->first();
+        $categories = $tour->relationLoaded('categories')
+            ? $tour->getRelation('categories')
+            : $tour->categories()->get();
 
         return [
             'id' => $tour->getKey(),
@@ -284,19 +350,27 @@ class HomeController extends Controller
             'slug' => $tour->slug,
             'summary' => $tour->summary,
             'duration' => $tour->duration_days . ' ngày' . ($tour->duration_nights ? ' ' . $tour->duration_nights . ' đêm' : ''),
-            'next_departure' => filled($tour->getAttribute('next_departure_date'))
-                ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
-                : null,
+            'duration_compact' => (int) $tour->duration_days . 'N' . ((int) $tour->duration_nights > 0 ? (int) $tour->duration_nights . 'Đ' : ''),
+            'transport' => $tour->transport ?: 'Theo chương trình',
+            'next_departure' => $nextDeparture?->format('d/m/Y'),
+            'next_departure_at' => $nextDeparture?->copy()->startOfDay()->toIso8601String(),
+            'countdown_label' => $this->countdownLabel($nextDeparture),
+            'seats_left' => $nextSchedule?->seatsLeft(),
+            'seats_label' => $nextSchedule?->slotLabel(),
+            'departure_dates' => $tour->relationLoaded('schedules')
+                ? $tour->getRelation('schedules')->pluck('departure_date')->filter()->map(fn ($date): string => $date->format('d/m'))->values()->all()
+                : [],
             'price' => $price,
             'price_label' => $this->moneyLabel($price, $tour->currency),
             'sale_price_label' => $discountPercent ? $this->moneyLabel($salePrice, $tour->currency) : null,
             'discount_percent' => $discountPercent,
             'currency' => $tour->currency ?: 'VND',
-            'destination' => $tour->destination?->name,
-            'category' => $tour->category?->name,
+            'destination' => $destinations->pluck('name')->filter()->implode(' · '),
+            'category' => $categories->pluck('name')->filter()->implode(' · '),
+            'category_slug' => $categories->first()?->slug,
             'image_url' => $this->imageUrl($tour->images->first()?->path)
-                ?: $this->imageUrl($tour->destination?->cover_image)
-                ?: $this->mediaUrl($tour->destination, 'cover'),
+                ?: $this->imageUrl($primaryDestination?->cover_image)
+                ?: $this->mediaUrl($primaryDestination, 'cover'),
         ];
     }
 
@@ -329,13 +403,44 @@ class HomeController extends Controller
         return (float) $amount > 0 ? number_format((float) $amount, 0, ',', '.').'đ' : 'Liên hệ';
     }
 
+    private function countdownLabel(?\Carbon\Carbon $departure): ?string
+    {
+        if (! $departure) {
+            return null;
+        }
+
+        $totalSeconds = max(0, (int) now()->diffInSeconds($departure, false));
+
+        if ($totalSeconds === 0) {
+            return 'Đang khởi hành';
+        }
+
+        $days = intdiv($totalSeconds, 86400);
+        $hours = intdiv($totalSeconds % 86400, 3600);
+        $minutes = intdiv($totalSeconds % 3600, 60);
+        $seconds = $totalSeconds % 60;
+
+        return $days > 0
+            ? $days.' ngày '.sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds)
+            : sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+    }
+
     private function withNextDeparture(Builder $query): Builder
     {
-        return $query->withMin([
-            'schedules as next_departure_date' => fn (Builder $scheduleQuery) => $scheduleQuery
-                ->where('status', 'open')
-                ->whereDate('departure_date', '>=', today()),
-        ], 'departure_date');
+        return $query
+            ->withMin([
+                'schedules as next_departure_date' => fn (Builder $scheduleQuery) => $this->availableSchedule($scheduleQuery),
+            ], 'departure_date')
+            ->with(['schedules' => fn (Builder|Relation $scheduleQuery) => $this->availableSchedule($scheduleQuery)->orderBy('departure_date')->orderBy('id')]);
+    }
+
+    private function nextSchedule(Tour $tour): ?object
+    {
+        if (! $tour->relationLoaded('schedules')) {
+            return null;
+        }
+
+        return $tour->getRelation('schedules')->first();
     }
 
     private function mediaUrl(?object $model, string $collection): ?string

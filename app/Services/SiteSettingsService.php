@@ -7,6 +7,7 @@ use App\Settings\BusinessSettings;
 use App\Settings\ContactSettings;
 use App\Settings\MediaSettings;
 use App\Settings\SeoSettings;
+use App\Settings\TourSettings;
 use App\Settings\WebsiteSettings;
 use Spatie\LaravelSettings\Settings;
 use Throwable;
@@ -82,6 +83,15 @@ class SiteSettingsService
             'zalo_url' => null,
             'messenger_url' => null,
             'whatsapp_url' => null,
+        ]);
+    }
+
+    public function tour(): TourSettings
+    {
+        return $this->load(TourSettings::class, [
+            'show_schedules' => true,
+            'show_seat_availability' => true,
+            'schedule_note' => 'Giá, lịch và số chỗ được cập nhật theo từng đợt khởi hành.',
         ]);
     }
 

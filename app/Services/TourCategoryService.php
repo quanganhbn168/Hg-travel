@@ -20,7 +20,7 @@ class TourCategoryService
         return $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }
 
-    public function formContext(?TourCategory $category = null): array { return ['category' => $category ?: new TourCategory(), 'parents' => TourCategory::whereNull('parent_id')->when($category, fn ($q) => $q->whereKeyNot($category->id))->orderBy('name')->get()]; }
+    public function formContext(?TourCategory $category = null): array { return ['category' => $category ?: new TourCategory(), 'parents' => TourCategory::where('is_active', true)->whereNull('parent_id')->when($category, fn ($q) => $q->whereKeyNot($category->id))->orderBy('name')->get()]; }
     public function create(array $data): TourCategory { return TourCategory::create($this->payload($data)); }
     public function update(TourCategory $category, array $data): void { $category->update($this->payload($data)); }
     public function delete(TourCategory $category): void { $category->delete(); }

@@ -14,18 +14,29 @@ class TourCardPresenter
         $price = (float) $tour->starting_price;
         $discountPercent = $this->discountPercent($price, $promotion);
 
+        $destinations = $tour->relationLoaded('destinations')
+            ? $tour->getRelation('destinations')
+            : $tour->destinations()->get();
+        $primaryDestination = $destinations->first();
+        $categories = $tour->relationLoaded('categories')
+            ? $tour->getRelation('categories')
+            : $tour->categories()->get();
+
         return [
             'id' => $tour->getKey(),
             'name' => $tour->name,
             'slug' => $tour->slug,
             'summary' => $tour->summary,
             'image_url' => $this->imageUrl($tour),
-            'category' => $tour->category?->name,
-            'category_slug' => $tour->category?->slug,
-            'destination' => $tour->destination?->name,
-            'destination_slug' => $tour->destination?->slug,
+            'category' => $categories->pluck('name')->filter()->implode(' · '),
+            'category_slug' => $categories->first()?->slug,
+            'categories' => $categories->map(fn ($category): array => ['name' => $category->name, 'slug' => $category->slug])->values()->all(),
+            'destination' => $destinations->pluck('name')->filter()->implode(' · '),
+            'destination_slug' => $primaryDestination?->slug,
+            'destinations' => $destinations->map(fn ($destination): array => ['name' => $destination->name, 'slug' => $destination->slug])->values()->all(),
             'duration' => (int) $tour->duration_days.' ngày'.($tour->duration_nights > 0 ? ' '.(int) $tour->duration_nights.' đêm' : ''),
             'duration_days' => (int) $tour->duration_days,
+            'transport' => $tour->transport ?: 'Theo chương trình',
             'next_departure' => filled($tour->getAttribute('next_departure_date'))
                 ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
                 : null,
@@ -68,13 +79,18 @@ class TourCardPresenter
             return $mediaUrl;
         }
 
-        foreach ([$tour->images->first()?->path, $tour->destination?->cover_image] as $path) {
+        $destinations = $tour->relationLoaded('destinations')
+            ? $tour->getRelation('destinations')
+            : $tour->destinations()->get();
+        $primaryDestination = $destinations->first();
+
+        foreach ([$tour->images->first()?->path, $primaryDestination?->cover_image] as $path) {
             if (filled($path)) {
                 return Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path);
             }
         }
 
-        if ($tour->destination && method_exists($tour->destination, 'getFirstMediaUrl') && ($mediaUrl = $tour->destination->getFirstMediaUrl('cover'))) {
+        if ($primaryDestination && method_exists($primaryDestination, 'getFirstMediaUrl') && ($mediaUrl = $primaryDestination->getFirstMediaUrl('cover'))) {
             return $mediaUrl;
         }
 

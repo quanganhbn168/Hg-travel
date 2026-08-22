@@ -1,16 +1,16 @@
 @extends('layouts.admin')
 
-@section('title', 'Chỉnh sửa danh mục tour')
-@section('page-title', 'Chỉnh sửa danh mục tour')
+@section('title', 'Chỉnh sửa loại hình tour')
+@section('page-title', 'Chỉnh sửa loại hình tour')
 @section('breadcrumbs')
-    <ol class="breadcrumb float-sm-end"><li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li><li class="breadcrumb-item"><a href="{{ route('admin.tour-categories.index') }}">Danh mục tour</a></li><li class="breadcrumb-item active">Chỉnh sửa</li></ol>
+    <ol class="breadcrumb float-sm-end"><li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li><li class="breadcrumb-item"><a href="{{ route('admin.tour-categories.index') }}">Loại hình tour</a></li><li class="breadcrumb-item active">Chỉnh sửa</li></ol>
 @endsection
 
 @section('content')
     <form id="admin-save-form" action="{{ route('admin.tour-categories.update', $category) }}" method="POST">
         @csrf @method('PUT')
         <div class="row g-3">
-            <div class="col-xl-8"><x-card type="primary" title="Thông tin danh mục" :collapsible="true"><x-input name="name" label="Tên danh mục" :value="$category->name" required /><x-input name="slug" label="Slug" :value="$category->slug" required /><x-textarea name="description" label="Mô tả" :value="$category->description" rows="7" /></x-card></div>
+            <div class="col-xl-8"><x-card type="primary" title="Thông tin loại hình" :collapsible="true"><x-input name="name" label="Tên loại hình" :value="$category->name" required /><x-input name="slug" label="Slug" :value="$category->slug" required /><x-tinymce name="description" label="Mô tả" :value="$category->description" rows="7" /></x-card></div>
             <div class="col-xl-4">
                 <x-card type="info" title="Cấu hình hiển thị" :collapsible="true" class="mb-3">
                     <x-select name="parent_id" label="Danh mục cha" :options="$parents->pluck('name', 'id')->all()" :selected="$category->parent_id" placeholder="Không có danh mục cha" />

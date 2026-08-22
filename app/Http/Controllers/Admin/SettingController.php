@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Http\Requests\Admin\UpdateContactSettingsRequest;
 use App\Http\Requests\Admin\UpdateMediaSettingsRequest;
 use App\Http\Requests\Admin\UpdateSeoSettingsRequest;
+use App\Http\Requests\Admin\UpdateTourSettingsRequest;
 use App\Http\Requests\Admin\UpdateWebsiteSettingsRequest;
 use App\Services\SettingService;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,11 @@ use Illuminate\View\View;
 class SettingController extends Controller
 {
     public function __construct(private readonly SettingService $settingService) {}
+
+    public function index(): RedirectResponse
+    {
+        return redirect()->route('admin.settings.website');
+    }
 
     public function website(): View
     {
@@ -74,5 +80,21 @@ class SettingController extends Controller
         $this->settingService->updateContact($request->validated());
 
         return back()->with('success', 'Đã lưu cài đặt liên lạc.');
+    }
+
+    public function tour(): View
+    {
+        return view('admin.settings.tour', ['settings' => $this->settingService->tour()]);
+    }
+
+    public function updateTour(UpdateTourSettingsRequest $request): RedirectResponse
+    {
+        $this->settingService->updateTour([
+            ...$request->validated(),
+            'show_schedules' => $request->boolean('show_schedules'),
+            'show_seat_availability' => $request->boolean('show_seat_availability'),
+        ]);
+
+        return back()->with('success', 'Đã lưu cài đặt tour.');
     }
 }

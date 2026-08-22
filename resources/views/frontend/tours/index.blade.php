@@ -41,9 +41,9 @@
                             </div>
 
                             <div class="tour-filter-group">
-                                <label class="form-label" for="tour-category">Danh mục</label>
+                                <label class="form-label" for="tour-category">Loại hình tour</label>
                                 <select class="form-select" id="tour-category" name="category">
-                                    <option value="">Tất cả danh mục</option>
+                                    <option value="">Tất cả loại hình</option>
                                     @foreach ($categories as $category)
                                         <option value="{{ $category['slug'] }}" @selected($filters['category'] === $category['slug'])>{{ $category['name'] }} ({{ $category['tour_count'] }})</option>
                                     @endforeach
@@ -89,7 +89,7 @@
 
                     @if ($categoryTree)
                         <div class="tour-category-list">
-                            <h2 class="tour-category-list-title">Khám phá theo danh mục</h2>
+                            <h2 class="tour-category-list-title">Khám phá theo loại hình</h2>
                             <div class="tour-category-tree">
                             @foreach ($categoryTree as $category)
                                 <div class="tour-category-tree-group">
@@ -118,7 +118,7 @@
                     @if ($activeCategory && $activeCategory['description'])
                         <div class="tour-category-intro mb-4">
                             <strong>{{ $activeCategory['name'] }}</strong>
-                            <span>{{ $activeCategory['description'] }}</span>
+                            <div class="tour-category-intro-content">{!! $activeCategory['description'] !!}</div>
                         </div>
                     @endif
 

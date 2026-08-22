@@ -20,6 +20,10 @@
 .contact-form-card .form-label { margin-bottom: .35rem; color: var(--color-ink-soft); font-size: .78rem; font-weight: 700; }
 .contact-form-card .form-control, .contact-form-card .form-select { min-height: 48px; border-color: var(--color-line); }
 .contact-form-card textarea.form-control { min-height: 150px; resize: vertical; }
+.booking-selected-schedule { display: grid; min-height: 48px; gap: .12rem; padding: .65rem .8rem; border: 1px solid var(--color-primary-line); border-radius: var(--radius-sm); background: var(--color-surface-tint); color: var(--color-ink-soft); }
+.booking-selected-schedule strong { color: var(--color-ink); font-size: .9rem; }
+.booking-selected-schedule span, .booking-selected-schedule small { color: var(--color-muted); font-size: .74rem; }
+.booking-selected-schedule small i { color: var(--color-primary); }
 .contact-map-block { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 2rem; align-items: center; margin-top: 5.5rem; padding-top: 4.5rem; border-top: 1px solid var(--color-line); }
 .contact-map-copy .btn { margin-top: .75rem; }
 .contact-map { min-height: 340px; overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface-soft); }

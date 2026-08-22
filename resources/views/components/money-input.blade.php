@@ -13,13 +13,16 @@
 
 @php
     $inputId = $id ?? 'money_input_' . str_replace(['[', ']'], ['_', ''], $name) . '_' . Str::random(4);
-    $rawValue = $useOld ? old($name, $value) : $value;
-    $rawValue = $rawValue === null ? '' : (string) $rawValue;
-    $alpineInitialValue = preg_match('/^-?\d+(?:\.\d+)?$/', $rawValue) ? $rawValue : 'null';
+    $rawValue = trim((string) ($useOld ? old($name, $value) : $value));
+    $numericValue = preg_match('/^-?\d+(?:\.\d+)?$/', $rawValue) ? $rawValue : '';
+    if ($numericValue !== '' && (int) $decimals === 0) {
+        $numericValue = (string) (int) floor((float) $numericValue);
+    }
+    $displayValue = $numericValue === '' ? '' : number_format((float) $numericValue, (int) $decimals, ',', '.');
     $hasError = $errors->has($name);
 @endphp
 
-<div class="mb-3" x-data="moneyInput({ initialValue: {{ $alpineInitialValue }}, decimals: {{ (int) $decimals }} })">
+<div class="mb-3" data-money-input data-money-decimals="{{ (int) $decimals }}">
     @if($label)
         <label for="{{ $inputId }}" class="form-label font-weight-bold">
             {{ $label }}
@@ -32,10 +35,10 @@
             type="text"
             id="{{ $inputId }}"
             class="form-control {{ $hasError ? 'is-invalid' : '' }}"
-            x-mask:dynamic="$money($input, ',', '.', {{ (int) $decimals }})"
-            x-model="display"
-            x-on:input="onInput($event.target.value)"
-            x-on:blur="onBlur()"
+            value="{{ $displayValue }}"
+            inputmode="{{ (int) $decimals === 0 ? 'numeric' : 'decimal' }}"
+            autocomplete="off"
+            data-money-display
             placeholder="{{ $placeholder ?: ($label ? 'Nhập ' . strtolower($label) . '...' : '') }}"
             @required($required)
             @if($min !== null) min="{{ $min }}" @endif
@@ -44,7 +47,7 @@
         <span class="input-group-text">{{ $currency }}</span>
     </div>
 
-    <input type="hidden" name="{{ $name }}" :value="raw">
+    <input type="hidden" name="{{ $name }}" value="{{ $numericValue }}" data-money-raw>
 
     @error($name)
         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -54,95 +57,54 @@
 @once
     @push('js')
         <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('moneyInput', ({ initialValue = '', decimals = 0 } = {}) => ({
-                    display: '',
-                    raw: '',
-                    decimals: Number(decimals) || 0,
+            (() => {
+                const normalizeMoney = (value, decimals) => {
+                    let normalized = (value ?? '').toString().trim().replace(/\s/g, '').replace(/[^0-9.,-]/g, '');
+                    if (!normalized || normalized === '-') return '';
 
-                    init() {
-                        this.raw = this.normalize(initialValue);
-                        this.display = this.format(this.raw);
-                    },
+                    if (decimals === 0) return normalized.replace(/[.,]/g, '');
 
-                    onInput(value) {
-                        this.raw = this.normalize(value);
-                        this.display = this.format(this.raw);
-                    },
+                    const lastDot = normalized.lastIndexOf('.');
+                    const lastComma = normalized.lastIndexOf(',');
+                    if (lastComma > lastDot) normalized = normalized.replace(/\./g, '').replace(',', '.');
+                    else if (lastDot >= 0) normalized = normalized.replace(/,/g, '');
+                    else normalized = normalized.replace(',', '.');
 
-                    onBlur() {
-                        this.raw = this.normalize(this.raw);
-                        this.display = this.format(this.raw);
-                    },
+                    const [whole, decimal = ''] = normalized.split('.');
+                    return decimal ? `${whole}.${decimal.slice(0, decimals)}` : whole;
+                };
 
-                    normalize(value) {
-                        let v = (value ?? '').toString().trim().replace(/\s/g, '');
-                        if (!v) {
-                            return '';
-                        }
+                const formatMoney = (value, decimals) => {
+                    if (!value) return '';
+                    const numberValue = Number(value);
+                    return Number.isFinite(numberValue)
+                        ? new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: decimals }).format(numberValue)
+                        : '';
+                };
 
-                        v = v.replace(/[^0-9.,-]/g, '');
-                        if (!v || v === '-') {
-                            return '';
-                        }
+                window.initHgMoneyInputs = (scope = document) => {
+                    scope.querySelectorAll('[data-money-input]:not([data-money-ready])').forEach((root) => {
+                        const display = root.querySelector('[data-money-display]');
+                        const raw = root.querySelector('[data-money-raw]');
+                        if (!display || !raw) return;
 
-                        const hasDot = v.includes('.');
-                        const hasComma = v.includes(',');
-                        const lastDot = v.lastIndexOf('.');
-                        const lastComma = v.lastIndexOf(',');
+                        const decimals = Number(root.dataset.moneyDecimals || 0);
+                        const sync = (value) => {
+                            const normalized = normalizeMoney(value, decimals);
+                            raw.value = normalized;
+                            display.value = formatMoney(normalized, decimals);
+                        };
 
-                        if (hasDot && hasComma) {
-                            if (lastComma > lastDot) {
-                                v = v.replace(/\./g, '').replace(/,/g, '.');
-                            } else {
-                                v = v.replace(/,/g, '');
-                            }
-                        } else if (hasComma) {
-                            if (/^\d{1,3}(,\d{3})+$/.test(v)) {
-                                v = v.replace(/,/g, '');
-                            } else {
-                                v = v.replace(/,/g, '.');
-                            }
-                        } else if (hasDot) {
-                            if (/^\d{1,3}(\.\d{3})+$/.test(v)) {
-                                v = v.replace(/\./g, '');
-                            }
-                        }
+                        display.addEventListener('input', () => sync(display.value));
+                        display.addEventListener('blur', () => sync(display.value));
+                        root.dataset.moneyReady = '1';
+                        sync(raw.value || display.value);
+                    });
+                };
 
-                        if (this.decimals === 0 && v.includes('.')) {
-                            v = v.split('.')[0];
-                        }
-
-                        if (this.decimals > 0 && v.includes('.')) {
-                            const parts = v.split('.');
-                            if (parts[1] && parts[1].length > this.decimals) {
-                                parts[1] = parts[1].slice(0, this.decimals);
-                            }
-                            v = parts.join('.');
-                        }
-
-                        return v;
-                    },
-
-                    format(value) {
-                        if (!value) {
-                            return '';
-                        }
-
-                        const numberValue = Number(value);
-                        if (Number.isNaN(numberValue)) {
-                            return '';
-                        }
-
-                        const formatter = new Intl.NumberFormat('vi-VN', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: this.decimals,
-                        });
-
-                        return formatter.format(numberValue);
-                    },
-                }));
-            });
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => window.initHgMoneyInputs());
+                else window.initHgMoneyInputs();
+            })();
         </script>
     @endpush
 @endonce

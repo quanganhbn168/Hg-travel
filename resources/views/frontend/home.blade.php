@@ -8,15 +8,18 @@
 @push('page_styles')
     <link rel="stylesheet" href="{{ asset('vendor/aos/aos.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/swiper/swiper-bundle.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/css/glightbox.min.css">
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/tour.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
 @endpush
 
 @push('scripts')
     <script src="{{ asset('vendor/aos/aos.js') }}"></script>
     <script src="{{ asset('vendor/swiper/swiper-bundle.min.js') }}"></script>
     <script src="{{ asset('js/home-swiper.js') }}"></script>
-    <script src="{{ asset('js/home.js') }}"></script>
+    <script src="{{ asset('js/home.js') }}?v={{ filemtime(public_path('js/home.js')) }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/js/glightbox.min.js"></script>
+    <script src="{{ asset('js/home-gallery.js') }}"></script>
 @endpush
 
 @section('structured_data')
@@ -78,18 +81,40 @@
         </div>
     </section>
 
-    <section class="section-space home-focus-section" aria-labelledby="focus-products-title" data-aos="fade-up">
+    <section class="section-space home-focus-section" aria-labelledby="focus-tour-types-title" data-aos="fade-up">
         <div class="container">
-            <div class="section-heading home-focus-heading"><div><span class="section-eyebrow">Năng lực chuyên biệt</span><h2 id="focus-products-title" class="section-title">Giải pháp du lịch trọng tâm</h2></div><p class="section-description">Khám phá những dòng sản phẩm chủ lực được HG thiết kế theo mục tiêu chuyến đi.</p></div>
+            <div class="section-heading home-focus-heading"><div><span class="section-eyebrow">Loại hình tour</span><h2 id="focus-tour-types-title" class="section-title">Chọn cách bạn muốn đi</h2></div><p class="section-description">Khám phá các loại hình tour được HG tuyển chọn theo nhịp điệu và trải nghiệm bạn mong muốn.</p></div>
             <div class="home-focus-grid">
-                @foreach ($featuredProducts as $product)
-                    <a class="home-focus-card" href="{{ $product['url'] }}">
-                        <div class="home-focus-card-top"><span>{{ $product['number'] }}</span><i class="bi {{ $product['icon'] }}"></i></div>
-                        <div class="home-focus-card-copy"><small>{{ $product['detail'] }}</small><h3>{{ $product['title'] }}</h3><p>{{ $product['description'] }}</p></div>
+                @foreach ($tourTypes as $type)
+                    <a class="home-focus-card" href="{{ $type['url'] }}">
+                        <div class="home-focus-card-top"><span>{{ $type['number'] }}</span><i class="bi {{ $type['icon'] }}"></i></div>
+                        <div class="home-focus-card-copy"><small>{{ $type['detail'] }}</small><h3>{{ $type['title'] }}</h3><p>{{ $type['description'] }}</p></div>
                         <span class="home-focus-card-action" aria-hidden="true"><i class="bi bi-arrow-up-right"></i></span>
                     </a>
                 @endforeach
             </div>
+        </div>
+    </section>
+
+    <section class="section-space home-surface-section" aria-labelledby="featured-tours-title" data-aos="fade-up">
+        <div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><span class="section-eyebrow">Tour nổi bật</span><h2 id="featured-tours-title" class="section-title">Những hành trình tiêu biểu</h2><p class="section-description">Những hành trình tiêu biểu đang mở bán, cân bằng giữa trải nghiệm, thời gian và chất lượng dịch vụ.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả hành trình <i class="bi bi-arrow-up-right"></i></a></div>
+            <div class="home-featured-tours-grid">@forelse ($featuredTours as $tour)<div class="home-featured-tour-item">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="home-empty-state"><i class="bi bi-map"></i><strong>Tour nổi bật đang được cập nhật</strong><span>Hành trình sẽ xuất hiện tại đây khi được đánh dấu nổi bật trong hệ thống quản trị.</span></div>@endforelse</div>
+        </div>
+    </section>
+
+    <section class="section-space home-promo-section {{ $promotionBackdropUrl ? 'has-promo-backdrop' : '' }}" aria-labelledby="promotion-title" data-aos="fade-up" data-home-parallax>
+        @if ($promotionBackdropUrl)
+            <div class="home-parallax-backdrop home-promo-backdrop" aria-hidden="true" style="--promo-image: url('{{ $promotionBackdropUrl }}');"></div>
+        @endif
+        <div class="home-promo-overlay" aria-hidden="true"></div>
+        <div class="container home-promo-content">
+            @if ($promotionalTours)
+                <div class="promo-slider-heading"><div><h2 id="promotion-title">Ưu đãi đang diễn ra</h2></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
+                <div class="home-promo-slider-wrap"><div class="home-promo-slider swiper" data-promo-swiper aria-label="Các tour đang ưu đãi"><div class="swiper-wrapper">@foreach ($promotionalTours as $tour)<div class="swiper-slide">@include('frontend.tours.partials.card', ['tour' => $tour, 'showPromotionMeta' => true])</div>@endforeach</div></div><div class="home-promo-slider-navigation" aria-label="Điều khiển tour ưu đãi"><button type="button" data-promo-prev aria-label="Ưu đãi trước"><i class="bi bi-arrow-left"></i></button><button type="button" data-promo-next aria-label="Ưu đãi tiếp theo"><i class="bi bi-arrow-right"></i></button></div></div>
+            @else
+                <h2 id="promotion-title" class="visually-hidden">Ưu đãi đang diễn ra</h2>
+                <div class="home-empty-state home-empty-state-dark"><i class="bi bi-ticket-perforated"></i><strong>Ưu đãi mới đang được chuẩn bị</strong><span>Các tour có chương trình đang diễn ra sẽ được hiển thị tại đây.</span></div>
+            @endif
         </div>
     </section>
 
@@ -131,12 +156,6 @@
         <div class="container home-impact-content"><div class="section-heading text-center mx-auto"><h2 id="impact-title" class="section-title">{{ $impactTitle }}</h2></div><div class="row g-0">@foreach ($impactStats as $stat)<div class="col-6 col-lg-3"><div class="impact-stat"><strong>{{ $stat['number'] }}</strong><span>{{ $stat['label'] }}</span></div></div>@endforeach</div></div>
     </section>
 
-    <section class="section-space home-surface-section" aria-labelledby="featured-tours-title" data-aos="fade-up">
-        <div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><span class="section-eyebrow">Được lựa chọn nhiều</span><h2 id="featured-tours-title" class="section-title">Hành trình nổi bật</h2><p class="section-description">Những hành trình tiêu biểu đang mở bán, cân bằng giữa trải nghiệm, thời gian và chất lượng dịch vụ.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả hành trình <i class="bi bi-arrow-up-right"></i></a></div>
-            <div class="home-featured-tours-grid">@forelse ($featuredTours as $tour)<div class="home-featured-tour-item">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="home-empty-state"><i class="bi bi-map"></i><strong>Hành trình nổi bật đang được cập nhật</strong><span>Hành trình sẽ xuất hiện tại đây khi được đánh dấu nổi bật trong hệ thống quản trị.</span></div>@endforelse</div>
-        </div>
-    </section>
-
     <section class="section-space home-services-section" aria-labelledby="services-title" data-aos="fade-up">
         <div class="container">
             <div class="section-heading home-services-heading"><div><span class="section-eyebrow">Dịch vụ cung cấp</span><h2 id="services-title" class="section-title">Mọi dịch vụ cần thiết cho một hành trình trọn vẹn</h2></div><div><p class="section-description">Từng hạng mục được kết nối trong một kế hoạch thống nhất, rõ đầu mối và dễ kiểm soát.</p><a class="section-more" href="{{ route('services.index') }}">Xem toàn bộ dịch vụ <i class="bi bi-arrow-up-right"></i></a></div></div>
@@ -145,22 +164,6 @@
                     <a class="home-service-item" href="{{ url($service['url']) }}"><span class="home-service-icon"><i class="bi {{ $service['icon'] }}"></i></span><span class="home-service-copy"><strong>{{ $service['title'] }}</strong><small>{{ $service['description'] }}</small></span><i class="bi bi-arrow-up-right home-service-arrow"></i></a>
                 @endforeach
             </div>
-        </div>
-    </section>
-
-    <section class="section-space home-promo-section {{ $promotionBackdropUrl ? 'has-promo-backdrop' : '' }}" aria-labelledby="promotion-title" data-aos="fade-up" data-home-parallax>
-        @if ($promotionBackdropUrl)
-            <div class="home-parallax-backdrop home-promo-backdrop" aria-hidden="true" style="--promo-image: url('{{ $promotionBackdropUrl }}');"></div>
-        @endif
-        <div class="home-promo-overlay" aria-hidden="true"></div>
-        <div class="container home-promo-content">
-            @if ($promotionalTours)
-                <div class="promo-slider-heading"><div><span>Ưu đãi đặc biệt</span><h2 id="promotion-title">Ưu đãi đang diễn ra</h2><p>Chọn lịch khởi hành phù hợp để giữ chỗ sớm.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
-                <div class="home-promo-slider-wrap"><div class="home-promo-slider swiper" data-promo-swiper aria-label="Các tour đang ưu đãi"><div class="swiper-wrapper">@foreach ($promotionalTours as $tour)<div class="swiper-slide">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@endforeach</div></div><div class="home-promo-slider-navigation" aria-label="Điều khiển tour ưu đãi"><button type="button" data-promo-prev aria-label="Ưu đãi trước"><i class="bi bi-arrow-left"></i></button><button type="button" data-promo-next aria-label="Ưu đãi tiếp theo"><i class="bi bi-arrow-right"></i></button></div></div>
-            @else
-                <h2 id="promotion-title" class="visually-hidden">Ưu đãi đang diễn ra</h2>
-                <div class="home-empty-state home-empty-state-dark"><i class="bi bi-ticket-perforated"></i><strong>Ưu đãi mới đang được chuẩn bị</strong><span>Các tour có chương trình đang diễn ra sẽ được hiển thị tại đây.</span></div>
-            @endif
         </div>
     </section>
 
@@ -182,7 +185,7 @@
 
     <section class="section-space" aria-labelledby="testimonial-title"><div class="container"><div class="section-heading text-center mx-auto"><h2 id="testimonial-title" class="section-title">Khách hàng nói gì về chúng tôi</h2></div>@if ($testimonials)<div class="row g-4">@foreach ($testimonials as $testimonial)<div class="col-md-4"><article class="testimonial-card"><div class="testimonial-card-head">@if ($testimonial['avatar_url'])<img src="{{ $testimonial['avatar_url'] }}" alt="{{ $testimonial['name'] }}" loading="lazy">@else<span class="testimonial-avatar"><i class="bi bi-person"></i></span>@endif<div><strong>{{ $testimonial['name'] }}</strong>@if ($testimonial['title'])<span>{{ $testimonial['title'] }}</span>@endif</div></div><div class="testimonial-stars" aria-label="{{ $testimonial['rating'] }} trên 5 sao">@for ($rating = 1; $rating <= 5; $rating++)<i class="bi {{ $rating <= $testimonial['rating'] ? 'bi-star-fill' : 'bi-star' }}"></i>@endfor</div><p class="testimonial-content">“{{ $testimonial['content'] }}”</p></article></div>@endforeach</div>@else<div class="home-empty-state"><i class="bi bi-chat-heart"></i><strong>Cảm nhận khách hàng đang được cập nhật</strong><span>Những câu chuyện sau hành trình sẽ xuất hiện tại đây.</span></div>@endif</div></section>
 
-    <section class="section-space home-gallery-section" aria-labelledby="gallery-title"><div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><h2 id="gallery-title" class="section-title">Khoảnh khắc cùng HG</h2><p class="section-description">Đi để nhìn thấy thế giới, và để những khoảnh khắc đẹp ở lại thật lâu.</p></div><a class="section-more" href="{{ route('contact') }}">Chia sẻ ảnh của bạn <i class="bi bi-arrow-up-right"></i></a></div><div class="home-gallery-grid">@foreach ($customerGallery as $photo)<a class="home-gallery-item" href="{{ $photo['url'] }}" target="_blank" rel="noopener noreferrer"><img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy"></a>@endforeach</div></div></section>
+    <section class="section-space home-gallery-section" aria-labelledby="gallery-title"><div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><h2 id="gallery-title" class="section-title">Khoảnh khắc cùng HG</h2><p class="section-description">Đi để nhìn thấy thế giới, và để những khoảnh khắc đẹp ở lại thật lâu.</p></div><a class="section-more" href="{{ route('contact') }}">Chia sẻ ảnh của bạn <i class="bi bi-arrow-up-right"></i></a></div><div class="home-gallery-grid">@foreach ($customerGallery as $photo)<a class="home-gallery-item glightbox" href="{{ $photo['url'] }}" data-gallery="moments-{{ $photo['group_slug'] }}" data-title="{{ $photo['title'] }}" @if($photo['caption']) data-description="{{ $photo['caption'] }}" @endif><img src="{{ $photo['url'] }}" alt="{{ $photo['alt'] }}" loading="lazy"></a>@endforeach</div></div></section>
 
     <section class="home-partners-section" aria-labelledby="partners-title"><div class="container"><div class="section-heading text-center mx-auto"><h2 id="partners-title" class="section-title">Đồng hành cùng những thương hiệu uy tín</h2></div><div class="partner-marquee" aria-label="Các đối tác">@foreach (array_merge($partners, $partners) as $partner)<span class="partner-pill"><i class="bi bi-shield-check"></i>{{ $partner }}</span>@endforeach</div></div></section>
 

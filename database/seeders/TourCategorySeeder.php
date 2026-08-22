@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\TourCategory;
+use App\Models\Tour;
 use Illuminate\Database\Seeder;
 
 class TourCategorySeeder extends Seeder
@@ -10,10 +11,12 @@ class TourCategorySeeder extends Seeder
     public function run(): void
     {
         $roots = collect([
-            ['name' => 'Tour nước ngoài', 'slug' => 'tour-nuoc-ngoai', 'description' => 'Các hành trình quốc tế theo thị trường và điểm đến.', 'sort_order' => 1],
-            ['name' => 'Tour trong nước', 'slug' => 'tour-trong-nuoc', 'description' => 'Các hành trình trong nước theo vùng miền và điểm đến.', 'sort_order' => 2],
-            ['name' => 'Tour ưu đãi', 'slug' => 'tour-uu-dai', 'description' => 'Các hành trình đang có chương trình ưu đãi.', 'sort_order' => 3],
-            ['name' => 'Tour theo yêu cầu', 'slug' => 'tour-theo-yeu-cau', 'description' => 'Hành trình được thiết kế theo nhu cầu riêng.', 'sort_order' => 4],
+            ['name' => 'Khám phá', 'slug' => 'tour-kham-pha', 'description' => 'Những hành trình ưu tiên trải nghiệm, khám phá nhịp sống và vẻ đẹp của điểm đến.', 'sort_order' => 1],
+            ['name' => 'Nghỉ dưỡng', 'slug' => 'tour-nghi-duong', 'description' => 'Những hành trình ưu tiên thời gian nghỉ ngơi, lưu trú và trải nghiệm thư thái.', 'sort_order' => 2],
+            ['name' => 'Gia đình', 'slug' => 'tour-gia-dinh', 'description' => 'Những hành trình có nhịp điệu dễ chịu, điểm tham quan phù hợp cho nhiều thế hệ.', 'sort_order' => 3],
+            ['name' => 'Thiên nhiên & mạo hiểm', 'slug' => 'tour-thien-nhien-mao-hiem', 'description' => 'Những hành trình dành cho cung đường, cảnh quan tự nhiên và trải nghiệm giàu năng lượng.', 'sort_order' => 4],
+            ['name' => 'Văn hóa & trải nghiệm', 'slug' => 'tour-van-hoa-trai-nghiem', 'description' => 'Những hành trình đi sâu vào lịch sử, văn hóa, ẩm thực và bản sắc địa phương.', 'sort_order' => 5],
+            ['name' => 'Team Building', 'slug' => 'tour-team-building', 'description' => 'Những hành trình kết hợp du lịch, hoạt động gắn kết và trải nghiệm dành cho tập thể.', 'sort_order' => 6],
         ])->mapWithKeys(function (array $category): array {
             $model = TourCategory::updateOrCreate(['slug' => $category['slug']], $category + [
                 'parent_id' => null,
@@ -24,28 +27,29 @@ class TourCategorySeeder extends Seeder
             return [$category['slug'] => $model];
         });
 
-        foreach ([
-            ['name' => 'Châu Á', 'slug' => 'tour-chau-a', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Châu Âu', 'slug' => 'tour-chau-au', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Châu Úc', 'slug' => 'tour-chau-uc', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Châu Mỹ', 'slug' => 'tour-chau-my', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Châu Phi', 'slug' => 'tour-chau-phi', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Miền Bắc', 'slug' => 'tour-mien-bac', 'parent' => 'tour-trong-nuoc'],
-            ['name' => 'Miền Trung', 'slug' => 'tour-mien-trung', 'parent' => 'tour-trong-nuoc'],
-            ['name' => 'Miền Nam', 'slug' => 'tour-mien-nam', 'parent' => 'tour-trong-nuoc'],
-            ['name' => 'Miền Tây', 'slug' => 'tour-mien-tay', 'parent' => 'tour-trong-nuoc'],
-            ['name' => 'Tour Nhật Bản', 'slug' => 'tour-nhat-ban', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Tour Hàn Quốc', 'slug' => 'tour-han-quoc', 'parent' => 'tour-nuoc-ngoai'],
-            ['name' => 'Tour nghỉ dưỡng', 'slug' => 'tour-nghi-duong', 'parent' => 'tour-trong-nuoc'],
-        ] as $index => $category) {
-            TourCategory::updateOrCreate(['slug' => $category['slug']], [
-                'parent_id' => $roots[$category['parent']]->id,
-                'name' => $category['name'],
-                'description' => 'Danh mục tour '.$category['name'].'.',
-                'sort_order' => $index + 1,
-                'is_active' => true,
-                'is_home' => false,
-            ]);
-        }
+        TourCategory::query()
+            ->whereIn('slug', [
+                'tour-nuoc-ngoai', 'tour-trong-nuoc', 'tour-chau-a', 'tour-chau-au', 'tour-chau-uc',
+                'tour-chau-my', 'tour-chau-phi', 'tour-nhat-ban', 'tour-han-quoc', 'tour-mien-bac',
+                'tour-mien-trung', 'tour-mien-nam', 'tour-mien-tay', 'tour-uu-dai', 'tour-theo-yeu-cau',
+            ])
+            ->update(['parent_id' => null, 'is_active' => false, 'is_home' => false]);
+
+        $legacyCategoryIds = TourCategory::query()
+            ->whereIn('slug', [
+                'tour-nuoc-ngoai', 'tour-trong-nuoc', 'tour-chau-a', 'tour-chau-au', 'tour-chau-uc',
+                'tour-chau-my', 'tour-chau-phi', 'tour-nhat-ban', 'tour-han-quoc', 'tour-mien-bac',
+                'tour-mien-trung', 'tour-mien-nam', 'tour-mien-tay', 'tour-uu-dai', 'tour-theo-yeu-cau',
+            ])
+            ->pluck('id');
+        $activeCategoryIds = $roots->pluck('id');
+        $defaultCategoryId = $roots['tour-kham-pha']->id;
+
+        Tour::query()
+            ->whereHas('categories', fn ($query) => $query->whereIn('tour_categories.id', $legacyCategoryIds))
+            ->whereDoesntHave('categories', fn ($query) => $query->whereIn('tour_categories.id', $activeCategoryIds))
+            ->each(function (Tour $tour) use ($defaultCategoryId): void {
+                $tour->categories()->syncWithoutDetaching([$defaultCategoryId => ['sort_order' => 1]]);
+            });
     }
 }

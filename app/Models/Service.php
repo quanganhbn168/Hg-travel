@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Service extends Model
 {
@@ -28,8 +27,4 @@ class Service extends Model
         return $this->belongsTo(ServiceCategory::class, 'service_category_id');
     }
 
-    public function productLines(): BelongsToMany
-    {
-        return $this->belongsToMany(ProductLine::class)->withPivot('sort_order')->withTimestamps();
-    }
 }

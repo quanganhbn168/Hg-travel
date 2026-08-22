@@ -154,8 +154,20 @@
 <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        tinymce.init({
-            selector: '.tinymce-editor',
+        window.initHgTinyMceEditors = function (scope = document) {
+            const editorElements = [...scope.querySelectorAll('.tinymce-editor')]
+                .filter((element) => !element.dataset.tinymcePending && !tinymce.get(element.id));
+
+            if (!editorElements.length) {
+                return;
+            }
+
+            editorElements.forEach((element) => {
+                element.dataset.tinymcePending = '1';
+            });
+
+            tinymce.init({
+            selector: editorElements.map((element) => '#' + element.id).join(','),
             license_key: 'gpl',
             height: 400,
             menubar: true,
@@ -227,6 +239,7 @@
             },
 
             setup: function (editor) {
+                editor.getElement().dataset.tinymcePending = '1';
                 editor.on('change keyup', function () {
                     editor.save();
                 });
@@ -263,7 +276,10 @@
                     if (form) submitAdminForm(form, true);
                 });
             }
-        });
+            });
+        };
+
+        window.initHgTinyMceEditors();
 
         // Hỗ trợ resize trong Tabs
         const tabElList = document.querySelectorAll('button[data-bs-toggle="tab"]')
