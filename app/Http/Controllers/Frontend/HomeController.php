@@ -206,7 +206,7 @@ class HomeController extends Controller
     {
         return TourCategory::query()
             ->where('is_active', true)
-            ->whereHas('tours', fn (Builder $query) => $this->publishedTours($query))
+            ->where('is_home', true)
             ->withCount(['tours' => fn (Builder $query) => $this->publishedTours($query)])
             ->orderBy('sort_order')
             ->orderBy('name')
