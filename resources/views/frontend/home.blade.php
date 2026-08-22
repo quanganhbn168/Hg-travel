@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/aos/aos.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/swiper/swiper-bundle.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/css/glightbox.min.css">
-    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
 @endpush
 
@@ -87,11 +87,13 @@
             <div class="home-focus-grid">
                 @foreach ($tourTypes as $type)
                     <a class="home-focus-card" href="{{ $type['url'] }}">
-                        @if ($type['cover_image_url'])
-                            <img class="home-focus-card-image" src="{{ $type['cover_image_url'] }}" alt="{{ $type['title'] }}" loading="lazy">
-                        @endif
-                        <span class="home-focus-card-shade" aria-hidden="true"></span>
-                        <div class="home-focus-card-copy"><strong>{{ $type['title'] }}</strong>@if ($type['description'])<div class="home-focus-card-description">{!! $type['description'] !!}</div>@endif</div>
+                        <div class="home-focus-card-media">
+                            @if ($type['cover_image_url'])
+                                <img class="home-focus-card-image" src="{{ $type['cover_image_url'] }}" alt="{{ $type['title'] }}" loading="lazy">
+                            @endif
+                            <span class="home-focus-card-shade" aria-hidden="true"></span>
+                            <div class="home-focus-card-copy"><strong>{{ $type['title'] }}</strong>@if ($type['description'])<div class="home-focus-card-description">{!! $type['description'] !!}</div>@endif</div>
+                        </div>
                     </a>
                 @endforeach
             </div>
