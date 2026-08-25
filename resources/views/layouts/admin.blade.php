@@ -43,6 +43,12 @@
     <script src="{{ asset('vendor/adminlte4/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('vendor/dropzone/dropzone.min.js') }}"></script>
+    <script>
+        // Every admin uploader is initialized explicitly with its own endpoint and options.
+        // Disable Dropzone's DOM auto-discovery before DOMContentLoaded to avoid a second,
+        // URL-less instance being attached to elements that use the `.dropzone` class.
+        Dropzone.autoDiscover = false;
+    </script>
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}"></script>
