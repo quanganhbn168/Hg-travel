@@ -13,7 +13,22 @@
         <div class="row g-3">
             <div class="col-xl-8">
                 <x-card type="primary" title="Nhận diện thương hiệu">
-                    <div class="row g-3"><div class="col-md-6"><x-image-upload name="logo_url" label="Logo" :value="$settings->logo_url" /></div><div class="col-md-6"><x-image-upload name="favicon_url" label="Favicon" :value="$settings->favicon_url" /></div></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><x-image-upload name="logo_url" label="Logo" :value="$settings->logo_url" /></div>
+                        <div class="col-md-6">
+                            @if (is_file(public_path('favicon-master.png')))
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Favicon đang dùng</label>
+                                    <div class="border rounded-3 bg-light p-3 d-flex align-items-center gap-3">
+                                        <img src="{{ asset('favicon-32x32.png') }}?v={{ filemtime(public_path('favicon-master.png')) }}" width="32" height="32" alt="Favicon hiện tại">
+                                        <span class="small text-muted">Bộ favicon tĩnh đã được tạo từ file master.</span>
+                                    </div>
+                                </div>
+                            @endif
+                            <x-image-upload name="favicon_master" label="Favicon master" placeholder="Tải ảnh vuông PNG, JPG hoặc WEBP (tối thiểu 512 × 512 px)" />
+                            <p class="form-text mb-0">Lưu form sẽ tạo favicon.svg, favicon.ico, các PNG tiêu chuẩn, Apple Touch Icon và web manifest trong public/. Layout không đọc favicon từ database.</p>
+                        </div>
+                    </div>
                     <div class="row g-3"><div class="col-md-6"><x-image-upload name="image_share_url" label="Ảnh chia sẻ OG/Twitter" :value="$settings->image_share_url" /></div><div class="col-md-6"><x-image-upload name="page_banner_url" label="Banner các trang trong" :value="$settings->page_banner_url" /></div></div>
                 </x-card>
                 <x-card type="info" title="Ảnh trang chủ" class="mt-3">

@@ -21,7 +21,6 @@ final class SiteSettingsData
         public readonly ?string $seo_description,
         public readonly ?string $seo_keywords,
         public readonly ?string $logo_url,
-        public readonly ?string $favicon_url,
         public readonly ?string $image_share_url,
         public readonly ?string $page_banner_url,
         public readonly ?string $facebook_url,

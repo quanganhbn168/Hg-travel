@@ -12,7 +12,7 @@ class UpdateMediaSettingsRequest extends FormRequest
     {
         return [
             'logo_url' => ['nullable', 'string', 'max:4096'],
-            'favicon_url' => ['nullable', 'string', 'max:4096'],
+            'favicon_master' => ['nullable', 'string', 'max:4096'],
             'image_share_url' => ['nullable', 'string', 'max:4096'],
             'page_banner_url' => ['nullable', 'string', 'max:4096'],
             'homepage_hero_url' => ['nullable', 'string', 'max:4096'],

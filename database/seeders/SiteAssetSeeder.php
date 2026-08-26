@@ -47,7 +47,6 @@ class SiteAssetSeeder extends Seeder
         $seo->save();
 
         $media->logo_url = $logoUrl;
-        $media->favicon_url = $media->favicon_url ?: $logoUrl;
         $media->image_share_url = in_array($media->image_share_url, [null, '', 'images/logo-hg.png'], true)
             ? 'images/image_share.png'
             : $media->image_share_url;

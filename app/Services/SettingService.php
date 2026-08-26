@@ -12,7 +12,10 @@ use Spatie\LaravelSettings\Settings;
 
 class SettingService
 {
-    public function __construct(private readonly SiteSettingsService $siteSettings) {}
+    public function __construct(
+        private readonly SiteSettingsService $siteSettings,
+        private readonly FaviconService $favicons,
+    ) {}
 
     public function website(): WebsiteSettings
     {
@@ -64,12 +67,20 @@ class SettingService
     }
 
     /** @param array<string, mixed> $data */
-    public function updateMedia(array $data): void
+    public function updateMedia(array $data): bool
     {
         $this->save($this->media(), $data, [
-            'logo_url', 'favicon_url', 'image_share_url', 'page_banner_url', 'homepage_hero_url', 'about_image_url',
+            'logo_url', 'image_share_url', 'page_banner_url', 'homepage_hero_url', 'about_image_url',
             'media_allowed_extensions', 'media_max_size',
         ]);
+
+        if (blank($data['favicon_master'] ?? null)) {
+            return false;
+        }
+
+        $this->favicons->generateFromUpload((string) $data['favicon_master']);
+
+        return true;
     }
 
     /** @param array<string, mixed> $data */

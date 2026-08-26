@@ -30,7 +30,6 @@ class MasterViewComposer
             'brandName' => $settings->site_name ?: config('app.name', env('APP_NAME', 'APP_NAME')),
             'siteAssets' => [
                 'logo' => $logo,
-                'favicon' => $this->assetUrl($settings->favicon_url) ?: asset('images/logo-hg.png'),
                 'share' => $this->assetUrl($settings->image_share_url) ?: asset('images/image_share.png'),
                 'page_banner' => $this->assetUrl($settings->page_banner_url) ?: asset('images/page-banner-coast-v1.png'),
             ],

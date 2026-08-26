@@ -122,7 +122,6 @@ class SiteSettingsService
             seo_description: $seo->seo_description,
             seo_keywords: $seo->seo_keywords,
             logo_url: $media->logo_url,
-            favicon_url: $media->favicon_url,
             image_share_url: $media->image_share_url,
             page_banner_url: $media->page_banner_url,
             facebook_url: $contact->facebook_url,

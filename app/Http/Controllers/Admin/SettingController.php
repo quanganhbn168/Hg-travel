@@ -53,9 +53,11 @@ class SettingController extends Controller
 
     public function updateMedia(UpdateMediaSettingsRequest $request): RedirectResponse
     {
-        $this->settingService->updateMedia($request->validated());
+        $faviconGenerated = $this->settingService->updateMedia($request->validated());
 
-        return back()->with('success', 'Đã lưu cài đặt media.');
+        return back()->with('success', $faviconGenerated
+            ? 'Đã lưu cài đặt media và tạo bộ favicon chuẩn.'
+            : 'Đã lưu cài đặt media.');
     }
 
     public function seo(): View

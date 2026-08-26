@@ -32,7 +32,7 @@
     @stack('meta')
     @yield('structured_data')
 
-    <link rel="icon" href="{{ $siteAssets['favicon'] ?: $brandLogo }}">
+    <x-favicon-links />
 
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
