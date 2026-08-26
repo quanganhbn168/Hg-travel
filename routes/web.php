@@ -37,6 +37,13 @@ use App\Http\Controllers\Frontend\TourController as FrontendTourController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/robots.txt', function () {
+    return response(
+        "User-agent: *\nDisallow:\n\nSitemap: ".url('/sitemap.xml')."\n",
+        200,
+        ['Content-Type' => 'text/plain; charset=UTF-8'],
+    );
+})->name('robots');
 Route::get('/gioi-thieu', AboutController::class)->name('about');
 Route::get('/tours', [FrontendTourController::class, 'index'])->name('tours.index');
 Route::get('/tours/danh-muc/{category:slug}', [FrontendTourController::class, 'category'])->name('tours.category');
