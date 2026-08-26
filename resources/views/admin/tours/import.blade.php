@@ -20,9 +20,11 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="schedule-import-tab" data-bs-toggle="pill" data-bs-target="#schedule-import-pane" type="button" role="tab" aria-controls="schedule-import-pane" aria-selected="true">Lịch khởi hành Excel</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="package-import-tab" data-bs-toggle="pill" data-bs-target="#package-import-pane" type="button" role="tab" aria-controls="package-import-pane" aria-selected="false">Gói ZIP đầy đủ</button>
-                </li>
+                @if(config('frontend.admin.tour_import.zip_visible'))
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="package-import-tab" data-bs-toggle="pill" data-bs-target="#package-import-pane" type="button" role="tab" aria-controls="package-import-pane" aria-selected="false">Gói ZIP đầy đủ</button>
+                    </li>
+                @endif
             </ul>
 
             <div class="tab-content" id="tour-import-tab-content">
@@ -59,33 +61,35 @@
                     </form>
                 </div>
 
-                <div class="tab-pane fade" id="package-import-pane" role="tabpanel" aria-labelledby="package-import-tab" tabindex="0">
-                    <form action="{{ route('admin.tours.import.package') }}" method="POST" enctype="multipart/form-data" class="row g-3">
-                        @csrf
-                        <div class="col-12">
-                            <div class="alert alert-warning mb-0">
-                                Gói ZIP HGTRIP dùng để nhập toàn bộ tour, nội dung, lịch, thư viện ảnh và bản lưu nguồn. Tour trùng <strong>mã tour</strong> sẽ được cập nhật; lịch trình, ngày khởi hành, nội dung phần và ảnh có trong gói sẽ thay thế dữ liệu tương ứng.
+                @if(config('frontend.admin.tour_import.zip_visible'))
+                    <div class="tab-pane fade" id="package-import-pane" role="tabpanel" aria-labelledby="package-import-tab" tabindex="0">
+                        <form action="{{ route('admin.tours.import.package') }}" method="POST" enctype="multipart/form-data" class="row g-3">
+                            @csrf
+                            <div class="col-12">
+                                <div class="alert alert-warning mb-0">
+                                    Gói ZIP HGTRIP dùng để nhập toàn bộ tour, nội dung, lịch, thư viện ảnh và bản lưu nguồn. Tour trùng <strong>mã tour</strong> sẽ được cập nhật; lịch trình, ngày khởi hành, nội dung phần và ảnh có trong gói sẽ thay thế dữ liệu tương ứng.
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-lg-7">
-                            <label for="package_file" class="form-label">Gói HGTRIP (.zip)</label>
-                            <input id="package_file" name="package_file" type="file" accept=".zip,application/zip" class="form-control @error('package_file') is-invalid @enderror" required>
-                            @error('package_file')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <div class="form-text">Gói cần có README.txt, manifest.json, hgtrip_import.xlsx, ảnh và dữ liệu nguồn đi kèm.</div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input id="confirm_package_import" name="confirm_package_import" value="1" type="checkbox" class="form-check-input @error('confirm_package_import') is-invalid @enderror" required>
-                                <label for="confirm_package_import" class="form-check-label">Tôi xác nhận cập nhật dữ liệu tour theo gói ZIP này.</label>
-                                @error('confirm_package_import')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="col-lg-7">
+                                <label for="package_file" class="form-label">Gói HGTRIP (.zip)</label>
+                                <input id="package_file" name="package_file" type="file" accept=".zip,application/zip" class="form-control @error('package_file') is-invalid @enderror" required>
+                                @error('package_file')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="form-text">Gói cần có README.txt, manifest.json, hgtrip_import.xlsx, ảnh và dữ liệu nguồn đi kèm.</div>
                             </div>
-                        </div>
-                        <div class="col-12 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-down me-1"></i>Nhập gói ZIP</button>
-                            <a href="{{ route('admin.tours.index') }}" class="btn btn-default">Quay lại</a>
-                        </div>
-                    </form>
-                </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input id="confirm_package_import" name="confirm_package_import" value="1" type="checkbox" class="form-check-input @error('confirm_package_import') is-invalid @enderror" required>
+                                    <label for="confirm_package_import" class="form-check-label">Tôi xác nhận cập nhật dữ liệu tour theo gói ZIP này.</label>
+                                    @error('confirm_package_import')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-down me-1"></i>Nhập gói ZIP</button>
+                                <a href="{{ route('admin.tours.index') }}" class="btn btn-default">Quay lại</a>
+                            </div>
+                        </form>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

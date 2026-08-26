@@ -35,23 +35,31 @@ class FrontendMenuService
         $menu = Menu::query()
             ->where('location', $location)
             ->where('is_active', true)
-            ->with(['items' => function ($query): void {
-                $query->whereNull('parent_id')
-                    ->where('is_active', true)
-                    ->with(['children' => function ($children): void {
-                        $children->where('is_active', true)->with(['children' => fn ($grandchildren) => $grandchildren->where('is_active', true)]);
-                    }]);
-            }])
             ->first();
 
         if (! $menu) {
             return $this->fallback($location);
         }
 
-        $items = $menu->items
-            ->map(fn (MenuItem $item): array => $this->mapItem($item))
-            ->values()
-            ->all();
+        $menuItems = MenuItem::query()
+            ->where('menu_id', $menu->getKey())
+            ->where('is_active', true)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get();
+        $itemsByParent = $menuItems->groupBy(fn (MenuItem $item): string => (string) ($item->parent_id ?? 0));
+        $buildTree = function (int $parentId) use (&$buildTree, $itemsByParent): array {
+            return $itemsByParent->get((string) $parentId, collect())
+                ->map(function (MenuItem $item) use (&$buildTree): array {
+                    $mapped = $this->mapItem($item);
+                    $mapped['children'] = $buildTree((int) $item->getKey());
+
+                    return $mapped;
+                })
+                ->values()
+                ->all();
+        };
+        $items = $buildTree(0);
 
         return $location === 'header'
             ? $this->attachServiceMenus($this->attachTourMenus($items))
@@ -65,7 +73,7 @@ class FrontendMenuService
             'url' => $this->resolveUrl($item->route_name, $item->url),
             'route_name' => $item->route_name,
             'target' => $item->target ?: '_self',
-            'children' => $item->children->map(fn (MenuItem $child): array => $this->mapItem($child))->values()->all(),
+            'children' => [],
         ];
     }
 
@@ -141,8 +149,7 @@ class FrontendMenuService
     }
 
     /**
-     * Build a three-level tour menu from destination groups and the actual
-     * destinations that currently have published tours.
+     * Build the tour menu from the active destination tree managed in CMS.
      *
      * @param array<int, array<string, mixed>> $items
      * @return array<int, array<string, mixed>>
@@ -160,51 +167,48 @@ class FrontendMenuService
             ],
         ];
 
-        $destinationRoots = Destination::query()
-            ->whereIn('slug', collect($definitions)->pluck('destinations')->flatten()->all())
+        $destinations = Destination::query()
             ->where('is_active', true)
-            ->get(['id', 'name', 'slug'])
-            ->keyBy('slug');
-
-        $publishedDestinations = Destination::query()
-            ->where('is_active', true)
-            ->whereHas('tours', function ($query): void {
-                $query
-                    ->where('is_active', true)
-                    ->where('status', 'published')
-                    ->where(fn ($published) => $published->whereNull('published_at')->orWhere('published_at', '<=', now()));
-            })
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['id', 'parent_id', 'name', 'slug'])
-            ->groupBy('parent_id');
+            ->get(['id', 'parent_id', 'name', 'slug']);
+        $destinationRoots = $destinations
+            ->whereIn('slug', collect($definitions)->pluck('destinations')->flatten()->unique()->all())
+            ->keyBy('slug');
+        $destinationsByParent = $destinations->groupBy(fn (Destination $destination): string => (string) ($destination->parent_id ?? 0));
 
-        return array_map(function (array $item) use ($definitions, $destinationRoots, $publishedDestinations): array {
+        $buildDestination = function (Destination $destination) use (&$buildDestination, $destinationsByParent): array {
+            return [
+                'title' => $destination->name,
+                'url' => route('tours.index', ['destination' => $destination->slug]),
+                'route_name' => null,
+                'target' => '_self',
+                'children' => $destinationsByParent->get((string) $destination->getKey(), collect())
+                    ->map(fn (Destination $child): array => $buildDestination($child))
+                    ->values()
+                    ->all(),
+            ];
+        };
+
+        return array_map(function (array $item) use ($definitions, $destinationRoots, $buildDestination): array {
             if (! isset($definitions[$item['title']])) {
                 return $item;
             }
 
             $definition = $definitions[$item['title']];
             $item['url'] = route('tours.index', ['scope' => $definition['scope']]);
-            $item['children'] = collect($definition['destinations'])->map(function (string $destinationSlug) use ($destinationRoots, $publishedDestinations): array {
+            $item['children'] = collect($definition['destinations'])->map(function (string $destinationSlug) use ($destinationRoots, $buildDestination): array {
                 $destinationRoot = $destinationRoots->get($destinationSlug);
 
-                return [
-                    'title' => $destinationRoot?->name ?: Str::headline($destinationSlug),
-                    'url' => $destinationRoot ? route('tours.index', ['destination' => $destinationRoot->slug]) : route('tours.index'),
-                    'route_name' => null,
-                    'target' => '_self',
-                    'children' => collect($destinationRoot ? $publishedDestinations->get($destinationRoot->id, collect()) : [])
-                        ->map(fn (Destination $destination): array => [
-                            'title' => $destination->name,
-                            'url' => route('tours.index', ['destination' => $destination->slug]),
-                            'route_name' => null,
-                            'target' => '_self',
-                            'children' => [],
-                        ])
-                        ->values()
-                        ->all(),
-                ];
+                return $destinationRoot
+                    ? $buildDestination($destinationRoot)
+                    : [
+                        'title' => Str::headline($destinationSlug),
+                        'url' => route('tours.index'),
+                        'route_name' => null,
+                        'target' => '_self',
+                        'children' => [],
+                    ];
             })->all();
 
             return $item;

@@ -21,7 +21,7 @@
 >
     <x-slot:actions>
         <a href="{{ route('admin.tours.import.create') }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-file-earmark-arrow-up me-1"></i>Nhập Excel / ZIP
+            <i class="bi bi-file-earmark-arrow-up me-1"></i>Nhập lịch Excel
         </a>
     </x-slot:actions>
 

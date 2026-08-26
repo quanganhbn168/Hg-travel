@@ -87,31 +87,7 @@
 
                 <div class="navbar-collapse order-lg-2 d-none d-lg-flex flex-grow-1 justify-content-center" id="site-desktop-navigation">
                     <ul class="navbar-nav site-navigation">
-                        @foreach ($headerMenuItems as $item)
-                            <li class="nav-item {{ $item['children'] ? 'dropdown' : '' }}">
-                                <a class="nav-link {{ $item['children'] ? 'dropdown-toggle' : '' }} {{ $item['active'] ? 'active' : '' }}" href="{{ $item['url'] }}" target="{{ $item['target'] }}" @if ($item['target'] === '_blank') rel="noopener noreferrer" @endif @if ($item['children']) data-bs-toggle="dropdown" aria-expanded="false" @endif>
-                                    {{ $item['title'] }}
-                                </a>
-                                @if ($item['children'])
-                                    <ul class="dropdown-menu">
-                                        @foreach ($item['children'] as $child)
-                                            <li class="{{ $child['children'] ? 'dropdown-submenu' : '' }}">
-                                                <a class="dropdown-item {{ $child['active'] ? 'active' : '' }}" href="{{ $child['url'] }}" target="{{ $child['target'] }}" @if ($child['target'] === '_blank') rel="noopener noreferrer" @endif>
-                                                    {{ $child['title'] }}
-                                                </a>
-                                                @if ($child['children'])
-                                                    <ul class="dropdown-menu dropdown-menu-nested">
-                                                        @foreach ($child['children'] as $grandchild)
-                                                            <li><a class="dropdown-item {{ $grandchild['active'] ? 'active' : '' }}" href="{{ $grandchild['url'] }}" target="{{ $grandchild['target'] }}" @if ($grandchild['target'] === '_blank') rel="noopener noreferrer" @endif>{{ $grandchild['title'] }}</a></li>
-                                                        @endforeach
-                                                    </ul>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            </li>
-                        @endforeach
+                        @include('components.frontend.menu-items', ['items' => $headerMenuItems, 'level' => 0, 'context' => 'desktop'])
                     </ul>
                 </div>
             </div>
@@ -127,20 +103,7 @@
             </div>
             <div class="offcanvas-body">
                 <ul class="navbar-nav site-navigation">
-                    @foreach ($headerMenuItems as $item)
-                        <li class="nav-item {{ $item['children'] ? 'dropdown' : '' }}">
-                            <a class="nav-link {{ $item['children'] ? 'dropdown-toggle' : '' }} {{ $item['active'] ? 'active' : '' }}" href="{{ $item['url'] }}" target="{{ $item['target'] }}" @if ($item['target'] === '_blank') rel="noopener noreferrer" @endif @if ($item['children']) data-bs-toggle="dropdown" aria-expanded="false" @endif>
-                                {{ $item['title'] }}
-                            </a>
-                            @if ($item['children'])
-                                <ul class="dropdown-menu">
-                                    @foreach ($item['children'] as $child)
-                                        <li class="{{ $child['children'] ? 'dropdown-submenu' : '' }}"><a class="dropdown-item {{ $child['active'] ? 'active' : '' }}" href="{{ $child['url'] }}" target="{{ $child['target'] }}" @if ($child['target'] === '_blank') rel="noopener noreferrer" @endif>{{ $child['title'] }}</a>@if ($child['children'])<ul class="mobile-submenu">@foreach ($child['children'] as $grandchild)<li><a class="dropdown-item {{ $grandchild['active'] ? 'active' : '' }}" href="{{ $grandchild['url'] }}" target="{{ $grandchild['target'] }}" @if ($grandchild['target'] === '_blank') rel="noopener noreferrer" @endif>{{ $grandchild['title'] }}</a></li>@endforeach</ul>@endif</li>
-                                    @endforeach
-                                </ul>
-                            @endif
-                        </li>
-                    @endforeach
+                    @include('components.frontend.menu-items', ['items' => $headerMenuItems, 'level' => 0, 'context' => 'mobile'])
                 </ul>
                 <div class="mobile-menu-actions">
                     <button class="btn btn-brand w-100" type="button" data-search-toggle aria-controls="site-search-panel" aria-expanded="false"><i class="bi bi-search"></i>Tìm kiếm</button>
