@@ -97,13 +97,10 @@ class HomeController extends Controller
                 ->orderBy('name')
                 ->get(['name', 'slug'])
                 ->all(),
-            'destinationTabs' => collect($featuredDestinations)->pluck('tab_key', 'tab_key')->map(fn ($key) => [
-                'key' => $key,
-                'label' => collect($featuredDestinations)->firstWhere('tab_key', $key)['tab_label'] ?? 'Điểm đến',
-            ])->values()->all(),
+            'destinationTabs' => $this->destinationTabs($featuredDestinations),
             'customTourBackdropUrl' => $customTourBackdropUrl,
             'impactTitle' => $websiteSettings->impact_title,
-            'impactStats' => $this->impactStats($websiteSettings),
+            'impactStats' => $siteSettings->impactStats(),
             'customerGallery' => $customerGallery,
             'partners' => $this->partners($websiteSettings),
             'customTourContent' => [
@@ -122,6 +119,7 @@ class HomeController extends Controller
                     'content' => $testimonial->content,
                     'rating' => min(5, max(1, (int) $testimonial->rating)),
                     'avatar_url' => $this->imageUrl($testimonial->avatar_path),
+                    'avatar_initials' => $this->avatarInitials($testimonial->customer_name),
                 ])
                 ->all(),
             'structuredData' => $structuredData->encode($structuredData->home($settings)),
@@ -146,16 +144,6 @@ class HomeController extends Controller
                 ['number' => '02', 'title' => 'Vận hành chỉn chu', 'description' => 'Dịch vụ, thời gian và đầu mối phối hợp được làm rõ trước khi khởi hành.'],
                 ['number' => '03', 'title' => 'Đồng hành xuyên suốt', 'description' => 'Hỗ trợ trước, trong và sau chuyến đi để khách hàng luôn an tâm.'],
             ],
-        ];
-    }
-
-    private function impactStats(\App\Settings\WebsiteSettings $settings): array
-    {
-        return [
-            ['number' => $settings->impact_stat_one_number, 'label' => $settings->impact_stat_one_label],
-            ['number' => $settings->impact_stat_two_number, 'label' => $settings->impact_stat_two_label],
-            ['number' => $settings->impact_stat_three_number, 'label' => $settings->impact_stat_three_label],
-            ['number' => $settings->impact_stat_four_number, 'label' => $settings->impact_stat_four_label],
         ];
     }
 
@@ -252,14 +240,13 @@ class HomeController extends Controller
     {
         return Destination::query()
             ->where('is_active', true)
-            ->with('parent')
+            ->with('parent.parent.parent')
             ->withCount(['tours' => fn ($query) => $query->where('is_active', true)])
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
-            ->limit(8)
             ->get()
             ->map(function (Destination $destination): array {
-                $tabLabel = $destination->parent?->name ?: 'Nổi bật';
+                $tab = $this->destinationTab($destination);
 
                 return [
                     'name' => $destination->name,
@@ -267,11 +254,77 @@ class HomeController extends Controller
                     'summary' => $destination->summary,
                     'image_url' => $this->imageUrl($destination->cover_image) ?: $this->mediaUrl($destination, 'cover'),
                     'tour_count' => $destination->tours_count,
-                    'tab_key' => Str::slug($tabLabel),
-                    'tab_label' => $tabLabel,
+                    'tab_key' => $tab['key'],
+                    'tab_label' => $tab['label'],
+                    'tab_order' => $tab['order'],
+                    'featured_order' => $destination->is_featured ? 0 : 1,
+                    'sort_order' => $destination->sort_order,
                 ];
             })
+            ->sortBy([
+                ['tab_order', 'asc'],
+                ['featured_order', 'asc'],
+                ['sort_order', 'asc'],
+                ['name', 'asc'],
+            ])
+            ->groupBy('tab_key')
+            ->map(fn ($destinations) => $destinations->take(8))
+            ->flatten(1)
+            ->values()
             ->all();
+    }
+
+    /** @param list<array<string, mixed>> $destinations @return list<array{key: string, label: string}> */
+    private function destinationTabs(array $destinations): array
+    {
+        return collect($destinations)
+            ->groupBy('tab_key')
+            ->sortBy(fn ($items) => $items->first()['tab_order'])
+            ->map(fn ($items, string $key): array => [
+                'key' => $key,
+                'label' => $items->first()['tab_label'],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /** @return array{key: string, label: string, order: int} */
+    private function destinationTab(Destination $destination): array
+    {
+        $root = $destination;
+
+        while ($root->parent) {
+            $root = $root->parent;
+        }
+
+        if ($root->slug === 'viet-nam') {
+            return ['key' => 'noi-dia', 'label' => 'Nội địa', 'order' => 99];
+        }
+
+        $order = [
+            'chau-a' => 1,
+            'chau-au' => 2,
+            'chau-uc' => 3,
+            'chau-my' => 4,
+            'chau-phi' => 5,
+        ];
+
+        return [
+            'key' => $root->slug ?: Str::slug($root->name),
+            'label' => $root->name ?: 'Điểm đến khác',
+            'order' => $order[$root->slug] ?? 90,
+        ];
+    }
+
+    private function avatarInitials(?string $name): string
+    {
+        return Str::of((string) $name)
+            ->trim()
+            ->explode(' ')
+            ->filter()
+            ->take(-2)
+            ->map(fn (string $part): string => Str::upper(Str::substr($part, 0, 1)))
+            ->implode('') ?: 'HG';
     }
 
     private function posts(): array

@@ -33,6 +33,39 @@
         });
     };
 
+    const initDestinationTabs = () => {
+        const tabs = [...document.querySelectorAll('[data-destination-tab]')];
+        const grid = document.querySelector('[data-destination-grid]');
+        const items = grid ? [...grid.querySelectorAll('[data-destination-item]')] : [];
+        const emptyState = grid?.querySelector('[data-destination-empty]');
+
+        if (!tabs.length || !grid || !items.length) return;
+
+        const activate = (key) => {
+            const visibleItems = items.filter((item) => item.dataset.destinationItem === key);
+
+            tabs.forEach((tab) => {
+                const active = tab.dataset.destinationTab === key;
+                tab.classList.toggle('is-active', active);
+                tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+
+            items.forEach((item) => {
+                const visible = item.dataset.destinationItem === key;
+                item.hidden = !visible;
+                item.classList.toggle('is-bento-featured', visible && item === visibleItems[0]);
+            });
+
+            if (emptyState) emptyState.hidden = visibleItems.length > 0;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activate(tab.dataset.destinationTab));
+        });
+
+        activate(tabs.find((tab) => tab.classList.contains('is-active'))?.dataset.destinationTab || tabs[0].dataset.destinationTab);
+    };
+
     const initHomeParallax = () => {
         const sections = [...document.querySelectorAll('[data-home-parallax]')];
         if (!sections.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -118,7 +151,7 @@
 
     const init = () => {
         activateTabs('[data-home-tab]', '[data-home-panel]');
-        activateTabs('[data-destination-tab]', '[data-destination-item]');
+        initDestinationTabs();
         initHomeAos();
         initHomeParallax();
         initHomeCountdowns();

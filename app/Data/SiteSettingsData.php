@@ -9,6 +9,8 @@ final class SiteSettingsData
         public readonly ?string $company_name,
         public readonly ?string $legal_representative,
         public readonly ?string $tax_code,
+        public readonly ?string $travel_license_number,
+        public readonly ?string $brand_statement,
         public readonly ?string $contact_email,
         public readonly ?string $contact_email_secondary,
         public readonly ?string $contact_email_tertiary,

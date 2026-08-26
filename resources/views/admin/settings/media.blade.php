@@ -17,7 +17,7 @@
                     <div class="row g-3"><div class="col-md-6"><x-image-upload name="image_share_url" label="Ảnh chia sẻ OG/Twitter" :value="$settings->image_share_url" /></div><div class="col-md-6"><x-image-upload name="page_banner_url" label="Banner các trang trong" :value="$settings->page_banner_url" /></div></div>
                 </x-card>
                 <x-card type="info" title="Ảnh trang chủ" class="mt-3">
-                    <div class="row g-3"><div class="col-md-6"><x-image-upload name="homepage_hero_url" label="Ảnh nền banner trang chủ" :value="$settings->homepage_hero_url" /></div><div class="col-md-6"><x-image-upload name="about_image_url" label="Ảnh giới thiệu HG" :value="$settings->about_image_url" /></div></div>
+                    <div class="row g-3"><div class="col-md-6"><x-image-upload name="homepage_hero_url" label="Ảnh nền banner trang chủ" :value="$settings->homepage_hero_url" /></div><div class="col-md-6"><x-image-upload name="about_image_url" label="Ảnh giới thiệu HG" :value="$settings->about_image_url" /><p class="form-text mb-0">Ảnh này hiển thị ở khối “Về HG TRIP” trên trang chủ; ưu tiên ảnh dọc hoặc gần vuông để không bị cắt mất chủ thể.</p></div></div>
                 </x-card>
             </div>
             <div class="col-xl-4">

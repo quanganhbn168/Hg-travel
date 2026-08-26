@@ -20,8 +20,6 @@ class UpdateWebsiteSettingsRequest extends FormRequest
             'impact_title' => ['required', 'string', 'max:255'],
             'impact_stat_one_number' => ['required', 'string', 'max:50'],
             'impact_stat_one_label' => ['required', 'string', 'max:255'],
-            'impact_stat_two_number' => ['required', 'string', 'max:50'],
-            'impact_stat_two_label' => ['required', 'string', 'max:255'],
             'impact_stat_three_number' => ['required', 'string', 'max:50'],
             'impact_stat_three_label' => ['required', 'string', 'max:255'],
             'impact_stat_four_number' => ['required', 'string', 'max:50'],

@@ -29,7 +29,7 @@
             <div class="col-xl-4">
                 <x-card type="warning" title="HG trong những con số">
                     <x-input name="impact_title" label="Tiêu đề khối" :value="$settings->impact_title" required />
-                    @foreach ([['one', 'Số 1'], ['two', 'Số 2'], ['three', 'Số 3'], ['four', 'Số 4']] as [$key, $label])
+                    @foreach ([['one', 'Số 1'], ['three', 'Số 2'], ['four', 'Số 3']] as [$key, $label])
                         <div class="border-top pt-3 mt-3">
                             <strong class="small d-block mb-2">{{ $label }}</strong>
                             <x-input name="impact_stat_{{ $key }}_number" label="Con số" :value="$settings->{'impact_stat_'.$key.'_number'}" required />

@@ -42,6 +42,8 @@ class SiteSettingsService
             'company_name' => null,
             'legal_representative' => null,
             'tax_code' => null,
+            'travel_license_number' => null,
+            'brand_statement' => 'Chúng tôi mong muốn mỗi lần khách hàng lựa chọn HG TRIP không chỉ là một lần đặt dịch vụ, mà là một lần bắt đầu một hành trình mà ở đó họ có thể hoàn toàn an tâm tận hưởng, khám phá và tạo nên những kỷ niệm của riêng mình.',
         ]);
     }
 
@@ -108,6 +110,8 @@ class SiteSettingsService
             company_name: $business->company_name,
             legal_representative: $business->legal_representative,
             tax_code: $business->tax_code,
+            travel_license_number: $business->travel_license_number,
+            brand_statement: $business->brand_statement,
             contact_email: $contact->contact_email,
             contact_email_secondary: $contact->contact_email_secondary,
             contact_email_tertiary: $contact->contact_email_tertiary,
@@ -128,6 +132,18 @@ class SiteSettingsService
             messenger_url: $contact->messenger_url,
             whatsapp_url: $contact->whatsapp_url,
         );
+    }
+
+    /** @return list<array{number: string, label: string}> */
+    public function impactStats(): array
+    {
+        $settings = $this->website();
+
+        return [
+            ['number' => $settings->impact_stat_one_number, 'label' => $settings->impact_stat_one_label],
+            ['number' => $settings->impact_stat_three_number, 'label' => $settings->impact_stat_three_label],
+            ['number' => $settings->impact_stat_four_number, 'label' => $settings->impact_stat_four_label],
+        ];
     }
 
     /**

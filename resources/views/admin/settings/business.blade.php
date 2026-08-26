@@ -15,7 +15,11 @@
                 <x-card type="primary" title="Thông tin pháp lý">
                     <x-input name="company_name" label="Tên pháp lý doanh nghiệp" :value="$settings->company_name" />
                     <x-input name="legal_representative" label="Người đại diện pháp luật" :value="$settings->legal_representative" />
-                    <x-input name="tax_code" label="Mã số thuế" :value="$settings->tax_code" />
+                    <div class="row g-3"><div class="col-md-6"><x-input name="tax_code" label="Mã số thuế" :value="$settings->tax_code" /></div><div class="col-md-6"><x-input name="travel_license_number" label="Số giấy phép lữ hành quốc tế" :value="$settings->travel_license_number" /></div></div>
+                </x-card>
+                <x-card type="info" title="Thông điệp thương hiệu ở footer" class="mt-3">
+                    <x-textarea name="brand_statement" label="Lời nhắn thương hiệu" :value="$settings->brand_statement" rows="5" />
+                    <p class="form-text mb-0">Hiển thị dưới tên công ty ở chân trang và dùng để giới thiệu ngắn gọn về cam kết của HG TRIP.</p>
                 </x-card>
             </div>
         </div>

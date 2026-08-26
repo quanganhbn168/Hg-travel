@@ -113,11 +113,15 @@
 .home-tab-panel { display: none; }
 .home-tab-panel.is-active { display: block; }
 .home-discovery-section { background: var(--color-surface-soft); }
-.home-discovery-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.home-discovery-heading { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(16rem, .55fr); align-items: end; gap: 2rem; }
 .home-discovery-heading .section-eyebrow { margin-bottom: .55rem; }
+.home-discovery-heading .section-title { max-width: none; font-size: clamp(2rem, 3.75vw, 3.35rem); line-height: 1.02; letter-spacing: -.045em; }
+.home-discovery-summary { display: grid; gap: .85rem; justify-items: start; padding-bottom: .35rem; }
+.home-discovery-summary .section-description { max-width: 27rem; margin: 0; }
 .home-destination-item[hidden] { display: none !important; }
 .home-destination-grid { display: grid; grid-auto-flow: row dense; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 .home-destination-grid > .home-empty-state { grid-column: 1 / -1; }
+.home-destination-tab-empty[hidden] { display: none !important; }
 .destination-bento-item { min-width: 0; aspect-ratio: 1; grid-column: span 1; }
 .destination-bento-item.is-bento-featured { aspect-ratio: auto; grid-column: span 2; grid-row: span 2; }
 .destination-card { position: relative; height: 100%; min-height: 0; overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-xl); background: var(--color-ink); box-shadow: var(--brand-shadow); }
@@ -148,13 +152,15 @@
 .home-impact-content { position: relative; z-index: 2; }
 .home-impact-section .section-heading { margin-bottom: 2.5rem; }
 .home-impact-section .section-title { color: var(--color-surface); }
-.impact-stat { padding: .75rem 1rem; border-left: 1px solid var(--color-white-line); text-align: center; }
+.home-impact-stats { --bs-gutter-y: 1.5rem; }
+.impact-stat { display: flex; min-height: 7.5rem; align-items: center; justify-content: center; flex-direction: column; padding: .75rem 1rem; text-align: center; }
 .impact-stat strong { display: block; color: var(--color-gold); font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 850; letter-spacing: -.06em; line-height: 1; }
 .impact-stat span { display: block; margin-top: .55rem; color: var(--color-white-soft); font-size: .8rem; }
 
 .testimonial-card { height: 100%; padding: 1.5rem; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 0 10px 30px var(--color-ink-shadow-soft); }
 .testimonial-card-head { display: flex; align-items: center; gap: .75rem; }
-.testimonial-card-head img, .testimonial-avatar { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 44px; overflow: hidden; border-radius: 50%; background: var(--color-teal-soft); color: var(--color-teal); }
+.testimonial-card-head img, .testimonial-avatar { width: 48px; height: 48px; display: grid; place-items: center; flex: 0 0 48px; overflow: hidden; border-radius: 50%; background: var(--color-teal-soft); color: var(--color-teal); }
+.testimonial-avatar { border: 1px solid var(--color-teal); font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
 .testimonial-card-head img { object-fit: cover; }
 .testimonial-card-head strong, .testimonial-card-head span { display: block; }
 .testimonial-card-head strong { font-size: .92rem; }
@@ -239,7 +245,8 @@
     .promo-slider-heading { align-items: start; flex-direction: column; margin: 0 .25rem 1rem; }
     .home-promo-slider-wrap { padding-inline: .25rem; }
     .home-promo-slider-navigation { top: 50%; bottom: auto; transform: translateY(-50%); }
-    .home-discovery-heading { align-items: start; flex-direction: column; }
+    .home-discovery-heading { grid-template-columns: 1fr; gap: 1rem; }
+    .home-discovery-heading .section-title { font-size: clamp(1.9rem, 9vw, 2.65rem); }
     .home-gallery-grid { grid-auto-rows: 100px; gap: .5rem; }
     .home-gallery-item:nth-child(n) { grid-column: span 6; grid-row: span 1; }
     .home-gallery-item:nth-child(1), .home-gallery-item:nth-child(2) { grid-row: span 2; }
@@ -250,5 +257,4 @@
     .home-custom-tour-section { padding: 4.25rem 0; }
     .home-custom-tour-copy p { font-size: .94rem; }
     .impact-stat { padding-inline: .35rem; }
-    .impact-stat:nth-child(odd) { border-left: 0; }
 }

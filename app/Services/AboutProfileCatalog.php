@@ -48,7 +48,7 @@ class AboutProfileCatalog
                 ['name' => 'Nội địa', 'detail' => 'Khám phá Việt Nam theo nhịp điệu riêng'],
                 ['name' => 'Inbound', 'detail' => 'Đón khách quốc tế đến Việt Nam'],
                 ['name' => 'Outbound', 'detail' => 'Hành trình quốc tế được thiết kế riêng'],
-                ['name' => 'Middle East', 'detail' => 'Phục vụ các nhu cầu chuyên biệt'],
+                ['name' => 'Dịch vụ khác', 'detail' => 'Visa, vé máy bay, khách sạn và các hỗ trợ cần thiết cho chuyến đi'],
             ],
             'clients' => [
                 ['name' => 'MB', 'image' => 'images/about/hg-trip/clients/mb.png'],

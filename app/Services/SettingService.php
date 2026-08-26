@@ -50,7 +50,7 @@ class SettingService
         $this->save($this->website(), $data, [
             'site_name', 'about_title', 'about_paragraph_one', 'about_paragraph_two',
             'custom_tour_title', 'custom_tour_description', 'impact_title',
-            'impact_stat_one_number', 'impact_stat_one_label', 'impact_stat_two_number', 'impact_stat_two_label',
+            'impact_stat_one_number', 'impact_stat_one_label',
             'impact_stat_three_number', 'impact_stat_three_label', 'impact_stat_four_number', 'impact_stat_four_label', 'partner_names',
         ]);
     }
@@ -58,7 +58,9 @@ class SettingService
     /** @param array<string, mixed> $data */
     public function updateBusiness(array $data): void
     {
-        $this->save($this->business(), $data, ['company_name', 'legal_representative', 'tax_code']);
+        $this->save($this->business(), $data, [
+            'company_name', 'legal_representative', 'tax_code', 'travel_license_number', 'brand_statement',
+        ]);
     }
 
     /** @param array<string, mixed> $data */

@@ -21,10 +21,10 @@
     --color-price: #b23849;
     --color-accent: var(--color-primary);
     --color-accent-dark: var(--color-primary-dark);
-    --color-cream: #f7f8f8;
-    --color-surface: #ffffff;
-    --color-surface-soft: #f5f7f8;
-    --color-surface-tint: #edf2f4;
+    --color-cream: #f6eedf;
+    --color-surface: #fbf8f1;
+    --color-surface-soft: #f6eedf;
+    --color-surface-tint: #f0e4cb;
     --color-line: #dfe5e8;
     --color-line-strong: #c9d2d8;
     --color-card-border: rgba(17,28,44,.16);
@@ -118,7 +118,7 @@ img { max-width: 100%; }
 .site-brand { display: inline-flex; align-items: center; gap: .7rem; color: var(--color-ink); font-weight: 800; letter-spacing: -.03em; }
 .site-brand:hover { color: var(--color-teal); }
 .site-brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px 13px 13px 3px; background: var(--color-teal); color: var(--color-surface); font-size: 1.35rem; transform: rotate(-3deg); }
-.site-brand-logo { width: 108px; }
+.site-brand-logo { width: 180px; height: auto; max-height: 58px; object-fit: contain; object-position: left center; }
 .site-brand-text { line-height: 1.1; }
 .site-brand-name { display: block; font-size: 1.12rem; }
 .site-brand-tagline { display: block; margin-top: .18rem; color: var(--color-muted); font-size: .64rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
@@ -194,8 +194,13 @@ body .page-banner p, body .page-banner .section-description, body .page-banner .
 
 .site-footer { position: relative; overflow: hidden; margin-top: 0; padding-top: 3rem; border-top: 1px solid var(--color-white-line); background-color: var(--color-ink-deep); background-image: linear-gradient(rgba(10,23,38,.9), rgba(10,23,38,.96)), url('/images/footer-contours.webp'); background-position: center bottom; background-size: cover; background-repeat: no-repeat; color: var(--color-white-soft); }
 .footer-main { padding: 1rem 0 2.75rem; }
-.footer-description { margin: 1.25rem 0 1.15rem; font-size: .88rem; }
+.site-brand-footer .site-brand-logo { width: 208px; max-height: 66px; }
+.footer-description { margin: 1.25rem 0 1.15rem; font-size: .88rem; line-height: 1.72; }
 .footer-company-name { margin: 1rem 0 0; color: var(--color-surface); font-size: .72rem; font-weight: 700; line-height: 1.55; text-transform: uppercase; }
+.footer-legal-list { display: grid; gap: .35rem; padding: 0; margin: 0; list-style: none; font-size: .76rem; }
+.footer-legal-list li { display: grid; grid-template-columns: minmax(7.75rem, auto) minmax(0, 1fr); gap: .55rem; align-items: baseline; }
+.footer-legal-list span { color: var(--color-white-muted); }
+.footer-legal-list strong { color: var(--color-white-strong); font-weight: 650; }
 .footer-title { margin-bottom: 1rem; color: var(--color-surface); font-family: var(--font-body); font-size: .74rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
 .footer-links, .footer-contact { display: grid; gap: .6rem; padding: 0; margin: 0; list-style: none; font-size: .86rem; }
 .footer-links a:hover, .footer-contact a:hover { color: var(--color-gold); }
@@ -213,6 +218,7 @@ body .page-banner p, body .page-banner .section-description, body .page-banner .
 .floating-action { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; color: var(--color-surface); font-size: 1rem; font-weight: 800; box-shadow: 0 8px 18px var(--color-ink-shadow-strong); transition: transform .2s ease; }
 .floating-action:hover { color: var(--color-surface); transform: translateY(-3px) scale(1.04); }
 .floating-phone { background: var(--color-success); }
+.floating-email { background: var(--color-gold-dark); }
 .floating-zalo { background: #0068ff; }
 .floating-messenger { background: var(--color-info-bright); }
 .floating-whatsapp { background: #25d366; font-size: 1.15rem; }
@@ -236,6 +242,8 @@ body .page-banner p, body .page-banner .section-description, body .page-banner .
     .topbar-inner { justify-content: center !important; }
     .site-brand-name { font-size: 1rem; }
     .site-brand-tagline { font-size: .56rem; }
+    .site-brand-logo { width: 154px; max-height: 48px; }
+    .site-brand-footer .site-brand-logo { width: 188px; max-height: 58px; }
     .site-search-form { flex-wrap: wrap; }
     .site-search-input-wrap { flex-basis: calc(100% - 3rem); }
     .site-search-form > .btn { flex: 1 1 auto; }

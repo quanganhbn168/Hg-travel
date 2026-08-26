@@ -89,7 +89,7 @@
                     </div>
                     <div class="border-top pt-4 mb-4">
                         <h4 class="h6 text-primary mb-2">Lịch trình theo ngày</h4>
-                        <p class="text-body-secondary small">Mỗi ngày là một nội dung độc lập; có thể nhập mô tả có định dạng, bữa ăn và khách sạn.</p>
+                        <div class="alert alert-info small py-2 mb-3"><strong>Cách nhập dễ đọc:</strong> tạo từng ngày riêng; trong mỗi ngày tách ý thành đoạn ngắn hoặc danh sách gạch đầu dòng bằng thanh công cụ. Không dồn toàn bộ lịch trình thành một đoạn dài. Có thể thêm, xóa hoặc sắp xếp lại từng ngày trước khi lưu.</div>
                         <x-admin.tour-itinerary-editor :itineraries="$itineraries" />
                     </div>
                     <div class="border-top pt-4 mb-4">

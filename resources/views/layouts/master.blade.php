@@ -1,5 +1,5 @@
 <!doctype html>
-@php($brandLogo = $siteAssets['logo'] ?: asset('images/logo-hg.png'))
+@php($brandLogo = $siteAssets['logo'] ?: asset('images/logo-hgtrip.png'))
 @php($shareImage = $siteAssets['share'] ?: $brandLogo)
 
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -179,7 +179,15 @@
                     <div class="col-lg-4 col-md-6">
                         <a class="site-brand site-brand-footer" href="{{ route('home') }}" aria-label="{{ $brandName }} - Trang chủ"><img class="site-brand-logo" src="{{ $brandLogo }}" alt="{{ $siteSettings->site_name ?: 'HG' }}"></a>
                         @if ($siteSettings->company_name)<p class="footer-company-name">{{ $siteSettings->company_name }}</p>@endif
-                        <p class="footer-description">{{ $brandName }} đồng hành cùng bạn từ cảm hứng lên đường đến từng dịch vụ cần thiết cho chuyến đi.</p>
+                        @if ($siteSettings->brand_statement)
+                            <p class="footer-description">{{ $siteSettings->brand_statement }}</p>
+                        @endif
+                        @if ($siteSettings->travel_license_number || $siteSettings->tax_code)
+                            <ul class="footer-legal-list" aria-label="Thông tin pháp lý">
+                                @if ($siteSettings->travel_license_number)<li><span>Giấy phép LHQT</span><strong>{{ $siteSettings->travel_license_number }}</strong></li>@endif
+                                @if ($siteSettings->tax_code)<li><span>MST</span><strong>{{ $siteSettings->tax_code }}</strong></li>@endif
+                            </ul>
+                        @endif
                         <div class="social-links" aria-label="Mạng xã hội">
                             @if ($siteLinks['facebook'])
                                 <a class="social-link" href="{{ $siteLinks['facebook'] }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
@@ -230,6 +238,9 @@
             <a class="floating-action floating-phone" href="{{ $siteLinks['phone_href'] }}" aria-label="Gọi {{ $siteLinks['phone'] }}" data-bs-toggle="tooltip" data-bs-title="Gọi ngay">
                 <i class="bi bi-telephone-fill"></i>
             </a>
+        @endif
+        @if ($siteLinks['email'])
+            <a class="floating-action floating-email" href="mailto:{{ $siteLinks['email'] }}" aria-label="Gửi email tới {{ $siteLinks['email'] }}" data-bs-toggle="tooltip" data-bs-title="Gửi email"><i class="bi bi-envelope-fill"></i></a>
         @endif
         @if ($siteLinks['zalo'])
             <a class="floating-action floating-zalo" href="{{ $siteLinks['zalo'] }}" target="_blank" rel="noopener noreferrer" aria-label="Zalo" data-bs-toggle="tooltip" data-bs-title="Chat Zalo">
