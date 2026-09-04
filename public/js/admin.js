@@ -364,6 +364,11 @@ const menuUpdateLinkState = (node) => {
     }
 };
 
+const menuUpdateCount = (form) => {
+    const count = form.querySelector('[data-menu-count]');
+    if (count) count.textContent = `${form.querySelectorAll('.menu-builder__root > [data-menu-node]').length} mục`;
+};
+
 const initMenuBuilder = () => {
     document.querySelectorAll('[data-menu-builder]').forEach((form) => {
         if (form.dataset.menuBuilderInitialized === 'true') return;
@@ -398,6 +403,7 @@ const initMenuBuilder = () => {
                 const node = menuNewNode(template, source);
                 rootList.append(node);
                 menuRefreshParentOptions(form);
+                menuUpdateCount(form);
                 node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm mục vào menu', showConfirmButton: false, timer: 1600 });
             });
@@ -447,6 +453,7 @@ const initMenuBuilder = () => {
             form.querySelector('[data-menu-custom-label]').value = '';
             form.querySelector('[data-menu-custom-url]').value = '';
             menuRefreshParentOptions(form);
+            menuUpdateCount(form);
             node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm link custom', showConfirmButton: false, timer: 1600 });
         });
@@ -469,6 +476,7 @@ const initMenuBuilder = () => {
                 if (result.isConfirmed) {
                     node.remove();
                     menuRefreshParentOptions(form);
+                    menuUpdateCount(form);
                 }
             }
         });
@@ -496,6 +504,7 @@ const initMenuBuilder = () => {
         });
 
         menuRefreshParentOptions(form);
+        menuUpdateCount(form);
         form.querySelectorAll('[data-menu-node]').forEach(menuUpdateLinkState);
     });
 };
