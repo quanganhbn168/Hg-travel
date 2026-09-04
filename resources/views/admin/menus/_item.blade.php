@@ -6,7 +6,6 @@
     $itemType = $item['linked_source_type'] ?? 'custom';
     $itemTitle = $item['title'] ?? 'Mục menu mới';
     $isCustom = $itemType === 'custom';
-    $isActive = $item['is_active'] ?? true;
 @endphp
 
 <li
@@ -30,9 +29,6 @@
         </div>
 
         <div class="card-tools">
-            <span class="badge {{ $isActive ? 'text-bg-success' : 'text-bg-secondary' }}" data-menu-active-label>
-                {{ $isActive ? 'Đang bật' : 'Đang tắt' }}
-            </span>
             <button type="button" class="btn btn-tool text-danger" data-menu-remove aria-label="Xóa mục menu" title="Xóa mục menu">
                 <i class="bi bi-trash" aria-hidden="true"></i>
             </button>
@@ -74,7 +70,7 @@
             </div>
             <div class="col-lg-2 d-flex align-items-end">
                 <label class="form-check form-switch mb-1" title="Bật/tắt mục menu">
-                    <input class="form-check-input" type="checkbox" data-menu-field="is_active" @checked($isActive)>
+                    <input class="form-check-input" type="checkbox" data-menu-field="is_active" @checked($item['is_active'] ?? true)>
                     <span class="form-check-label small">Hiển thị</span>
                 </label>
             </div>
