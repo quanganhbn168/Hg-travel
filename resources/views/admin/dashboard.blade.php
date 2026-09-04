@@ -16,7 +16,7 @@
             ['label' => 'Booking tháng này', 'value' => $bookingsThisMonth, 'note' => $totalBookings.' booking toàn thời gian', 'icon' => 'bi-calendar-check', 'color' => 'info', 'url' => route('admin.bookings.index')],
             ['label' => 'Chờ xử lý', 'value' => $pendingBookings, 'note' => 'Chưa thanh toán: '.$unpaidBookings, 'icon' => 'bi-hourglass-split', 'color' => 'warning', 'url' => route('admin.bookings.index', ['status' => 'pending'])],
             ['label' => 'Doanh thu xác nhận', 'value' => number_format((float) $confirmedRevenue, 0, ',', '.').' ₫', 'note' => $confirmedBookings.' booking xác nhận/hoàn tất', 'icon' => 'bi-cash-coin', 'color' => 'success', 'url' => route('admin.bookings.index', ['status' => 'confirmed'])],
-            ['label' => 'Lịch đang mở', 'value' => $openScheduleCount, 'note' => $occupancyRate === null ? 'Chưa chốt sức chứa' : 'Đã lấp đầy '.$occupancyRate.'%', 'icon' => 'bi-calendar2-week', 'color' => 'secondary', 'url' => route('admin.tours.index')],
+            ['label' => 'Lịch đang mở', 'value' => $openScheduleCount, 'note' => $occupancyRate === null ? 'Chưa chốt sức chứa' : 'Đã lấp đầy '.$occupancyRate.'%', 'icon' => 'bi-calendar2-week', 'color' => 'danger', 'url' => route('admin.tours.index')],
         ];
     @endphp
 
