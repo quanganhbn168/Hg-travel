@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\Destination;
 use App\Models\Tour;
 use App\Models\TourSchedule;
 use Illuminate\Support\Collection;
@@ -37,7 +36,6 @@ class DashboardService
                 ->where('booking_open', true)
                 ->where('status', 'published')
                 ->count(),
-            'totalDestinations' => Destination::count(),
             'totalBookings' => Booking::count(),
             'pendingBookings' => Booking::where('status', 'pending')->count(),
             'unpaidBookings' => Booking::where('payment_status', 'unpaid')

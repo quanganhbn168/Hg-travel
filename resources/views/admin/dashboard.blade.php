@@ -13,7 +13,6 @@
     @php
         $statCards = [
             ['label' => 'Tour đang bán', 'value' => $openTours, 'note' => $totalTours.' tour trong hệ thống', 'icon' => 'bi-map', 'color' => 'primary', 'url' => route('admin.tours.index')],
-            ['label' => 'Điểm đến', 'value' => $totalDestinations, 'note' => 'Địa danh đang quản lý', 'icon' => 'bi-geo-alt', 'color' => 'success', 'url' => route('admin.destinations.index')],
             ['label' => 'Booking tháng này', 'value' => $bookingsThisMonth, 'note' => $totalBookings.' booking toàn thời gian', 'icon' => 'bi-calendar-check', 'color' => 'info', 'url' => route('admin.bookings.index')],
             ['label' => 'Chờ xử lý', 'value' => $pendingBookings, 'note' => 'Chưa thanh toán: '.$unpaidBookings, 'icon' => 'bi-hourglass-split', 'color' => 'warning', 'url' => route('admin.bookings.index', ['status' => 'pending'])],
             ['label' => 'Doanh thu xác nhận', 'value' => number_format((float) $confirmedRevenue, 0, ',', '.').' ₫', 'note' => $confirmedBookings.' booking xác nhận/hoàn tất', 'icon' => 'bi-cash-coin', 'color' => 'success', 'url' => route('admin.bookings.index', ['status' => 'confirmed'])],
@@ -23,7 +22,7 @@
 
     <div class="row">
         @foreach ($statCards as $card)
-            <div class="col-sm-6 col-lg-4 col-xl-2">
+            <div class="col-sm-6 col-lg-4 col-xl">
                 <a href="{{ $card['url'] }}" class="small-box text-bg-{{ $card['color'] }} text-decoration-none">
                     <div class="inner">
                         <h3>{{ $card['value'] }}</h3>
@@ -40,9 +39,15 @@
     <div class="row g-3 mb-4">
         <div class="col-xl-8">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center gap-3">
-                    <h3 class="card-title mb-0">Booking 14 ngày qua</h3>
-                    <span class="badge text-bg-light">{{ $bookingTrendTotal }} booking</span>
+                <div class="card-header">
+                    <h3 class="card-title">Booking 14 ngày qua</h3>
+                    <div class="card-tools">
+                        <span class="badge text-bg-light me-1">{{ $bookingTrendTotal }} booking</span>
+                        <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse" aria-label="Thu gọn biểu đồ booking">
+                            <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                            <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if($bookingTrendTotal > 0)
@@ -65,7 +70,16 @@
 
         <div class="col-xl-4">
             <div class="card h-100">
-                <div class="card-header"><h3 class="card-title mb-0">Phân bổ booking</h3></div>
+                <div class="card-header">
+                    <h3 class="card-title">Phân bổ booking</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('admin.bookings.index') }}" class="btn btn-tool" title="Xem danh sách booking" aria-label="Xem danh sách booking"><i class="bi bi-arrow-right"></i></a>
+                        <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse" aria-label="Thu gọn phân bổ booking">
+                            <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                            <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="card-body">
                     <div class="d-grid gap-3">
                         @foreach($bookingStatusBreakdown as $status)
@@ -91,7 +105,16 @@
     <div class="row g-3">
         <div class="col-xl-8">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center gap-3"><h3 class="card-title mb-0">Booking gần đây</h3><a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-outline-primary">Xem & xử lý booking</a></div>
+                <div class="card-header">
+                    <h3 class="card-title">Booking gần đây</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('admin.bookings.index') }}" class="btn btn-tool" title="Xem và xử lý booking" aria-label="Xem và xử lý booking"><i class="bi bi-arrow-right"></i></a>
+                        <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse" aria-label="Thu gọn booking gần đây">
+                            <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                            <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Mã booking</th><th>Khách hàng</th><th>Tour / lịch</th><th>Trạng thái</th><th class="text-end">Tổng tiền</th></tr></thead><tbody>
                     @forelse ($recentBookings as $booking)
                         @php($item = $booking->items->first())
@@ -110,7 +133,16 @@
         </div>
         <div class="col-xl-4">
             <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center gap-3"><h3 class="card-title mb-0">Lịch khởi hành sắp tới</h3><a href="{{ route('admin.tours.index') }}" class="btn btn-sm btn-outline-secondary">Quản lý tour</a></div>
+                <div class="card-header">
+                    <h3 class="card-title">Lịch khởi hành sắp tới</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('admin.tours.index') }}" class="btn btn-tool" title="Quản lý tour" aria-label="Quản lý tour"><i class="bi bi-arrow-right"></i></a>
+                        <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse" aria-label="Thu gọn lịch khởi hành">
+                            <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                            <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="list-group list-group-flush">
                     @forelse ($upcomingSchedules as $schedule)
                         @php($seatsLeft = $schedule->seatsLeft())
