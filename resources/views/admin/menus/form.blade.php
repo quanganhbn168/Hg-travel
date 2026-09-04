@@ -104,30 +104,15 @@
                     <x-slot:header>
                         <span class="badge text-bg-light" data-menu-count>{{ count($menuItems) }} mục</span>
                     </x-slot:header>
-                    <p class="text-body-secondary small mb-3">Kéo biểu tượng để đổi thứ tự; chọn mục cha để tạo cấp con.</p>
+                    <p class="text-body-secondary small mb-3">Kéo biểu tượng để đổi thứ tự; bấm mũi tên để mở cấu hình item.</p>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 menu-builder__table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col" class="text-center" style="width: 2.25rem"><span class="visually-hidden">Sắp xếp</span></th>
-                                    <th scope="col">Mục menu</th>
-                                    <th scope="col" style="min-width: 10rem">Mục cha</th>
-                                    <th scope="col" style="min-width: 11rem">Liên kết</th>
-                                    <th scope="col" style="width: 8.5rem">Mở</th>
-                                    <th scope="col" class="text-center" style="width: 4.5rem">Hiển thị</th>
-                                    <th scope="col" class="text-end" style="width: 2.5rem"><span class="visually-hidden">Thao tác</span></th>
-                                </tr>
-                            </thead>
-                            <tbody class="menu-builder__root" data-menu-list>
+                    <ul class="list-group menu-builder__root" data-menu-list>
                         @forelse ($menuItems as $item)
                             @include('admin.menus._item', ['item' => $item, 'parentOptions' => $menuItems])
                         @empty
-                            <tr data-menu-empty><td colspan="7" class="text-center text-body-secondary py-4">Chưa có mục menu. Hãy chọn nội dung ở bên trái.</td></tr>
+                            <li data-menu-empty class="list-group-item text-center text-body-secondary py-4">Chưa có mục menu. Hãy chọn nội dung ở bên trái.</li>
                         @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    </ul>
                 </x-card>
                 <div class="d-flex justify-content-between gap-2 mt-3">
                     <a href="{{ route('admin.menus.index') }}" class="btn btn-outline-secondary">Quay lại</a>

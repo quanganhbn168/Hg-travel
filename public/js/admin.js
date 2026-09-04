@@ -332,6 +332,36 @@ const menuRefreshParentOptions = (form) => {
         if (! [...select.options].some((option) => option.value === currentValue)) select.value = '';
         node.dataset.parentKey = select.value || '';
     });
+
+    rows.forEach((node) => {
+        let depth = 0;
+        let current = node.dataset.parentKey || '';
+        const visited = new Set();
+
+        while (current && !visited.has(current) && depth < 6) {
+            visited.add(current);
+            depth += 1;
+            current = rows.find((candidate) => candidate.dataset.menuKey === current)?.dataset.parentKey || '';
+        }
+
+        node.style.setProperty('--menu-depth', String(depth));
+        node.dataset.menuDepth = String(depth);
+    });
+};
+
+const menuOpenNode = (node) => {
+    const editor = node?.querySelector('[data-menu-editor]');
+    const toggle = node?.querySelector('[data-menu-toggle]');
+    const icon = node?.querySelector('[data-menu-toggle-icon]');
+
+    if (!editor || !toggle) return;
+
+    editor.hidden = false;
+    node.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Đóng cấu hình mục menu');
+    toggle.setAttribute('title', 'Đóng cấu hình mục menu');
+    icon?.classList.replace('bi-chevron-right', 'bi-chevron-down');
 };
 
 const menuBuildTree = (form) => {
@@ -404,6 +434,7 @@ const initMenuBuilder = () => {
                 rootList.append(node);
                 menuRefreshParentOptions(form);
                 menuUpdateCount(form);
+                menuOpenNode(node);
                 node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm mục vào menu', showConfirmButton: false, timer: 1600 });
             });
@@ -454,6 +485,7 @@ const initMenuBuilder = () => {
             form.querySelector('[data-menu-custom-url]').value = '';
             menuRefreshParentOptions(form);
             menuUpdateCount(form);
+            menuOpenNode(node);
             node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm link custom', showConfirmButton: false, timer: 1600 });
         });
@@ -461,6 +493,23 @@ const initMenuBuilder = () => {
         form.addEventListener('click', async (event) => {
             const remove = event.target.closest('[data-menu-remove]');
             const node = event.target.closest('[data-menu-node]');
+
+            const toggle = event.target.closest('[data-menu-toggle]');
+            if (toggle && node) {
+                event.preventDefault();
+                const editor = node.querySelector('[data-menu-editor]');
+                const icon = toggle.querySelector('[data-menu-toggle-icon]');
+                const isOpen = editor ? !editor.hidden : false;
+
+                if (editor) editor.hidden = isOpen;
+                node.classList.toggle('is-open', !isOpen);
+                toggle.setAttribute('aria-expanded', String(!isOpen));
+                toggle.setAttribute('aria-label', isOpen ? 'Mở cấu hình mục menu' : 'Đóng cấu hình mục menu');
+                toggle.setAttribute('title', isOpen ? 'Mở cấu hình mục menu' : 'Đóng cấu hình mục menu');
+                icon?.classList.toggle('bi-chevron-right', isOpen);
+                icon?.classList.toggle('bi-chevron-down', !isOpen);
+                return;
+            }
 
             if (remove && node) {
                 event.preventDefault();
