@@ -225,10 +225,10 @@ class MenuController extends Controller
 
         $build = function (int $parentId) use (&$build, $byParent): array {
             return $byParent->get((string) $parentId, collect())
-                ->map(function (MenuItem $item) use (&$build): array {
+                ->flatMap(function (MenuItem $item) use (&$build): array {
                     $sourceType = $item->linked_source_type ?: ($item->route_name ? 'native_route' : 'custom');
-
-                    return [
+                    $row = [
+                        'key' => 'item-'.$item->getKey(),
                         'id' => $item->getKey(),
                         'title' => $item->title,
                         'url' => $item->url,
@@ -239,8 +239,10 @@ class MenuController extends Controller
                         'linked_source_type' => $sourceType,
                         'link_type_label' => $this->linkTypeLabel($sourceType),
                         'link_summary' => $item->route_name ?: ($item->url ?: 'Chưa có liên kết'),
-                        'children' => $build((int) $item->getKey()),
+                        'parent_key' => $item->parent_id ? 'item-'.$item->parent_id : '',
                     ];
+
+                    return array_merge([$row], $build((int) $item->getKey()));
                 })
                 ->values()
                 ->all();

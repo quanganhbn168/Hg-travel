@@ -103,13 +103,18 @@
 
                 <x-card title="Cấu trúc menu" type="primary" class="mt-3">
                     <x-slot:header>
-                        <span class="badge text-bg-light">Kéo thả để sắp xếp</span>
+                        <span class="badge text-bg-light">Kéo để sắp xếp</span>
                     </x-slot:header>
-                    <p class="text-body-secondary small mb-3">Chọn nội dung ở bên trái để thêm vào cuối danh sách. Mở từng mục để đổi nhãn, target hoặc trạng thái; kéo mục vào mục khác để tạo cấp con.</p>
+                    <p class="text-body-secondary small mb-3">Kéo để đổi thứ tự. Chọn mục cha trong từng dòng để tạo menu nhiều cấp.</p>
+
+                    <div class="menu-builder__legend small text-body-secondary mb-2">
+                        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                        Mục gốc sẽ hiển thị ở cấp đầu tiên; các mục có cùng mục cha sẽ giữ thứ tự từ trên xuống dưới.
+                    </div>
 
                     <ul class="menu-builder__list menu-builder__root list-unstyled mb-0" data-menu-list>
                         @forelse ($menuItems as $item)
-                            @include('admin.menus._item', ['item' => $item])
+                            @include('admin.menus._item', ['item' => $item, 'parentOptions' => $menuItems])
                         @empty
                             <li class="menu-builder__empty" data-menu-empty>Chưa có mục menu. Hãy chọn nội dung ở bên trái.</li>
                         @endforelse
@@ -128,6 +133,7 @@
 
     <template data-menu-item-template>
         @include('admin.menus._item', ['item' => [
+            'key' => '',
             'id' => null,
             'title' => 'Mục menu mới',
             'url' => '',
@@ -138,7 +144,7 @@
             'linked_source_type' => 'custom',
             'link_type_label' => 'Liên kết custom',
             'link_summary' => 'Chưa có liên kết',
-            'children' => [],
-        ]])
+            'parent_key' => '',
+        ], 'parentOptions' => []])
     </template>
 @endsection

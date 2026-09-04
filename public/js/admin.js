@@ -208,15 +208,14 @@ const menuDecodeSource = (encoded) => {
     return JSON.parse(new TextDecoder().decode(bytes));
 };
 
-const menuOwnEditor = (node) => node.querySelector(':scope > .menu-builder__item > [data-menu-editor]');
-const menuOwnChildren = (node) => node.querySelector(':scope > [data-menu-list]');
+const menuOwnEditor = (node) => node;
 const menuField = (node, name) => menuOwnEditor(node)?.querySelector(`[data-menu-field="${name}"]`);
 
 const menuSetHeaderState = (node) => {
     const title = menuField(node, 'title')?.value.trim() || 'Mục menu mới';
     const active = menuField(node, 'is_active')?.checked ?? true;
-    const label = node.querySelector(':scope > .menu-builder__item [data-menu-item-label]');
-    const activeLabel = node.querySelector(':scope > .menu-builder__item [data-menu-active-label]');
+    const label = node.querySelector('[data-menu-item-label]');
+    const activeLabel = node.querySelector('[data-menu-active-label]');
 
     if (label) label.textContent = title;
     if (activeLabel) {
@@ -224,22 +223,6 @@ const menuSetHeaderState = (node) => {
         activeLabel.classList.toggle('text-bg-success', active);
         activeLabel.classList.toggle('text-bg-secondary', !active);
     }
-};
-
-const menuSyncEmptyStates = (root) => {
-    root.querySelectorAll('[data-menu-list]').forEach((list) => {
-        const hasNodes = [...list.children].some((child) => child.matches('[data-menu-node]'));
-        const empty = list.querySelector(':scope > [data-menu-empty]');
-
-        if (hasNodes && empty) empty.remove();
-        if (!hasNodes && !empty) {
-            const placeholder = document.createElement('li');
-            placeholder.className = 'menu-builder__empty';
-            placeholder.dataset.menuEmpty = 'true';
-            placeholder.textContent = 'Thả mục vào đây để tạo cấp con.';
-            list.append(placeholder);
-        }
-    });
 };
 
 const menuSetSourceState = (node, source) => {
@@ -250,18 +233,27 @@ const menuSetSourceState = (node, source) => {
     const routeField = menuField(node, 'route_name');
     const sourceIdField = menuField(node, 'linked_source_id');
     const sourceTypeField = menuField(node, 'linked_source_type');
-    const linkSummary = node.querySelector(':scope > .menu-builder__item [data-menu-link]');
-    const itemType = node.querySelector(':scope > .menu-builder__item [data-menu-item-type]');
+    const targetField = menuField(node, 'target');
+    const linkSummary = node.querySelector('[data-menu-link]');
+    const itemType = node.querySelector('[data-menu-item-type]');
 
     if (titleField) titleField.value = title;
     if (urlField) urlField.value = source.url || '';
     if (routeField) routeField.value = source.route_name || '';
     if (sourceIdField) sourceIdField.value = source.source_id || '';
     if (sourceTypeField) sourceTypeField.value = sourceType;
-    if (linkSummary) linkSummary.textContent = sourceType === 'custom'
+    if (targetField && source.target) targetField.value = source.target;
+    node.dataset.menuSourceSummary = sourceType === 'custom'
         ? (source.url || 'Chưa có liên kết')
         : `${source.label} · ${source.meta}`;
+    if (linkSummary) {
+        linkSummary.textContent = node.dataset.menuSourceSummary;
+        linkSummary.closest('.menu-builder__link-summary')?.setAttribute('title', node.dataset.menuSourceSummary);
+    }
     if (itemType) itemType.textContent = sourceType === 'custom' ? 'Liên kết custom' : source.meta;
+
+    const customUrlWrap = node.querySelector('[data-menu-custom-url-wrap]');
+    if (customUrlWrap) customUrlWrap.hidden = sourceType !== 'custom';
 
     menuSetHeaderState(node);
 };
@@ -289,14 +281,87 @@ const menuSerializeNode = (node) => {
     menuOwnEditor(node)?.querySelectorAll('[data-menu-field]').forEach((field) => {
         const name = field.dataset.menuField;
         if (name === 'id') return;
+        if (name === 'parent_key') return;
         data[name] = field.type === 'checkbox' ? field.checked : field.value;
     });
 
-    data.children = [...(menuOwnChildren(node)?.children || [])]
-        .filter((child) => child.matches('[data-menu-node]'))
-        .map(menuSerializeNode);
+    data.parent_key = menuField(node, 'parent_key')?.value || '';
 
     return data;
+};
+
+const menuParentMap = (form) => new Map(
+    [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')]
+        .map((node) => [node.dataset.menuKey, menuField(node, 'parent_key')?.value || '']),
+);
+
+const menuWouldCreateCycle = (form, nodeKey, candidateParentKey) => {
+    const parents = menuParentMap(form);
+    const visited = new Set();
+    let current = candidateParentKey;
+
+    while (current) {
+        if (current === nodeKey || visited.has(current)) return true;
+        visited.add(current);
+        current = parents.get(current) || '';
+    }
+
+    return false;
+};
+
+const menuRefreshParentOptions = (form) => {
+    const rows = [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')];
+
+    rows.forEach((node) => {
+        const select = menuField(node, 'parent_key');
+        if (!select) return;
+
+        const currentValue = select.value || node.dataset.parentKey || '';
+        const nodeKey = node.dataset.menuKey;
+        select.replaceChildren(new Option('— Mục gốc —', ''));
+
+        rows.forEach((candidate) => {
+            const candidateKey = candidate.dataset.menuKey;
+            if (!candidateKey || candidateKey === nodeKey || menuWouldCreateCycle(form, nodeKey, candidateKey)) return;
+
+            const option = new Option(menuField(candidate, 'title')?.value.trim() || 'Mục menu mới', candidateKey);
+            option.selected = candidateKey === currentValue;
+            select.append(option);
+        });
+
+        if (! [...select.options].some((option) => option.value === currentValue)) select.value = '';
+        node.dataset.parentKey = select.value || '';
+    });
+};
+
+const menuBuildTree = (form) => {
+    const rows = [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')];
+    const records = rows.map((node) => ({ key: node.dataset.menuKey, ...menuSerializeNode(node), children: [] }));
+    const byKey = new Map(records.map((record) => [record.key, record]));
+    const roots = [];
+
+    records.forEach((record) => {
+        const parent = byKey.get(record.parent_key);
+        delete record.parent_key;
+
+        if (parent && parent !== record) parent.children.push(record);
+        else roots.push(record);
+    });
+
+    return roots;
+};
+
+const menuUpdateLinkState = (node) => {
+    const sourceType = menuField(node, 'linked_source_type')?.value || 'custom';
+    const customUrlWrap = node.querySelector('[data-menu-custom-url-wrap]');
+    const linkSummary = node.querySelector('[data-menu-link]');
+
+    if (customUrlWrap) customUrlWrap.hidden = sourceType !== 'custom';
+    if (linkSummary && sourceType === 'custom') {
+        const summary = menuField(node, 'url')?.value.trim() || 'Chưa có liên kết';
+        linkSummary.textContent = summary;
+        linkSummary.closest('.menu-builder__link-summary')?.setAttribute('title', summary);
+    }
 };
 
 const initMenuBuilder = () => {
@@ -318,14 +383,10 @@ const initMenuBuilder = () => {
                 animation: 180,
                 handle: '[data-menu-handle]',
                 draggable: '[data-menu-node]',
-                filter: '[data-menu-empty]',
-                preventOnFilter: false,
                 fallbackOnBody: true,
-                group: { name: 'menu-builder', pull: true, put: true },
                 ghostClass: 'menu-builder__ghost',
                 chosenClass: 'menu-builder__chosen',
-                onMove: (event) => !event.dragged.contains(event.to),
-                onEnd: () => menuSyncEmptyStates(form),
+                onEnd: () => menuRefreshParentOptions(form),
             });
         };
 
@@ -336,9 +397,7 @@ const initMenuBuilder = () => {
                 const source = menuDecodeSource(button.dataset.menuSource);
                 const node = menuNewNode(template, source);
                 rootList.append(node);
-                node.querySelectorAll('[data-menu-list]').forEach(initMenuSortable);
-                menuSyncEmptyStates(form);
-                menuOpenNode(node);
+                menuRefreshParentOptions(form);
                 node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm mục vào menu', showConfirmButton: false, timer: 1600 });
             });
@@ -384,31 +443,17 @@ const initMenuBuilder = () => {
                 url,
                 target,
             });
-            menuField(node, 'target').value = target;
             rootList.append(node);
-            node.querySelectorAll('[data-menu-list]').forEach(initMenuSortable);
             form.querySelector('[data-menu-custom-label]').value = '';
             form.querySelector('[data-menu-custom-url]').value = '';
-            menuSyncEmptyStates(form);
-            menuOpenNode(node);
+            menuRefreshParentOptions(form);
             node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm link custom', showConfirmButton: false, timer: 1600 });
         });
 
         form.addEventListener('click', async (event) => {
-            const toggle = event.target.closest('[data-menu-toggle]');
             const remove = event.target.closest('[data-menu-remove]');
             const node = event.target.closest('[data-menu-node]');
-
-            if (toggle && node) {
-                event.preventDefault();
-                const editor = menuOwnEditor(node);
-                const isOpen = editor && !editor.hidden;
-                if (editor) editor.hidden = isOpen;
-                toggle.setAttribute('aria-expanded', String(!isOpen));
-                toggle.querySelector('[data-menu-toggle-icon]')?.classList.toggle('bi-chevron-right', isOpen);
-                toggle.querySelector('[data-menu-toggle-icon]')?.classList.toggle('bi-chevron-down', !isOpen);
-            }
 
             if (remove && node) {
                 event.preventDefault();
@@ -423,38 +468,36 @@ const initMenuBuilder = () => {
                 });
                 if (result.isConfirmed) {
                     node.remove();
-                    menuSyncEmptyStates(form);
+                    menuRefreshParentOptions(form);
                 }
             }
         });
 
         form.addEventListener('input', (event) => {
             const node = event.target.closest('[data-menu-node]');
-            if (node && event.target.matches('[data-menu-field="title"]')) menuSetHeaderState(node);
+            if (!node) return;
+            if (event.target.matches('[data-menu-field="title"]')) {
+                menuSetHeaderState(node);
+                menuRefreshParentOptions(form);
+            }
+            if (event.target.matches('[data-menu-field="url"]')) menuUpdateLinkState(node);
         });
         form.addEventListener('change', (event) => {
             const node = event.target.closest('[data-menu-node]');
-            if (node && event.target.matches('[data-menu-field="is_active"]')) menuSetHeaderState(node);
+            if (!node) return;
+            if (event.target.matches('[data-menu-field="is_active"]')) menuSetHeaderState(node);
+            if (event.target.matches('[data-menu-field="parent_key"]')) {
+                node.dataset.parentKey = event.target.value;
+                menuRefreshParentOptions(form);
+            }
         });
         form.addEventListener('submit', () => {
-            payload.value = JSON.stringify([...rootList.children]
-                .filter((node) => node.matches('[data-menu-node]'))
-                .map(menuSerializeNode));
+            payload.value = JSON.stringify(menuBuildTree(form));
         });
 
-        menuSyncEmptyStates(form);
+        menuRefreshParentOptions(form);
+        form.querySelectorAll('[data-menu-node]').forEach(menuUpdateLinkState);
     });
-};
-
-const menuOpenNode = (node) => {
-    const editor = menuOwnEditor(node);
-    const toggle = node.querySelector(':scope > .menu-builder__item [data-menu-toggle]');
-    const icon = toggle?.querySelector('[data-menu-toggle-icon]');
-
-    if (editor) editor.hidden = false;
-    toggle?.setAttribute('aria-expanded', 'true');
-    icon?.classList.remove('bi-chevron-right');
-    icon?.classList.add('bi-chevron-down');
 };
 
 const initTomSelect = () => {
