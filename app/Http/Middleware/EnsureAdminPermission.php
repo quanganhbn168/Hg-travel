@@ -76,10 +76,10 @@ class EnsureAdminPermission
     private function resourcePermission(string $resource, string $action): string
     {
         $registryResource = str_replace('-', '_', $resource);
-        $registryTable = AdminIndexRegistry::tableFor($registryResource);
+        $registryPermissionResource = AdminIndexRegistry::permissionResourceFor($registryResource);
 
-        if ($registryTable !== '') {
-            $resource = str_replace('_', '-', $registryTable);
+        if ($registryPermissionResource !== '') {
+            $resource = str_replace('_', '-', $registryPermissionResource);
         }
 
         $ability = match ($action) {

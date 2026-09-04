@@ -104,6 +104,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admi
     Route::resource('post-categories', PostCategoryController::class)->except('show')->parameters(['post-categories' => 'postCategory']);
     Route::resource('posts', PostController::class)->except('show');
     Route::resource('sliders', SliderController::class)->except('show');
+    Route::get('sliders/{slider}/items/{item}/edit', [SliderController::class, 'editItem'])->name('sliders.items.edit');
     Route::post('sliders/{slider}/items', [SliderController::class, 'storeItem'])->name('sliders.items.store');
     Route::put('sliders/{slider}/items/{item}', [SliderController::class, 'updateItem'])->name('sliders.items.update');
     Route::delete('sliders/{slider}/items/{item}', [SliderController::class, 'destroyItem'])->name('sliders.items.destroy');

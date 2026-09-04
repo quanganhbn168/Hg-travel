@@ -13,6 +13,7 @@ use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Slider;
+use App\Models\SliderItem;
 use App\Models\Testimonial;
 use App\Models\Tour;
 use App\Models\TourCategory;
@@ -141,6 +142,13 @@ final class AdminIndexRegistry
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Slider và các slide liên quan sẽ bị xóa.',
         ],
+        'slider_item' => [
+            'model' => SliderItem::class,
+            'table' => 'slider_items',
+            'permission_resource' => 'sliders',
+            'label' => 'slide',
+            'toggle_fields' => ['is_active'],
+        ],
         'testimonial' => [
             'model' => Testimonial::class,
             'table' => 'testimonials',
@@ -208,6 +216,11 @@ final class AdminIndexRegistry
     public static function tableFor(string $resource): string
     {
         return (string) (self::definition($resource)['table'] ?? '');
+    }
+
+    public static function permissionResourceFor(string $resource): string
+    {
+        return (string) (self::definition($resource)['permission_resource'] ?? self::tableFor($resource));
     }
 
     public static function modelFor(string $resource): ?string
