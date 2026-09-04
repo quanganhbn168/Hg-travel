@@ -50,7 +50,7 @@
     </script>
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
-    <script src="{{ asset('js/admin.js') }}"></script>
+    <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
     @stack('js')
     @if (session('success'))
         <script>
