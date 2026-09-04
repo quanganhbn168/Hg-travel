@@ -31,11 +31,7 @@
     <section class="tour-detail-hero page-banner" style="--page-banner-image: url('{{ $tour['banner_image_url'] ?: $siteAssets['page_banner'] }}');">
         <div class="container">
             <div class="tour-detail-hero-inner text-center">
-                <span class="section-eyebrow">{{ $tour['category'] ?: 'Hành trình chọn lọc' }}</span>
                 <h1 class="tour-detail-title">{{ $tour['name'] }}</h1>
-                @if ($tour['summary'])
-                    <p class="tour-detail-summary">{{ $tour['summary'] }}</p>
-                @endif
                 <div class="tour-detail-meta justify-content-center">
                     <span><i class="bi bi-clock"></i>{{ $tour['duration'] }}</span>
                     @if ($tour['destination'])
@@ -97,7 +93,6 @@
 
                 <div class="col-lg-6">
                     <div class="tour-showcase-panel">
-                        <span class="section-eyebrow">{{ $tour['category'] ?: 'Hành trình chọn lọc' }}</span>
                         <h2 class="tour-showcase-title">{{ $tour['name'] }}</h2>
                         <div class="tour-showcase-meta" aria-label="Thông tin nhanh về tour">
                             <div><i class="bi bi-geo-alt"></i><span>Khởi hành<strong>{{ $tour['next_departure'] ?: ($tour['booking_open'] ? 'Đang nhận booking' : 'Liên hệ tư vấn') }}</strong></span></div>
@@ -105,6 +100,10 @@
                             @if ($tour['destination'])<div><i class="bi bi-signpost-split"></i><span>Điểm đến<strong>{{ $tour['destination'] }}</strong></span></div>@endif
                             <div><i class="bi bi-upc-scan"></i><span>Mã tour<strong>{{ $tour['code'] }}</strong></span></div>
                         </div>
+
+                        @if ($tour['summary'])
+                            <p class="tour-showcase-summary">{{ $tour['summary'] }}</p>
+                        @endif
 
                         <div class="tour-showcase-price">
                             <span>Từ</span>
@@ -158,7 +157,6 @@
                     <article class="tour-detail-content">
                         <section id="tong-quan" class="tour-detail-section">
                             <div class="tour-detail-section-heading">
-                                <span class="section-eyebrow">Tổng quan</span>
                                 <h2>Thông tin hành trình</h2>
                             </div>
                             @if ($tour['description'])
@@ -171,7 +169,6 @@
                         @if ($tour['schedules'])
                             <section id="lich-khoi-hanh" class="tour-detail-section">
                                 <div class="tour-detail-section-heading">
-                                    <span class="section-eyebrow">Giá tour</span>
                                     <h2>Lịch khởi hành</h2>
                                 </div>
                                 <x-frontend.tour-schedule-picker
@@ -187,14 +184,13 @@
                             <x-frontend.tour-booking-form :tour="$tour" />
                         @else
                             <section class="tour-detail-section tour-booking-form-section" id="tour-booking-form">
-                                <div class="tour-detail-section-heading mb-0"><span class="section-eyebrow">Đăng ký tour</span><h2>Tour đang tạm ngừng nhận booking</h2><p>HG sẽ mở lại biểu mẫu khi có lịch khởi hành phù hợp.</p></div>
+                                <div class="tour-detail-section-heading mb-0"><h2>Tour đang tạm ngừng nhận booking</h2><p>HG sẽ mở lại biểu mẫu khi có lịch khởi hành phù hợp.</p></div>
                             </section>
                         @endif
 
                         @if ($tour['itineraries'])
                             <section id="lich-trinh" class="tour-detail-section">
                                 <div class="tour-detail-section-heading">
-                                    <span class="section-eyebrow">Theo ngày</span>
                                     <h2>Lịch trình chi tiết</h2>
                                 </div>
                                 <div class="tour-itinerary-list">
@@ -236,7 +232,6 @@
                         @if ($tour['inclusions'])
                             <section id="dich-vu" class="tour-detail-section">
                                 <div class="tour-detail-section-heading">
-                                    <span class="section-eyebrow">Dịch vụ</span>
                                     <h2>Dịch vụ bao gồm</h2>
                                 </div>
                                 <div class="tour-inclusion-grid">
@@ -253,7 +248,6 @@
                         @if ($tour['reviews'])
                             <section id="danh-gia" class="tour-detail-section">
                                 <div class="tour-detail-section-heading">
-                                    <span class="section-eyebrow">Khách hàng</span>
                                     <h2>Đánh giá từ khách hàng</h2>
                                 </div>
                                 <div class="tour-review-list">
@@ -311,7 +305,6 @@
             <div class="container">
                 <div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
                     <div>
-                        <span class="section-eyebrow">Có thể bạn sẽ thích</span>
                         <h2 class="section-title">Những hành trình tương tự</h2>
                     </div>
                     <a class="btn btn-link text-brand fw-semibold p-0" href="{{ route('tours.index') }}">Xem tất cả <i class="bi bi-arrow-right"></i></a>

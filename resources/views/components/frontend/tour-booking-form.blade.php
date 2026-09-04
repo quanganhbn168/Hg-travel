@@ -14,7 +14,6 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header">
                 <div>
-                    <span class="section-eyebrow">Đăng ký tour</span>
                     <h2 class="h4 mb-0" id="tour-booking-modal-title">{{ $tour['name'] }}</h2>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>

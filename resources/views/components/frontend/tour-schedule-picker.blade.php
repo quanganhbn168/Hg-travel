@@ -16,7 +16,6 @@
 <div class="tour-schedule-picker" data-tour-schedule-picker>
     <div class="tour-schedule-picker-heading">
         <div>
-            <span class="section-eyebrow">Chọn lịch phù hợp</span>
             <p class="mb-0">Chọn ngày khởi hành trước khi gửi yêu cầu đặt tour.</p>
         </div>
         <span class="tour-schedule-picker-count"><i class="bi bi-calendar3"></i>{{ $availableScheduleCount }} lịch có thể chọn</span>
