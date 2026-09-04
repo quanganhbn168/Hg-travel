@@ -104,7 +104,7 @@
                     <x-slot:header>
                         <span class="badge text-bg-light" data-menu-count>{{ count($menuItems) }} mục</span>
                     </x-slot:header>
-                    <p class="text-body-secondary small mb-3">Kéo biểu tượng để đổi thứ tự; bấm mũi tên để mở cấu hình item.</p>
+                    <p class="text-body-secondary small mb-3">Kéo tay nắm để đổi thứ tự; kéo sang phải để đưa vào mục phía trên, kéo sang trái để đưa ra ngoài.</p>
 
                     <ul class="list-group menu-builder__root" data-menu-list>
                         @forelse ($menuItems as $item)

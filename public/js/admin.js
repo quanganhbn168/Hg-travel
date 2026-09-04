@@ -373,93 +373,65 @@ const menuRefreshParentOptions = (form) => {
         node.dataset.menuDepth = String(depth);
     });
 
-    menuRefreshMoveButtons(form);
 };
 
-const menuRefreshMoveButtons = (form) => {
-    const rows = menuRows(form);
-    const parents = menuParentMap(form);
+const menuPointer = (event) => {
+    const touch = event?.changedTouches?.[0] || event?.touches?.[0];
+    const clientX = touch?.clientX ?? event?.clientX;
+    const clientY = touch?.clientY ?? event?.clientY;
 
-    rows.forEach((node, index) => {
-        const parentKey = node.dataset.parentKey || '';
-        const blockEnd = menuBlockEnd(rows, index, parents);
-        const previousSibling = [...rows.slice(0, index)].reverse().find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
-        const nextSibling = rows.slice(blockEnd).find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
-        const parentNode = rows.find((candidate) => candidate.dataset.menuKey === parentKey);
-
-        node.querySelector('[data-menu-move="up"]')?.toggleAttribute('disabled', !previousSibling);
-        node.querySelector('[data-menu-move="down"]')?.toggleAttribute('disabled', !nextSibling);
-        node.querySelector('[data-menu-move="in"]')?.toggleAttribute('disabled', !previousSibling);
-        node.querySelector('[data-menu-move="out"]')?.toggleAttribute('disabled', !parentNode);
-    });
+    return Number.isFinite(clientX) && Number.isFinite(clientY)
+        ? { x: clientX, y: clientY }
+        : null;
 };
 
-const menuCommitOrder = (form, orderedRows, node, parentKey = null) => {
+const menuHandleDrop = (form, event, dragState) => {
     const rootList = form.querySelector('.menu-builder__root');
-    if (!rootList) return;
+    const dragged = event.item;
+    const currentRows = menuRows(form);
+    const block = dragState?.block?.length ? dragState.block : [dragged];
+    const blockSet = new Set(block);
+    const parents = dragState?.parents || menuParentMap(form);
+    const draggedIndex = currentRows.indexOf(dragged);
+    const orderedWithoutBlock = currentRows.filter((candidate) => !blockSet.has(candidate));
+    const insertionIndex = currentRows
+        .slice(0, draggedIndex)
+        .filter((candidate) => !blockSet.has(candidate)).length;
+    const pointer = menuPointer(event.originalEvent);
+    let parentKey = dragState?.originalParent || '';
 
-    if (parentKey !== null) {
-        const parentField = menuField(node, 'parent_key');
-        if (parentField) parentField.value = parentKey;
-        node.dataset.parentKey = parentKey;
+    if (pointer && orderedWithoutBlock.length > 0) {
+        const reference = orderedWithoutBlock.reduce((closest, candidate) => {
+            const rect = candidate.getBoundingClientRect();
+            const distance = Math.abs(pointer.y - (rect.top + (rect.height / 2)));
+
+            return !closest || distance < closest.distance ? { candidate, distance } : closest;
+        }, null)?.candidate;
+
+        if (reference) {
+            const rect = reference.getBoundingClientRect();
+            const indentThreshold = Math.max(28, Math.min(44, rect.height));
+            const wantsChild = pointer.x >= rect.left + indentThreshold;
+            const candidateParent = wantsChild
+                ? reference.dataset.menuKey
+                : parents.get(reference.dataset.menuKey) || '';
+
+            if (!blockSet.has(candidateParent)) parentKey = candidateParent;
+        }
     }
+
+    if (!rootList || draggedIndex < 0) return;
+
+    const orderedRows = [...orderedWithoutBlock];
+    orderedRows.splice(insertionIndex, 0, ...block);
+
+    const parentField = menuField(dragged, 'parent_key');
+    if (parentField) parentField.value = parentKey;
+    dragged.dataset.parentKey = parentKey;
 
     rootList.append(...orderedRows);
     menuRefreshParentOptions(form);
     menuUpdateCount(form);
-};
-
-const menuMoveNode = (form, node, direction) => {
-    const rows = menuRows(form);
-    const parents = menuParentMap(form);
-    const index = rows.indexOf(node);
-    if (index < 0) return;
-
-    const parentKey = node.dataset.parentKey || '';
-    const blockEnd = menuBlockEnd(rows, index, parents);
-    const previousSibling = [...rows.slice(0, index)].reverse().find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
-    const nextSibling = rows.slice(blockEnd).find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
-
-    if (direction === 'up' && previousSibling) {
-        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
-        const previousIndex = orderedRows.indexOf(previousSibling);
-        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
-        orderedRows.splice(previousIndex, 0, ...nodeBlock);
-        menuCommitOrder(form, orderedRows, node);
-        return;
-    }
-
-    if (direction === 'down' && nextSibling) {
-        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
-        const nextIndex = orderedRows.indexOf(nextSibling);
-        const nextEnd = menuBlockEnd(orderedRows, nextIndex, parents);
-        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
-        orderedRows.splice(nextEnd, 0, ...nodeBlock);
-        menuCommitOrder(form, orderedRows, node);
-        return;
-    }
-
-    if (direction === 'in' && previousSibling) {
-        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
-        const previousIndex = orderedRows.indexOf(previousSibling);
-        const previousEnd = menuBlockEnd(orderedRows, previousIndex, parents);
-        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
-        orderedRows.splice(previousEnd, 0, ...nodeBlock);
-        menuCommitOrder(form, orderedRows, node, previousSibling.dataset.menuKey);
-        return;
-    }
-
-    if (direction === 'out' && parentKey) {
-        const parentNode = rows.find((candidate) => candidate.dataset.menuKey === parentKey);
-        if (!parentNode) return;
-
-        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
-        const parentIndex = orderedRows.indexOf(parentNode);
-        const parentEnd = menuBlockEnd(orderedRows, parentIndex, parents);
-        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
-        orderedRows.splice(parentEnd, 0, ...nodeBlock);
-        menuCommitOrder(form, orderedRows, node, parents.get(parentKey) || '');
-    }
 };
 
 const menuOpenNode = (node) => {
@@ -527,6 +499,8 @@ const initMenuBuilder = () => {
             if (list.dataset.menuSortableInitialized === 'true') return;
             list.dataset.menuSortableInitialized = 'true';
 
+            let dragState = null;
+
             Sortable.create(list, {
                 animation: 180,
                 handle: '[data-menu-handle]',
@@ -534,7 +508,41 @@ const initMenuBuilder = () => {
                 fallbackOnBody: true,
                 ghostClass: 'menu-builder__ghost',
                 chosenClass: 'menu-builder__chosen',
-                onEnd: () => menuRefreshParentOptions(form),
+                onStart: (event) => {
+                    const rows = menuRows(form);
+                    const parents = menuParentMap(form);
+                    const dragged = event.item;
+                    const draggedKey = dragged.dataset.menuKey;
+                    const block = [dragged, ...rows.filter((candidate) => candidate !== dragged && menuIsDescendant(candidate, draggedKey, parents))];
+
+                    dragState = {
+                        block,
+                        originalParent: dragged.dataset.parentKey || '',
+                        parents,
+                    };
+                },
+                onMove: (event) => {
+                    if (!dragState?.block || !event.related) return true;
+                    if (dragState.block.includes(event.related)) return false;
+
+                    const pointer = menuPointer(event.originalEvent);
+                    const rect = event.related.getBoundingClientRect();
+                    const wantsChild = pointer && pointer.x >= rect.left + Math.max(28, Math.min(44, rect.height));
+
+                    list.querySelectorAll('.is-drop-parent').forEach((node) => node.classList.remove('is-drop-parent'));
+                    event.related.classList.toggle('is-drop-parent', Boolean(wantsChild));
+
+                    return true;
+                },
+                onEnd: (event) => {
+                    list.querySelectorAll('.is-drop-parent').forEach((node) => node.classList.remove('is-drop-parent'));
+                    menuHandleDrop(form, event, dragState);
+                    dragState = null;
+                },
+                onCancel: () => {
+                    list.querySelectorAll('.is-drop-parent').forEach((node) => node.classList.remove('is-drop-parent'));
+                    dragState = null;
+                },
             });
         };
 
@@ -606,7 +614,6 @@ const initMenuBuilder = () => {
         form.addEventListener('click', async (event) => {
             const remove = event.target.closest('[data-menu-remove]');
             const node = event.target.closest('[data-menu-node]');
-            const move = event.target.closest('[data-menu-move]');
 
             const toggle = event.target.closest('[data-menu-toggle]');
             if (toggle && node) {
@@ -622,12 +629,6 @@ const initMenuBuilder = () => {
                 toggle.setAttribute('title', isOpen ? 'Mở cấu hình mục menu' : 'Đóng cấu hình mục menu');
                 icon?.classList.toggle('bi-chevron-right', isOpen);
                 icon?.classList.toggle('bi-chevron-down', !isOpen);
-                return;
-            }
-
-            if (move && node) {
-                event.preventDefault();
-                menuMoveNode(form, node, move.dataset.menuMove);
                 return;
             }
 
