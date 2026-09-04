@@ -92,6 +92,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admi
     Route::resource('services', ServiceController::class)->except('show');
     Route::post('common/bulk-action', [CommonController::class, 'bulkAction'])->name('common.bulk-action');
     Route::post('common/reorder', [CommonController::class, 'reorder'])->name('common.reorder');
+    Route::post('common/toggle', [CommonController::class, 'toggle'])->name('common.toggle');
     Route::get('tours/import', [TourImportController::class, 'create'])->name('tours.import.create');
     Route::post('tours/import/package', [TourImportController::class, 'importPackage'])->name('tours.import.package');
     Route::post('tours/import/schedules/prepare', [TourImportController::class, 'prepareSchedules'])->name('tours.import.schedules.prepare');

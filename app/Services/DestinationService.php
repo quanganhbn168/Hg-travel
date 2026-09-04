@@ -61,7 +61,7 @@ class DestinationService
             abort(422, 'Điểm đến cha phải là một nhóm địa lý cố định.');
         }
 
-        return ['parent_id' => $parentId, 'name' => trim($data['name']), 'slug' => $data['slug'] ?: Str::slug($data['name']), 'summary' => $data['summary'] ?? null, 'description' => $data['description'] ?? null, 'cover_image' => $data['cover_image'] ?? null, 'latitude' => $data['latitude'] ?? null, 'longitude' => $data['longitude'] ?? null, 'seo_title' => $data['seo_title'] ?? null, 'seo_description' => $data['seo_description'] ?? null, 'sort_order' => (int) ($data['sort_order'] ?? 0), 'is_featured' => (bool) ($data['is_featured'] ?? false), 'is_active' => (bool) ($data['is_active'] ?? false), 'is_system' => false];
+        return ['parent_id' => $parentId, 'name' => trim($data['name']), 'slug' => $data['slug'] ?: Str::slug($data['name']), 'summary' => $data['summary'] ?? null, 'description' => $data['description'] ?? null, 'cover_image' => $data['cover_image'] ?? null, 'seo_title' => $data['seo_title'] ?? null, 'seo_description' => $data['seo_description'] ?? null, 'sort_order' => (int) ($data['sort_order'] ?? 0), 'is_featured' => (bool) ($data['is_featured'] ?? false), 'is_active' => (bool) ($data['is_active'] ?? false), 'is_system' => false];
     }
 
     private function ensureEditable(Destination $destination): void

@@ -31,6 +31,7 @@ final class AdminIndexRegistry
             'model' => Destination::class,
             'table' => 'destinations',
             'label' => 'điểm đến',
+            'toggle_fields' => ['is_active', 'is_featured'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Điểm đến đã xóa không thể khôi phục.',
         ],
@@ -38,6 +39,7 @@ final class AdminIndexRegistry
             'model' => TravelMoment::class,
             'table' => 'travel_moments',
             'label' => 'khoảnh khắc',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Khoảnh khắc đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
@@ -47,6 +49,7 @@ final class AdminIndexRegistry
             'model' => TourCategory::class,
             'table' => 'tour_categories',
             'label' => 'danh mục tour',
+            'toggle_fields' => ['is_active', 'is_home'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Loại hình tour đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
@@ -86,6 +89,7 @@ final class AdminIndexRegistry
             'model' => ServiceCategory::class,
             'table' => 'service_categories',
             'label' => 'danh mục dịch vụ',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Chỉ xóa được danh mục chưa có dịch vụ liên kết.',
             'order_column' => 'sort_order',
@@ -95,6 +99,7 @@ final class AdminIndexRegistry
             'model' => Service::class,
             'table' => 'services',
             'label' => 'dịch vụ',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Dịch vụ đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
@@ -104,6 +109,7 @@ final class AdminIndexRegistry
             'model' => Page::class,
             'table' => 'pages',
             'label' => 'trang',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Trang sẽ được đưa vào thùng rác.',
             'order_column' => 'sort_order',
@@ -113,6 +119,7 @@ final class AdminIndexRegistry
             'model' => PostCategory::class,
             'table' => 'post_categories',
             'label' => 'danh mục bài viết',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Danh mục sẽ được đưa vào thùng rác.',
             'order_column' => 'sort_order',
@@ -122,6 +129,7 @@ final class AdminIndexRegistry
             'model' => Post::class,
             'table' => 'posts',
             'label' => 'bài viết',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Bài viết sẽ được đưa vào thùng rác.',
         ],
@@ -129,6 +137,7 @@ final class AdminIndexRegistry
             'model' => Slider::class,
             'table' => 'sliders',
             'label' => 'slider',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Slider và các slide liên quan sẽ bị xóa.',
         ],
@@ -136,6 +145,7 @@ final class AdminIndexRegistry
             'model' => Testimonial::class,
             'table' => 'testimonials',
             'label' => 'cảm nhận',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Cảm nhận đã xóa không thể khôi phục.',
             'order_column' => 'sort_order',
@@ -145,6 +155,7 @@ final class AdminIndexRegistry
             'model' => Promotion::class,
             'table' => 'promotions',
             'label' => 'ưu đãi',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Ưu đãi đã xóa không thể khôi phục.',
         ],
@@ -152,6 +163,7 @@ final class AdminIndexRegistry
             'model' => Coupon::class,
             'table' => 'coupons',
             'label' => 'mã giảm giá',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Mã giảm giá đã xóa không thể khôi phục.',
         ],
@@ -159,6 +171,7 @@ final class AdminIndexRegistry
             'model' => Menu::class,
             'table' => 'menus',
             'label' => 'menu',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Các mục menu liên quan cũng sẽ bị ảnh hưởng.',
         ],
@@ -166,6 +179,7 @@ final class AdminIndexRegistry
             'model' => User::class,
             'table' => 'users',
             'label' => 'tài khoản',
+            'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt'],
         ],
         'role' => [
@@ -214,6 +228,11 @@ final class AdminIndexRegistry
     public static function statusUpdatesFor(string $resource): array
     {
         return self::definition($resource)['status_updates'] ?? [];
+    }
+
+    public static function toggleFieldsFor(string $resource): array
+    {
+        return self::definition($resource)['toggle_fields'] ?? [];
     }
 
     public static function reorderResources(): array

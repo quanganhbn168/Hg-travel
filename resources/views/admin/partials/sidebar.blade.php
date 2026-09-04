@@ -1,6 +1,6 @@
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
     <div class="sidebar-brand">
-        <a href="{{ route('admin.dashboard') }}" class="brand-link"><span class="brand-text fw-light">DU LỊCH ADMIN</span></a>
+        <a href="{{ route('admin.dashboard') }}" class="brand-link"><span class="brand-text fw-light">{{ \Illuminate\Support\Str::upper($adminBrandName) }} ADMIN</span></a>
     </div>
     <div class="sidebar-wrapper">
         <nav class="mt-2">

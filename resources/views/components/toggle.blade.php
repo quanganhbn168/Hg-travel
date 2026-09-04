@@ -20,6 +20,8 @@
         data-model="{{ $model }}"
         data-id="{{ $id }}"
         data-field="{{ $field }}"
+        data-toggle-url="{{ route('admin.common.toggle') }}"
+        aria-label="{{ $label ?: 'Thay đổi '.str_replace('_', ' ', $field) }}"
         {{ $checked ? 'checked' : '' }}
         {{ $disabled ? 'disabled' : '' }}
         {{ $attributes }}

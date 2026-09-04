@@ -50,6 +50,7 @@ class EnsureAdminPermission
             $routeName === 'admin.contact-submissions.update' => 'contact-submissions.update',
             $routeName === 'admin.common.bulk-action' => $this->bulkPermission($request),
             $routeName === 'admin.common.reorder' => $this->resourcePermission((string) $request->input('resource'), 'update'),
+            $routeName === 'admin.common.toggle' => $this->resourcePermission((string) $request->input('resource'), 'update'),
             str_starts_with($routeName, 'admin.tours.import.') => 'tours.update',
             default => $this->resourceRoutePermission($routeName),
         };

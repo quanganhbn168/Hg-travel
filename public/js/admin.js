@@ -1,5 +1,44 @@
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+const initFieldToggles = () => {
+    document.querySelectorAll('.toggle-field-switch').forEach((input) => {
+        if (input.dataset.toggleInitialized === 'true') return;
+        input.dataset.toggleInitialized = 'true';
+
+        input.addEventListener('change', async () => {
+            const nextValue = input.checked;
+            input.disabled = true;
+
+            try {
+                const response = await fetch(input.dataset.toggleUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
+                    body: JSON.stringify({
+                        resource: input.dataset.model,
+                        id: input.dataset.id,
+                        field: input.dataset.field,
+                        value: nextValue,
+                    }),
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(payload.message || `HTTP ${response.status}`);
+
+                input.checked = Boolean(payload.value);
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: payload.message, showConfirmButton: false, timer: 1800 });
+            } catch (error) {
+                input.checked = !nextValue;
+                await Swal.fire('Không thể cập nhật', error.message || 'Vui lòng thử lại.', 'error');
+            } finally {
+                input.disabled = false;
+            }
+        });
+    });
+};
+
 const initStandardIndexColumns = (root) => {
     const resource = root.dataset.indexResource;
     const table = root.querySelector('table');
@@ -186,6 +225,7 @@ const initTomSelect = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    initFieldToggles();
     document.querySelectorAll('[data-admin-index]').forEach((root) => {
         initStandardIndexColumns(root);
         initBulkSelection(root);

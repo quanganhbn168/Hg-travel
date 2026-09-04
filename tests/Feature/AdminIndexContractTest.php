@@ -71,6 +71,25 @@ class AdminIndexContractTest extends TestCase
     }
 
     #[Test]
+    public function boolean_status_cells_use_the_shared_toggle_component(): void
+    {
+        $files = glob(resource_path('views/admin/*/index.blade.php')) ?: [];
+
+        foreach ($files as $file) {
+            if (str_ends_with(str_replace('\\', '/', $file), '/media/index.blade.php')) {
+                continue;
+            }
+
+            $contents = file_get_contents($file);
+            $hasBooleanCell = preg_match('/->(?:is_active|is_home|is_featured)\\b/', $contents) === 1;
+
+            if ($hasBooleanCell) {
+                $this->assertStringContainsString('<x-toggle', $contents, $file);
+            }
+        }
+    }
+
+    #[Test]
     public function sidebar_items_have_real_routes_and_no_placeholder_links(): void
     {
         foreach (config('sidebar.menu', []) as $item) {

@@ -16,8 +16,8 @@
         <div class="row g-3">
             <div class="col-xl-8">
                 <x-card type="primary" title="Thông tin điểm đến" :collapsible="true">
-                    <x-input name="name" label="Tên điểm đến" required />
-                    <x-input name="slug" label="Slug" required />
+                    <x-input name="name" id="destination-name" label="Tên điểm đến" required />
+                    <x-slug name="slug" label="Slug" source="destination-name" required />
                     <x-textarea name="summary" label="Mô tả ngắn" rows="3" />
                     <x-tinymce name="description" label="Mô tả chi tiết" rows="8" />
                 </x-card>
@@ -27,8 +27,6 @@
                     <x-select name="parent_id" label="Điểm đến cha" :options="$parents->pluck('name', 'id')->all()" placeholder="Không có điểm đến cha" />
                     <x-image-upload name="cover_image" label="Ảnh cover" />
                     <x-input name="sort_order" type="number" label="Thứ tự hiển thị" value="0" />
-                    <x-input name="latitude" label="Vĩ độ" />
-                    <x-input name="longitude" label="Kinh độ" />
                     <div class="border-top pt-3 mb-3">
                         <label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" checked><span class="form-check-label fw-semibold">Kích hoạt</span></label>
                     </div>

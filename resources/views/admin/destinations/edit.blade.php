@@ -16,8 +16,8 @@
         <div class="row g-3">
             <div class="col-xl-8">
                 <x-card type="primary" title="Thông tin điểm đến" :collapsible="true">
-                    <x-input name="name" label="Tên điểm đến" :value="$destination->name" required />
-                    <x-input name="slug" label="Slug" :value="$destination->slug" required />
+                    <x-input name="name" id="destination-name" label="Tên điểm đến" :value="$destination->name" required />
+                    <x-slug name="slug" label="Slug" :value="$destination->slug" source="destination-name" required />
                     <x-textarea name="summary" label="Mô tả ngắn" :value="$destination->summary" rows="3" />
                     <x-tinymce name="description" label="Mô tả chi tiết" :value="$destination->description" rows="8" />
                 </x-card>
@@ -27,8 +27,6 @@
                     <x-select name="parent_id" label="Điểm đến cha" :options="$parents->pluck('name', 'id')->all()" :selected="$destination->parent_id" placeholder="Không có điểm đến cha" />
                     <x-image-upload name="cover_image" label="Ảnh cover" :value="$destination->cover_image" />
                     <x-input name="sort_order" type="number" label="Thứ tự hiển thị" :value="$destination->sort_order" />
-                    <x-input name="latitude" label="Vĩ độ" :value="$destination->latitude" />
-                    <x-input name="longitude" label="Kinh độ" :value="$destination->longitude" />
                     <div class="border-top pt-3 mb-3"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" @checked(old('is_active', $destination->is_active))><span class="form-check-label fw-semibold">Kích hoạt</span></label></div>
                     <div class="mb-3"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $destination->is_featured))><span class="form-check-label fw-semibold">Điểm đến nổi bật</span></label></div>
                 </x-card>
