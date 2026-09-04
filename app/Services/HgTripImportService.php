@@ -32,7 +32,10 @@ final class HgTripImportService
         'other',
     ];
 
-    public function __construct(private readonly HgTripXlsxReader $reader) {}
+    public function __construct(
+        private readonly HgTripXlsxReader $reader,
+        private readonly DestinationCoverageService $destinationCoverage,
+    ) {}
 
     /** @return array<string, mixed> */
     public function import(string $archivePath, bool $dryRun = false, bool $force = false): array
@@ -331,6 +334,8 @@ final class HgTripImportService
                         'sort_order' => $this->toInt($image['sort_order'] ?? '0'),
                     ]);
                 }
+
+                $this->destinationCoverage->syncTour($tour);
             });
         }
     }

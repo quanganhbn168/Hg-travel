@@ -20,12 +20,13 @@ class Destination extends Model implements HasMedia
         'mien-bac', 'mien-trung', 'mien-nam', 'mien-tay',
     ];
 
-    protected $fillable = ['parent_id', 'name', 'slug', 'summary', 'description', 'cover_image', 'latitude', 'longitude', 'seo_title', 'seo_description', 'sort_order', 'is_featured', 'is_active', 'is_system'];
-    protected function casts(): array { return ['latitude' => 'decimal:7', 'longitude' => 'decimal:7', 'is_featured' => 'boolean', 'is_active' => 'boolean', 'is_system' => 'boolean']; }
+    protected $fillable = ['parent_id', 'type', 'market', 'name', 'slug', 'summary', 'description', 'cover_image', 'latitude', 'longitude', 'seo_title', 'seo_description', 'sort_order', 'is_featured', 'is_active', 'is_system', 'landing_enabled'];
+    protected function casts(): array { return ['latitude' => 'decimal:7', 'longitude' => 'decimal:7', 'is_featured' => 'boolean', 'is_active' => 'boolean', 'is_system' => 'boolean', 'landing_enabled' => 'boolean']; }
     public function scopeSystem($query) { return $query->where('is_system', true); }
     public function scopeEditable($query) { return $query->where('is_system', false); }
     public function parent(): BelongsTo { return $this->belongsTo(self::class, 'parent_id'); }
     public function children(): HasMany { return $this->hasMany(self::class, 'parent_id'); }
-    public function tours(): BelongsToMany { return $this->belongsToMany(Tour::class, 'destination_tour')->withPivot('sort_order')->withTimestamps(); }
+    public function tours(): BelongsToMany { return $this->belongsToMany(Tour::class, 'destination_tour')->withPivot('sort_order', 'is_primary')->withTimestamps(); }
+    public function aliases(): HasMany { return $this->hasMany(DestinationAlias::class); }
     public function registerMediaCollections(): void { $this->addMediaCollection('cover')->singleFile()->useDisk('public_media'); }
 }

@@ -24,13 +24,18 @@
             </div>
             <div class="col-xl-4">
                 <x-card type="info" title="Cấu hình hiển thị" :collapsible="true" class="mb-3">
-                    <x-select name="parent_id" label="Điểm đến cha" :options="$parents->pluck('name', 'id')->all()" placeholder="Không có điểm đến cha" />
+                    <x-select name="parent_id" label="Điểm đến cha" :options="collect($parentOptions)->mapWithKeys(fn (array $option): array => [$option['id'] => $option['label']])->all()" :selected="old('parent_id')" placeholder="Không có điểm đến cha" />
+                    <div class="row g-2">
+                        <div class="col-md-6"><x-select name="type" label="Loại điểm đến" :options="$types" :selected="old('type', 'city')" required /></div>
+                        <div class="col-md-6"><x-select name="market" label="Thị trường" :options="$markets" :selected="old('market', 'international')" required /></div>
+                    </div>
                     <x-image-upload name="cover_image" label="Ảnh cover" />
                     <x-input name="sort_order" type="number" label="Thứ tự hiển thị" value="0" />
                     <div class="border-top pt-3 mb-3">
                         <label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" checked><span class="form-check-label fw-semibold">Kích hoạt</span></label>
                     </div>
                     <div class="mb-3"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_featured" value="1"><span class="form-check-label fw-semibold">Điểm đến nổi bật</span></label></div>
+                    <div class="mb-0"><label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="landing_enabled" value="1" @checked(old('landing_enabled'))><span class="form-check-label fw-semibold">Cho phép trang landing</span></label><div class="form-text">Chỉ hiển thị public khi điểm đến có tour đã xuất bản.</div></div>
                 </x-card>
                 <x-card type="secondary" title="Tối ưu SEO" :collapsible="true">
                     <x-input name="seo_title" label="SEO Title" />

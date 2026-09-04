@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreDestinationRequest;
 use App\Http\Requests\Admin\UpdateDestinationRequest;
 use App\Models\Destination;
 use App\Services\DestinationService;
+use App\Services\DestinationTreeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -19,6 +20,8 @@ class DestinationController extends Controller
     {
         return view('admin.destinations.index', [
             'destinations' => $this->destinationService->paginate($request->validated()),
+            'types' => DestinationTreeService::TYPES,
+            'markets' => DestinationTreeService::MARKETS,
         ]);
     }
 

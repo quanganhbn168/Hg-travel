@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminUserSeeder::class,
             DestinationSeeder::class,
+            DestinationCoverageSeeder::class,
             TravelMomentSeeder::class,
             TourCategorySeeder::class,
             ServiceCatalogSeeder::class,

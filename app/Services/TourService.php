@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Destination;
 use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\TourImage;
@@ -16,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class TourService
 {
+    public function __construct(private readonly DestinationTreeService $destinationTree) {}
+
     public function paginate(array $filters): LengthAwarePaginator
     {
         $query = Tour::with(['categories', 'destinations'])->orderBy('sort_order')->orderByDesc('id');
@@ -43,7 +44,7 @@ class TourService
         return [
             'tour' => $tour ?: new Tour(['status' => 'draft', 'currency' => 'VND', 'is_active' => true, 'booking_open' => true]),
             'categories' => TourCategory::where('is_active', true)->orderBy('name')->get(),
-            'destinations' => Destination::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'destinationOptions' => $this->destinationTree->selectOptions(),
         ];
     }
 
@@ -94,10 +95,17 @@ class TourService
     /** @param array<int, int|string> $destinationIds */
     private function syncDestinations(Tour $tour, array $destinationIds): void
     {
+        $destinationIds = $this->destinationTree->removeAncestorIds(
+            array_map('intval', array_values(array_unique(array_filter($destinationIds)))),
+            $this->destinationTree->allNodes(),
+        );
         $sync = [];
 
-        foreach (array_values(array_unique(array_filter($destinationIds))) as $index => $destinationId) {
-            $sync[(int) $destinationId] = ['sort_order' => $index + 1];
+        foreach ($destinationIds as $index => $destinationId) {
+            $sync[(int) $destinationId] = [
+                'sort_order' => $index + 1,
+                'is_primary' => $index === 0,
+            ];
         }
 
         $tour->destinations()->sync($sync);

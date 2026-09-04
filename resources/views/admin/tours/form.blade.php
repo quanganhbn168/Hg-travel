@@ -51,7 +51,7 @@
                             <div class="border rounded-3 p-3 bg-body-tertiary h-100">
                                 <h4 class="h6 text-primary mb-3">Phân loại và trạng thái</h4>
                                 <x-select name="tour_category_ids" label="Loại hình tour" :options="$categories->pluck('name', 'id')->all()" :selected="old('tour_category_ids', $tour->categories->pluck('id')->all())" multiple placeholder="Chọn một hoặc nhiều loại hình" />
-                                <x-select name="destination_ids" label="Điểm đến" :options="$destinations->pluck('name', 'id')->all()" :selected="old('destination_ids', $tour->destinations->pluck('id')->all())" multiple placeholder="Chọn một hoặc nhiều điểm đến" />
+                                <x-select name="destination_ids" label="Điểm đến" :options="collect($destinationOptions)->mapWithKeys(fn (array $option): array => [$option['id'] => $option['label']])->all()" :selected="old('destination_ids', $tour->destinations->pluck('id')->all())" multiple placeholder="Chọn một hoặc nhiều điểm đến" />
                                 <x-select name="status" label="Trạng thái" :options="['draft' => 'Nháp', 'published' => 'Đã xuất bản', 'archived' => 'Lưu trữ']" :selected="old('status', $tour->status ?? 'draft')" />
                                 <div class="border-top pt-3">
                                     <label class="form-check form-switch"><input class="form-check-input" type="checkbox" name="is_active" value="1" @checked(old('is_active', $tour->is_active ?? true))><span class="form-check-label fw-semibold">Đang hoạt động</span></label>

@@ -6,11 +6,13 @@ use App\Models\Destination;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class FrontendMenuService
 {
-    public function __construct(private readonly MenuLinkResolver $linkResolver) {}
+    public function __construct(
+        private readonly MenuLinkResolver $linkResolver,
+        private readonly DestinationTreeService $destinationTree,
+    ) {}
 
     public function items(string $location): array
     {
@@ -144,63 +146,74 @@ class FrontendMenuService
      */
     private function attachTourMenus(array $items): array
     {
-        $definitions = [
-            'Tour nước ngoài' => [
-                'scope' => 'international',
-                'destinations' => ['chau-a', 'chau-au', 'chau-uc', 'chau-my', 'chau-phi'],
-            ],
-            'Tour trong nước' => [
-                'scope' => 'domestic',
-                'destinations' => ['mien-bac', 'mien-trung', 'mien-nam', 'mien-tay'],
-            ],
-        ];
-
-        $destinations = Destination::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id', 'parent_id', 'name', 'slug']);
-        $destinationRoots = $destinations
-            ->whereIn('slug', collect($definitions)->pluck('destinations')->flatten()->unique()->all())
-            ->keyBy('slug');
+        $destinations = $this->destinationTree->activeNodes();
+        $destinationCounts = $this->destinationTree->publishedTourCounts($destinations);
         $destinationsByParent = $destinations->groupBy(fn (Destination $destination): string => (string) ($destination->parent_id ?? 0));
 
-        $buildDestination = function (Destination $destination) use (&$buildDestination, $destinationsByParent): array {
+        $buildDestination = function (Destination $destination) use (&$buildDestination, $destinationsByParent, $destinationCounts): array {
             return [
                 'title' => $destination->name,
-                'url' => route('tours.index', ['destination' => $destination->slug]),
+                'url' => $destination->landing_enabled
+                    ? route('destinations.show', ['destination' => $destination->slug])
+                    : route('tours.index', ['destination' => $destination->slug]),
                 'route_name' => null,
                 'target' => '_self',
                 'children' => $destinationsByParent->get((string) $destination->getKey(), collect())
+                    ->filter(fn (Destination $child): bool => ($destinationCounts[(int) $child->getKey()] ?? 0) > 0)
                     ->map(fn (Destination $child): array => $buildDestination($child))
                     ->values()
                     ->all(),
             ];
         };
 
-        return array_map(function (array $item) use ($definitions, $destinationRoots, $buildDestination): array {
-            if (! isset($definitions[$item['title']])) {
+        return array_map(function (array $item) use ($destinations, $destinationCounts, $destinationsByParent, $buildDestination): array {
+            $scope = $this->tourScope($item);
+
+            if (! $scope) {
                 return $item;
             }
 
-            $definition = $definitions[$item['title']];
-            $item['url'] = route('tours.index', ['scope' => $definition['scope']]);
-            $item['children'] = collect($definition['destinations'])->map(function (string $destinationSlug) use ($destinationRoots, $buildDestination): array {
-                $destinationRoot = $destinationRoots->get($destinationSlug);
+            $item['url'] = route('tours.index', ['scope' => $scope]);
 
-                return $destinationRoot
-                    ? $buildDestination($destinationRoot)
-                    : [
-                        'title' => Str::headline($destinationSlug),
-                        'url' => route('tours.index'),
-                        'route_name' => null,
-                        'target' => '_self',
-                        'children' => [],
-                    ];
-            })->all();
+            // A manually managed child tree is authoritative. Generate the
+            // taxonomy fallback only for an empty top-level menu item.
+            if ($item['children'] !== []) {
+                return $item;
+            }
+
+            $roots = $destinations
+                ->filter(fn (Destination $destination): bool => $destination->parent_id === null && $destination->market === $scope && (($destinationCounts[(int) $destination->getKey()] ?? 0) > 0))
+                ->values();
+
+            if ($scope === 'domestic') {
+                $roots = $roots->flatMap(function (Destination $root) use ($destinationsByParent, $destinationCounts): array {
+                    $children = $destinationsByParent->get((string) $root->getKey(), collect())
+                        ->filter(fn (Destination $child): bool => ($destinationCounts[(int) $child->getKey()] ?? 0) > 0);
+
+                    return $children->isNotEmpty() ? $children->all() : [$root];
+                })->values();
+            }
+
+            $item['children'] = $roots->map(fn (Destination $root): array => $buildDestination($root))->all();
 
             return $item;
         }, $items);
+    }
+
+    private function tourScope(array $item): ?string
+    {
+        $query = [];
+        parse_str((string) parse_url((string) ($item['url'] ?? ''), PHP_URL_QUERY), $query);
+
+        if (in_array($query['scope'] ?? null, ['domestic', 'international'], true)) {
+            return $query['scope'];
+        }
+
+        return match ($item['title'] ?? null) {
+            'Tour trong nước' => 'domestic',
+            'Tour nước ngoài' => 'international',
+            default => null,
+        };
     }
 
     private function cacheKey(string $location): string

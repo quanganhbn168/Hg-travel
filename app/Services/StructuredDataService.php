@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Data\SiteSettingsData;
+use App\Models\Destination;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
@@ -183,6 +184,56 @@ class StructuredDataService
                 ],
                 $this->breadcrumb($breadcrumbItems + [['name' => $tour['name'], 'url' => $canonical]], $canonical.'#breadcrumb'),
                 $trip,
+            ],
+        ];
+    }
+
+    public function destinationLanding(Destination $destination, array $page, LengthAwarePaginator $tours, array $breadcrumb): array
+    {
+        $canonical = route('destinations.show', ['destination' => $destination->slug]);
+        $breadcrumbItems = [
+            ['name' => 'Trang chủ', 'url' => url('/')],
+            ...$breadcrumb,
+        ];
+        $image = $destination->cover_image;
+        $image = filled($image) && ! Str::startsWith($image, ['http://', 'https://', '/']) ? asset($image) : $image;
+        $place = array_filter([
+            '@type' => 'TouristDestination',
+            '@id' => $canonical.'#destination',
+            'name' => $destination->name,
+            'description' => $page['description'],
+            'url' => $canonical,
+            'image' => $image,
+        ], fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
+
+        return [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'CollectionPage',
+                    '@id' => $canonical.'#webpage',
+                    'name' => $page['title'],
+                    'description' => $page['description'],
+                    'url' => $canonical,
+                    'isPartOf' => ['@id' => rtrim(url('/'), '/').'#website'],
+                    'about' => ['@id' => $canonical.'#destination'],
+                    'breadcrumb' => ['@id' => $canonical.'#breadcrumb'],
+                    'mainEntity' => ['@id' => $canonical.'#tour-list'],
+                ],
+                $this->breadcrumb($breadcrumbItems, $canonical.'#breadcrumb'),
+                $place,
+                [
+                    '@type' => 'ItemList',
+                    '@id' => $canonical.'#tour-list',
+                    'name' => 'Tour tại '.$destination->name,
+                    'numberOfItems' => $tours->total(),
+                    'itemListElement' => collect($tours->items())->values()->map(fn (array $tour, int $index): array => [
+                        '@type' => 'ListItem',
+                        'position' => ($tours->firstItem() ?: 1) + $index,
+                        'name' => $tour['name'],
+                        'url' => route('tours.show', ['tour' => $tour['slug']]),
+                    ])->all(),
+                ],
             ],
         ];
     }

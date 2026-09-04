@@ -16,6 +16,11 @@ class UpdateDestinationRequest extends StoreDestinationRequest
             return [
                 'cover_image' => ['nullable', 'string', 'max:4096'],
                 'cover_image_remove' => ['nullable', 'boolean'],
+                'summary' => ['nullable', 'string'],
+                'description' => ['nullable', 'string'],
+                'seo_title' => ['nullable', 'string', 'max:255'],
+                'seo_description' => ['nullable', 'string'],
+                'landing_enabled' => ['nullable', 'boolean'],
             ];
         }
 

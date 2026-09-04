@@ -66,10 +66,21 @@
     <section class="about-company-intro">
         <div class="container">
             <div class="about-company-intro-grid">
-                <div><span class="section-eyebrow">{{ $intro['eyebrow'] }}</span><h2>{!! nl2br(e($intro['title'])) !!}</h2></div>
-                <div class="about-company-intro-copy"><p>{{ $companyName }} {{ $intro['lead'] }}</p><p>{{ $intro['content'] }}</p></div>
+                <div>
+                    <span class="section-eyebrow">{{ $intro['eyebrow'] }}</span>
+                    <h2>{!! nl2br(e($intro['title'])) !!}</h2>
+                </div>
+                <div class="about-company-intro-copy">
+                    <p>{{ $companyName }} {{ $intro['lead'] }}</p>
+                    <p>{{ $intro['content'] }}</p>
+                </div>
             </div>
-            <div class="about-company-facts">@foreach($impactStats as $stat)<div><strong>{{ $stat['number'] }}</strong><span>{{ $stat['label'] }}</span></div>@endforeach</div>
+            <div class="about-company-facts">
+                @foreach($impactStats as $stat)
+                    <div>
+                        <strong>{{ $stat['number'] }}</strong><span>{{ $stat['label'] }}</span></div>
+                @endforeach
+            </div>
             <div class="about-company-credentials">@foreach($intro['credentials'] as $credential)<span><i class="bi bi-patch-check-fill"></i>{{ $credential }}</span>@endforeach</div>
         </div>
     </section>
@@ -90,7 +101,20 @@
     </section>
 
     <section class="about-story-steps-section">
-        <div class="container"><div class="about-story-steps-heading"><span class="section-eyebrow">{{ $storySteps['eyebrow'] }}</span><p>{{ $storySteps['intro'] }}</p></div><div class="about-story-steps">@foreach($storySteps['items'] as $step)<article><span>0{{ $loop->iteration }}</span><h3>{{ $step['title'] }}</h3><p>{{ $step['description'] }}</p></article>@endforeach</div></div>
+        <div class="container">
+            <div class="about-story-steps-heading">
+                <span class="section-eyebrow">{{ $storySteps['eyebrow'] }}</span>
+                <p>{{ $storySteps['intro'] }}</p>
+            </div>
+            <div class="about-story-steps">
+                @foreach($storySteps['items'] as $step)
+                    <article>
+                        <h3>{{ $step['title'] }}</h3>
+                        <p>{{ $step['description'] }}</p>
+                    </article>
+                @endforeach
+            </div>
+        </div>
     </section>
 
     <section class="about-direction">

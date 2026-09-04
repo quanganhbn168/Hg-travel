@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Tour;
 use App\Models\TourCategory;
+use App\Services\DestinationTreeService;
 use DateTimeInterface;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +21,7 @@ class GenerateSitemap extends Command
 
     protected $description = 'Generate the public sitemap from published HG Trip content.';
 
-    public function handle(): int
+    public function handle(DestinationTreeService $destinationTree): int
     {
         $sitemap = Sitemap::create();
 
@@ -56,6 +57,20 @@ class GenerateSitemap extends Command
                     $tour->updated_at,
                     Url::CHANGE_FREQUENCY_WEEKLY,
                     0.9,
+                ));
+            });
+
+        $destinationNodes = $destinationTree->activeNodes();
+        $destinationCounts = $destinationTree->publishedTourCounts($destinationNodes);
+
+        $destinationNodes
+            ->filter(fn ($destination): bool => $destination->landing_enabled && (($destinationCounts[(int) $destination->getKey()] ?? 0) > 0))
+            ->each(function ($destination) use ($sitemap): void {
+                $sitemap->add($this->url(
+                    route('destinations.show', ['destination' => $destination->slug]),
+                    $destination->updated_at,
+                    Url::CHANGE_FREQUENCY_WEEKLY,
+                    0.75,
                 ));
             });
 

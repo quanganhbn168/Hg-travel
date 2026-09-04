@@ -30,6 +30,7 @@ use App\Http\Controllers\Frontend\BookingController as FrontendBookingController
 use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use App\Http\Controllers\Admin\AboutPageController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
+use App\Http\Controllers\Frontend\DestinationController as FrontendDestinationController;
 use App\Http\Controllers\Frontend\PostController as FrontendPostController;
 use App\Http\Controllers\Frontend\ServiceController as FrontendServiceController;
 use App\Http\Controllers\Frontend\SlugController;
@@ -48,6 +49,7 @@ Route::get('/gioi-thieu', AboutController::class)->name('about');
 Route::get('/tours', [FrontendTourController::class, 'index'])->name('tours.index');
 Route::get('/tours/danh-muc/{category:slug}', [FrontendTourController::class, 'category'])->name('tours.category');
 Route::get('/tours/{tour:slug}', [FrontendTourController::class, 'show'])->name('tours.show');
+Route::get('/diem-den/{destination:slug}', [FrontendDestinationController::class, 'show'])->name('destinations.show');
 Route::get('/dich-vu', [FrontendServiceController::class, 'index'])->name('services.index');
 Route::get('/dich-vu/danh-muc/{category}', [FrontendServiceController::class, 'category'])->name('services.category');
 Route::get('/dich-vu/{service}', [FrontendServiceController::class, 'show'])->name('services.show');

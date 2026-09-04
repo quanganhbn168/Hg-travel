@@ -9,6 +9,7 @@ use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\TourSchedule;
 use App\Settings\TourSettings;
+use App\Services\DestinationTreeService;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,7 @@ class TourController extends Controller
         private readonly SiteSettingsService $siteSettings,
         private readonly StructuredDataService $structuredData,
         private readonly TourSettings $tourSettings,
+        private readonly DestinationTreeService $destinationTree,
     ) {}
 
     public function index(Request $request): View
@@ -129,7 +131,7 @@ class TourController extends Controller
                 ->first();
 
             if ($selectedDestination) {
-                $query->whereHas('destinations', fn (Builder $destinationQuery) => $destinationQuery->whereIn('destinations.id', $this->destinationBranchIds($selectedDestination)));
+                $query->whereHas('destinations', fn (Builder $destinationQuery) => $destinationQuery->whereIn('destinations.id', $this->destinationTree->descendantIds($selectedDestination)));
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -253,54 +255,14 @@ class TourController extends Controller
 
     private function destinationOptions(string $scope = ''): array
     {
-        $destinations = Destination::query()
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id', 'parent_id', 'name', 'slug', 'sort_order']);
+        $destinations = $this->destinationTree->activeNodes();
+        $publishedTours = $this->publishedQuery()
+            ->when($scope !== '', fn (Builder $query) => $this->applyDestinationScope($query, $scope))
+            ->with('destinations:id,parent_id')
+            ->get(['id']);
+        $counts = $this->destinationTree->publishedTourCounts($destinations, $publishedTours);
 
-        $publishedDestinationIds = Destination::query()
-            ->where('is_active', true)
-            ->whereHas('tours', function (Builder $tourQuery) use ($scope): void {
-                $this->publishedScope($tourQuery);
-
-                if ($scope !== '') {
-                    $this->applyDestinationScope($tourQuery, $scope);
-                }
-            })
-            ->pluck('id')
-            ->map(static fn ($id): int => (int) $id)
-            ->all();
-
-        $byId = $destinations->keyBy('id');
-        $visibleIds = [];
-
-        foreach ($publishedDestinationIds as $destinationId) {
-            $currentId = $destinationId;
-
-            while ($currentId && isset($byId[$currentId])) {
-                $visibleIds[$currentId] = true;
-                $currentId = $byId[$currentId]->parent_id;
-            }
-        }
-
-        $byParent = $destinations
-            ->filter(fn (Destination $destination): bool => isset($visibleIds[$destination->id]))
-            ->groupBy(fn (Destination $destination): string => (string) ($destination->parent_id ?? 0));
-
-        $buildOptions = function (int $parentId, int $depth = 0) use (&$buildOptions, $byParent): array {
-            return collect($byParent->get((string) $parentId, []))
-                ->flatMap(function (Destination $destination) use (&$buildOptions, $depth): array {
-                    return [[
-                        'name' => str_repeat('— ', $depth).$destination->name,
-                        'slug' => $destination->slug,
-                    ], ...$buildOptions((int) $destination->getKey(), $depth + 1)];
-                })
-                ->values()
-                ->all();
-        };
-
-        return $buildOptions(0);
+        return $this->destinationTree->optionsWithTours($destinations, $counts, $scope !== '' ? $scope : null);
     }
 
     private function categoryNavigation(string $scope = ''): array
@@ -398,50 +360,11 @@ class TourController extends Controller
 
     private function applyDestinationScope(Builder $query, string $scope): void
     {
-        $domesticRootId = Destination::query()->where('slug', 'viet-nam')->value('id');
-
-        if (! $domesticRootId) {
+        if (! in_array($scope, ['domestic', 'international'], true)) {
             return;
         }
 
-        $query->whereHas('destinations', fn (Builder $destinationQuery) => $this->scopeDestinationQuery($destinationQuery, $scope, $domesticRootId));
-    }
-
-    private function destinationBranchIds(Destination $destination): array
-    {
-        $ids = [(int) $destination->getKey()];
-        $parentIds = $ids;
-
-        while ($parentIds !== []) {
-            $childIds = Destination::query()
-                ->where('is_active', true)
-                ->whereIn('parent_id', $parentIds)
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->all();
-
-            $parentIds = array_values(array_diff($childIds, $ids));
-            $ids = [...$ids, ...$parentIds];
-        }
-
-        return $ids;
-    }
-
-    private function scopeDestinationQuery(Builder $query, string $scope, int $domesticRootId): void
-    {
-        if ($scope === 'domestic') {
-            $query->where(function (Builder $destinationQuery) use ($domesticRootId): void {
-                $destinationQuery
-                    ->where('parent_id', $domesticRootId)
-                    ->orWhereHas('parent', fn (Builder $parentQuery) => $parentQuery->where('parent_id', $domesticRootId));
-            });
-
-            return;
-        }
-
-        $query
-            ->where('parent_id', '!=', $domesticRootId)
-            ->whereDoesntHave('parent', fn (Builder $parentQuery) => $parentQuery->where('parent_id', $domesticRootId));
+        $query->whereHas('destinations', fn (Builder $destinationQuery) => $destinationQuery->where('destinations.market', $scope));
     }
 
     private function cardData(Tour $tour, ?Promotion $promotion = null): array

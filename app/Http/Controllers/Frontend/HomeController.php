@@ -14,15 +14,22 @@ use App\Models\TourCategory;
 use App\Models\TravelMoment;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
+use App\Services\DestinationTreeService;
 use App\Services\TravelServiceCatalog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __invoke(SiteSettingsService $siteSettings, StructuredDataService $structuredData, TravelServiceCatalog $serviceCatalog): View
+    public function __invoke(
+        SiteSettingsService $siteSettings,
+        StructuredDataService $structuredData,
+        DestinationTreeService $destinationTree,
+        TravelServiceCatalog $serviceCatalog,
+    ): View
     {
         $settings = $siteSettings->general();
         $mediaSettings = $siteSettings->media();
@@ -53,7 +60,12 @@ class HomeController extends Controller
             'button_url' => route('tours.index'),
         ];
 
-        $featuredDestinations = $this->destinations();
+        $destinationNodes = $destinationTree->activeNodes();
+        $publishedDestinationTours = $this->publishedTours()
+            ->with('destinations:id,parent_id')
+            ->get(['id']);
+        $destinationCounts = $destinationTree->publishedTourCounts($destinationNodes, $publishedDestinationTours);
+        $featuredDestinations = $this->destinations($destinationTree, $destinationNodes, $destinationCounts);
         $tourTypes = $this->tourTypes();
         $featuredTours = $this->featuredTours();
         $promotionalTours = $this->promotionalTours();
@@ -90,13 +102,7 @@ class HomeController extends Controller
             'promotionBackdropUrl' => $promotionBackdropUrl,
             'impactBackdropUrl' => $impactBackdropUrl,
             'featuredDestinations' => $featuredDestinations,
-            'destinationOptions' => Destination::query()
-                ->where('is_active', true)
-                ->whereHas('tours', fn (Builder $query) => $this->publishedTours($query))
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get(['name', 'slug'])
-                ->all(),
+            'destinationOptions' => $destinationTree->optionsWithTours($destinationNodes, $destinationCounts),
             'destinationTabs' => $this->destinationTabs($featuredDestinations),
             'customTourBackdropUrl' => $customTourBackdropUrl,
             'impactTitle' => $websiteSettings->impact_title,
@@ -124,7 +130,7 @@ class HomeController extends Controller
                 ->all(),
             'structuredData' => $structuredData->encode($structuredData->home($settings)),
             'stats' => [
-                'destinations' => Destination::query()->where('is_active', true)->count(),
+                'destinations' => collect($destinationCounts)->filter(fn (int $count): bool => $count > 0)->count(),
                 'tours' => $this->publishedTours()->count(),
                 'posts' => Post::query()->where('is_active', true)->count(),
             ],
@@ -236,24 +242,22 @@ class HomeController extends Controller
             ->all();
     }
 
-    private function destinations(): array
+    private function destinations(DestinationTreeService $destinationTree, Collection $nodes, array $counts): array
     {
-        return Destination::query()
-            ->where('is_active', true)
-            ->with('parent.parent.parent')
-            ->withCount(['tours' => fn ($query) => $query->where('is_active', true)])
-            ->orderByDesc('is_featured')
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function (Destination $destination): array {
-                $tab = $this->destinationTab($destination);
+        return $nodes
+            ->filter(fn (Destination $destination): bool => ($counts[(int) $destination->getKey()] ?? 0) > 0)
+            ->map(function (Destination $destination) use ($destinationTree, $nodes, $counts): array {
+                $tab = $this->destinationTab($destination, $destinationTree, $nodes);
 
                 return [
                     'name' => $destination->name,
                     'slug' => $destination->slug,
+                    'url' => $destination->landing_enabled
+                        ? route('destinations.show', ['destination' => $destination->slug])
+                        : route('tours.index', ['destination' => $destination->slug]),
                     'summary' => $destination->summary,
-                    'image_url' => $this->imageUrl($destination->cover_image) ?: $this->mediaUrl($destination, 'cover'),
-                    'tour_count' => $destination->tours_count,
+                    'image_url' => $this->destinationImage($destination, $destinationTree, $nodes),
+                    'tour_count' => $counts[(int) $destination->getKey()] ?? 0,
                     'tab_key' => $tab['key'],
                     'tab_label' => $tab['label'],
                     'tab_order' => $tab['order'],
@@ -289,31 +293,44 @@ class HomeController extends Controller
     }
 
     /** @return array{key: string, label: string, order: int} */
-    private function destinationTab(Destination $destination): array
+    private function destinationTab(Destination $destination, DestinationTreeService $destinationTree, Collection $nodes): array
     {
-        $root = $destination;
-
-        while ($root->parent) {
-            $root = $root->parent;
-        }
+        $root = $destinationTree->root($destination, $nodes);
 
         if ($root->slug === 'viet-nam') {
             return ['key' => 'noi-dia', 'label' => 'Nội địa', 'order' => 99];
         }
 
-        $order = [
-            'chau-a' => 1,
-            'chau-au' => 2,
-            'chau-uc' => 3,
-            'chau-my' => 4,
-            'chau-phi' => 5,
-        ];
-
         return [
             'key' => $root->slug ?: Str::slug($root->name),
             'label' => $root->name ?: 'Điểm đến khác',
-            'order' => $order[$root->slug] ?? 90,
+            'order' => (int) $root->sort_order,
         ];
+    }
+
+    private function destinationImage(Destination $destination, DestinationTreeService $destinationTree, Collection $nodes): ?string
+    {
+        $image = $this->imageUrl($destination->cover_image) ?: $this->mediaUrl($destination, 'cover');
+
+        if ($image) {
+            return $image;
+        }
+
+        foreach ($destinationTree->descendantIds($destination, $nodes) as $id) {
+            $node = $nodes->firstWhere('id', $id);
+
+            if (! $node || (int) $node->getKey() === (int) $destination->getKey()) {
+                continue;
+            }
+
+            $image = $this->imageUrl($node->cover_image) ?: $this->mediaUrl($node, 'cover');
+
+            if ($image) {
+                return $image;
+            }
+        }
+
+        return null;
     }
 
     private function avatarInitials(?string $name): string
