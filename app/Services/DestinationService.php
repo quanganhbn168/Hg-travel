@@ -39,12 +39,33 @@ class DestinationService
 
     public function update(Destination $destination, array $data): void
     {
+        if ($destination->is_system) {
+            $this->updateSystemCoverImage($destination, $data);
+
+            return;
+        }
+
         $this->ensureEditable($destination);
         $payload = $this->payload($data);
         if (! ($data['cover_image_remove'] ?? false) && blank($data['cover_image'] ?? null)) {
             $payload['cover_image'] = $destination->cover_image;
         }
         $destination->update($payload);
+    }
+
+    private function updateSystemCoverImage(Destination $destination, array $data): void
+    {
+        if ((bool) ($data['cover_image_remove'] ?? false)) {
+            $destination->update(['cover_image' => null]);
+
+            return;
+        }
+
+        $coverImage = trim((string) ($data['cover_image'] ?? ''));
+
+        if ($coverImage !== '') {
+            $destination->update(['cover_image' => $coverImage]);
+        }
     }
 
     public function delete(Destination $destination): void
