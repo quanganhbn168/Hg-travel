@@ -29,6 +29,20 @@
         </div>
 
         <div class="card-tools">
+            <div class="menu-builder__move-tools" role="group" aria-label="Di chuyển mục menu">
+                <button type="button" class="btn btn-tool" data-menu-move="up" aria-label="Đưa lên một bậc" title="Đưa lên một bậc">
+                    <i class="bi bi-chevron-up" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-menu-move="down" aria-label="Đưa xuống một bậc" title="Đưa xuống một bậc">
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-menu-move="in" aria-label="Đưa vào mục phía trên" title="Đưa vào mục phía trên">
+                    <i class="bi bi-arrow-bar-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-menu-move="out" aria-label="Đưa ra ngoài một cấp" title="Đưa ra ngoài một cấp">
+                    <i class="bi bi-arrow-bar-left" aria-hidden="true"></i>
+                </button>
+            </div>
             <button type="button" class="btn btn-tool text-danger" data-menu-remove aria-label="Xóa mục menu" title="Xóa mục menu">
                 <i class="bi bi-trash" aria-hidden="true"></i>
             </button>

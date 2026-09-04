@@ -290,10 +290,35 @@ const menuSerializeNode = (node) => {
     return data;
 };
 
+const menuRows = (form) => [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')];
+
 const menuParentMap = (form) => new Map(
-    [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')]
+    menuRows(form)
         .map((node) => [node.dataset.menuKey, menuField(node, 'parent_key')?.value || '']),
 );
+
+const menuIsDescendant = (node, ancestorKey, parents) => {
+    const visited = new Set();
+    let current = parents.get(node.dataset.menuKey) || '';
+
+    while (current && !visited.has(current)) {
+        if (current === ancestorKey) return true;
+        visited.add(current);
+        current = parents.get(current) || '';
+    }
+
+    return false;
+};
+
+const menuBlockEnd = (rows, start, parents) => {
+    const ancestorKey = rows[start]?.dataset.menuKey;
+    if (!ancestorKey) return start + 1;
+
+    let end = start + 1;
+    while (end < rows.length && menuIsDescendant(rows[end], ancestorKey, parents)) end += 1;
+
+    return end;
+};
 
 const menuWouldCreateCycle = (form, nodeKey, candidateParentKey) => {
     const parents = menuParentMap(form);
@@ -310,7 +335,7 @@ const menuWouldCreateCycle = (form, nodeKey, candidateParentKey) => {
 };
 
 const menuRefreshParentOptions = (form) => {
-    const rows = [...form.querySelectorAll('.menu-builder__root > [data-menu-node]')];
+    const rows = menuRows(form);
 
     rows.forEach((node) => {
         const select = menuField(node, 'parent_key');
@@ -347,6 +372,94 @@ const menuRefreshParentOptions = (form) => {
         node.style.setProperty('--menu-depth', String(depth));
         node.dataset.menuDepth = String(depth);
     });
+
+    menuRefreshMoveButtons(form);
+};
+
+const menuRefreshMoveButtons = (form) => {
+    const rows = menuRows(form);
+    const parents = menuParentMap(form);
+
+    rows.forEach((node, index) => {
+        const parentKey = node.dataset.parentKey || '';
+        const blockEnd = menuBlockEnd(rows, index, parents);
+        const previousSibling = [...rows.slice(0, index)].reverse().find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
+        const nextSibling = rows.slice(blockEnd).find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
+        const parentNode = rows.find((candidate) => candidate.dataset.menuKey === parentKey);
+
+        node.querySelector('[data-menu-move="up"]')?.toggleAttribute('disabled', !previousSibling);
+        node.querySelector('[data-menu-move="down"]')?.toggleAttribute('disabled', !nextSibling);
+        node.querySelector('[data-menu-move="in"]')?.toggleAttribute('disabled', !previousSibling);
+        node.querySelector('[data-menu-move="out"]')?.toggleAttribute('disabled', !parentNode);
+    });
+};
+
+const menuCommitOrder = (form, orderedRows, node, parentKey = null) => {
+    const rootList = form.querySelector('.menu-builder__root');
+    if (!rootList) return;
+
+    if (parentKey !== null) {
+        const parentField = menuField(node, 'parent_key');
+        if (parentField) parentField.value = parentKey;
+        node.dataset.parentKey = parentKey;
+    }
+
+    rootList.append(...orderedRows);
+    menuRefreshParentOptions(form);
+    menuUpdateCount(form);
+};
+
+const menuMoveNode = (form, node, direction) => {
+    const rows = menuRows(form);
+    const parents = menuParentMap(form);
+    const index = rows.indexOf(node);
+    if (index < 0) return;
+
+    const parentKey = node.dataset.parentKey || '';
+    const blockEnd = menuBlockEnd(rows, index, parents);
+    const previousSibling = [...rows.slice(0, index)].reverse().find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
+    const nextSibling = rows.slice(blockEnd).find((candidate) => (candidate.dataset.parentKey || '') === parentKey);
+
+    if (direction === 'up' && previousSibling) {
+        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
+        const previousIndex = orderedRows.indexOf(previousSibling);
+        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
+        orderedRows.splice(previousIndex, 0, ...nodeBlock);
+        menuCommitOrder(form, orderedRows, node);
+        return;
+    }
+
+    if (direction === 'down' && nextSibling) {
+        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
+        const nextIndex = orderedRows.indexOf(nextSibling);
+        const nextEnd = menuBlockEnd(orderedRows, nextIndex, parents);
+        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
+        orderedRows.splice(nextEnd, 0, ...nodeBlock);
+        menuCommitOrder(form, orderedRows, node);
+        return;
+    }
+
+    if (direction === 'in' && previousSibling) {
+        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
+        const previousIndex = orderedRows.indexOf(previousSibling);
+        const previousEnd = menuBlockEnd(orderedRows, previousIndex, parents);
+        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
+        orderedRows.splice(previousEnd, 0, ...nodeBlock);
+        menuCommitOrder(form, orderedRows, node, previousSibling.dataset.menuKey);
+        return;
+    }
+
+    if (direction === 'out' && parentKey) {
+        const parentNode = rows.find((candidate) => candidate.dataset.menuKey === parentKey);
+        if (!parentNode) return;
+
+        const orderedRows = rows.filter((candidate) => candidate !== node && !menuIsDescendant(candidate, node.dataset.menuKey, parents));
+        const parentIndex = orderedRows.indexOf(parentNode);
+        const parentEnd = menuBlockEnd(orderedRows, parentIndex, parents);
+        const nodeBlock = [node, ...rows.slice(index + 1, blockEnd)];
+        orderedRows.splice(parentEnd, 0, ...nodeBlock);
+        menuCommitOrder(form, orderedRows, node, parents.get(parentKey) || '');
+    }
 };
 
 const menuOpenNode = (node) => {
@@ -493,6 +606,7 @@ const initMenuBuilder = () => {
         form.addEventListener('click', async (event) => {
             const remove = event.target.closest('[data-menu-remove]');
             const node = event.target.closest('[data-menu-node]');
+            const move = event.target.closest('[data-menu-move]');
 
             const toggle = event.target.closest('[data-menu-toggle]');
             if (toggle && node) {
@@ -508,6 +622,12 @@ const initMenuBuilder = () => {
                 toggle.setAttribute('title', isOpen ? 'Mở cấu hình mục menu' : 'Đóng cấu hình mục menu');
                 icon?.classList.toggle('bi-chevron-right', isOpen);
                 icon?.classList.toggle('bi-chevron-down', !isOpen);
+                return;
+            }
+
+            if (move && node) {
+                event.preventDefault();
+                menuMoveNode(form, node, move.dataset.menuMove);
                 return;
             }
 
