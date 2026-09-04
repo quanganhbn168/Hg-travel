@@ -68,11 +68,11 @@
                 @endif
             </div>
             @if ($showPromotionMeta)
-                <a class="btn btn-brand tour-card-booking-action" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}#tour-booking">ĐẶT NGAY</a>
+                <a class="btn btn-brand tour-card-booking-action" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">ĐẶT NGAY</a>
             @else
                 <div class="tour-card-actions">
                     <a class="btn btn-sm btn-outline-brand" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}">Xem chi tiết</a>
-                    <a class="btn btn-sm btn-brand" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}#tour-booking">Đặt ngay</a>
+                    <a class="btn btn-sm btn-brand" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">Đặt ngay</a>
                 </div>
             @endif
         </div>
