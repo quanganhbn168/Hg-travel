@@ -201,6 +201,26 @@ const initReordering = (root) => {
     });
 };
 
+const initAdminTooltips = (root = document) => {
+    if (!window.bootstrap?.Tooltip) return;
+
+    root.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+        if (!bootstrap.Tooltip.getInstance(element)) new bootstrap.Tooltip(element);
+    });
+};
+
+const menuSetTooltip = (element, title) => {
+    if (!element) return;
+
+    element.setAttribute('title', title);
+    element.setAttribute('data-bs-title', title);
+
+    const tooltip = window.bootstrap?.Tooltip?.getInstance(element);
+    if (tooltip?.setContent) {
+        tooltip.setContent({ '.tooltip-inner': title });
+    }
+};
+
 const menuDecodeSource = (encoded) => {
     const binary = atob(encoded);
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
@@ -217,7 +237,10 @@ const menuSetHeaderState = (node) => {
     const label = node.querySelector('[data-menu-item-label]');
     const activeLabel = node.querySelector('[data-menu-active-label]');
 
-    if (label) label.textContent = title;
+    if (label) {
+        label.textContent = title;
+        menuSetTooltip(label, title);
+    }
     if (activeLabel) {
         activeLabel.textContent = active ? 'Đang bật' : 'Đang tắt';
         activeLabel.classList.toggle('text-bg-success', active);
@@ -553,6 +576,7 @@ const initMenuBuilder = () => {
                 const source = menuDecodeSource(button.dataset.menuSource);
                 const node = menuNewNode(template, source);
                 rootList.append(node);
+                initAdminTooltips(node);
                 menuRefreshParentOptions(form);
                 menuUpdateCount(form);
                 menuOpenNode(node);
@@ -602,6 +626,7 @@ const initMenuBuilder = () => {
                 target,
             });
             rootList.append(node);
+            initAdminTooltips(node);
             form.querySelector('[data-menu-custom-label]').value = '';
             form.querySelector('[data-menu-custom-url]').value = '';
             menuRefreshParentOptions(form);
@@ -704,6 +729,7 @@ const initTomSelect = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initFieldToggles();
+    initAdminTooltips();
     document.querySelectorAll('[data-admin-index]').forEach((root) => {
         initStandardIndexColumns(root);
         initBulkSelection(root);

@@ -52,7 +52,10 @@
                                                 data-menu-source-button
                                                 data-menu-source="{{ base64_encode(json_encode($source, JSON_UNESCAPED_UNICODE)) }}"
                                                 data-menu-search="{{ mb_strtolower($source['label'].' '.$source['meta']) }}"
-                                                title="Thêm vào menu"
+                                                title="{{ $source['label'] }}"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-title="{{ $source['label'] }}"
+                                                data-bs-placement="top"
                                             >
                                                 <span class="min-w-0">
                                                     <strong class="d-block text-truncate">{{ $source['label'] }}</strong>

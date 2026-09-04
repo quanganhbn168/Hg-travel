@@ -24,7 +24,14 @@
         </button>
 
         <div class="menu-builder__identity">
-            <strong class="menu-builder__label text-truncate" data-menu-item-label>{{ $itemTitle }}</strong>
+            <strong
+                class="menu-builder__label text-truncate"
+                data-menu-item-label
+                title="{{ $itemTitle }}"
+                data-bs-toggle="tooltip"
+                data-bs-title="{{ $itemTitle }}"
+                data-bs-placement="top"
+            >{{ $itemTitle }}</strong>
             <span class="badge text-bg-light menu-builder__type" data-menu-item-type>{{ $item['link_type_label'] ?? 'Liên kết' }}</span>
         </div>
 
