@@ -1,5 +1,13 @@
 @extends('layouts.admin')
+@section('title', 'Xử lý booking ' . $booking->booking_code)
 @section('page-title', 'Xử lý booking ' . $booking->booking_code)
+@section('breadcrumbs')
+    <ol class="breadcrumb float-sm-end mb-0">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('admin.bookings.index') }}">Booking</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ $booking->booking_code }}</li>
+    </ol>
+@endsection
 @section('content')
     <div class="row g-3">
         <div class="col-xl-7">
@@ -36,16 +44,16 @@
                 </div>
                 <div class="card-body">@csrf @method('PUT')<div class="mb-3"><label class="form-label">Trạng thái
                             booking</label><select name="status" class="form-select">
-                            @foreach (['pending', 'confirmed', 'cancelled', 'completed'] as $status)
-                                <option value="{{ $status }}" @selected($booking->status === $status)>{{ $status }}
+                            @foreach ($statuses as $status => $label)
+                                <option value="{{ $status }}" @selected($booking->status === $status)>{{ $label }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3"><label class="form-label">Trạng thái thanh toán</label><select name="payment_status"
                             class="form-select">
-                            @foreach (['unpaid', 'pending', 'paid', 'refunded'] as $status)
-                                <option value="{{ $status }}" @selected($booking->payment_status === $status)>{{ $status }}
+                            @foreach ($paymentStatuses as $status => $label)
+                                <option value="{{ $status }}" @selected($booking->payment_status === $status)>{{ $label }}
                                 </option>
                             @endforeach
                         </select></div>

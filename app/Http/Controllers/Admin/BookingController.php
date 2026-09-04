@@ -20,6 +20,7 @@ class BookingController extends Controller
         return view('admin.bookings.index', [
             'bookings' => $this->bookingService->paginate($request->validated()),
             'statuses' => BookingService::STATUSES,
+            'paymentStatuses' => BookingService::PAYMENT_STATUSES,
         ]);
     }
 
@@ -40,6 +41,8 @@ class BookingController extends Controller
     {
         return view('admin.bookings.edit', [
             'booking' => $booking->load('items.tour'),
+            'statuses' => BookingService::STATUSES,
+            'paymentStatuses' => BookingService::PAYMENT_STATUSES,
         ]);
     }
 
