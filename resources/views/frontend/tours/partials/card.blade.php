@@ -3,6 +3,8 @@
 @php($showPromotionMeta = $showPromotionMeta ?? false)
 @php($promotionSeatsLabel = array_key_exists('seats_left', $tour) && $tour['seats_left'] !== null ? 'Còn '.(int) $tour['seats_left'].' chỗ' : ($tour['seats_label'] ?? null))
 @php($departureDates = $tour['departure_dates'] ?? [])
+@php($canBook = (bool) ($tour['booking_open'] ?? true))
+@php($bookingModalId = 'tour-card-booking-modal')
 
 <article class="tour-card {{ $showPromotionMeta ? 'tour-card--promotion' : '' }}">
     <a class="tour-card-image d-block" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}" aria-label="Xem {{ $tour['name'] }}">
@@ -68,11 +70,19 @@
                 @endif
             </div>
             @if ($showPromotionMeta)
-                <a class="btn btn-brand tour-card-booking-action" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">ĐẶT NGAY</a>
+                @if ($canBook)
+                    <a class="btn btn-brand tour-card-booking-action" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}">ĐẶT NGAY</a>
+                @else
+                    <span class="btn btn-brand tour-card-booking-action disabled" aria-disabled="true">ĐẶT NGAY</span>
+                @endif
             @else
                 <div class="tour-card-actions">
                     <a class="btn btn-sm btn-outline-brand" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}">Xem chi tiết</a>
-                    <a class="btn btn-sm btn-brand" href="{{ route('booking.create', ['tour' => $tour['slug']]) }}">Đặt ngay</a>
+                    @if ($canBook)
+                        <a class="btn btn-sm btn-brand" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}">Đặt ngay</a>
+                    @else
+                        <span class="btn btn-sm btn-brand disabled" aria-disabled="true">Đặt ngay</span>
+                    @endif
                 </div>
             @endif
         </div>

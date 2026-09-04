@@ -224,6 +224,14 @@
         <img class="scroll-top-icon" src="{{ asset('images/scroll-top-airplane.png') }}" alt="" width="50" height="50">
     </button>
 
+    <x-frontend.tour-booking-form
+        :tour="['id' => 0, 'name' => 'Đặt tour', 'schedules' => []]"
+        modal-id="tour-card-booking-modal"
+        form-id="tour-card-booking-form"
+        field-prefix="tour-card-booking"
+        :auto-open="false"
+    />
+
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/site.js') }}"></script>
     @stack('scripts')

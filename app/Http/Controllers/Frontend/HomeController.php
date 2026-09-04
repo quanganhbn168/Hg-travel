@@ -418,6 +418,7 @@ class HomeController extends Controller
             'id' => $tour->getKey(),
             'name' => $tour->name,
             'slug' => $tour->slug,
+            'booking_open' => (bool) $tour->booking_open,
             'summary' => $tour->summary,
             'duration' => $tour->duration_days . ' ngày' . ($tour->duration_nights ? ' ' . $tour->duration_nights . ' đêm' : ''),
             'duration_compact' => (int) $tour->duration_days . 'N' . ((int) $tour->duration_nights > 0 ? (int) $tour->duration_nights . 'Đ' : ''),

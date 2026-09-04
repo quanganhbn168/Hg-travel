@@ -385,6 +385,7 @@ class TourController extends Controller
             'id' => $tour->getKey(),
             'name' => $tour->name,
             'slug' => $tour->slug,
+            'booking_open' => (bool) $tour->booking_open,
             'summary' => $tour->summary,
             'image_url' => $this->tourImageUrl($tour),
             'category' => $categories->pluck('name')->filter()->implode(' · '),
