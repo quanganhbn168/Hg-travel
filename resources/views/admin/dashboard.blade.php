@@ -21,16 +21,17 @@
         ];
     @endphp
 
-    <div class="row g-3 mb-4">
+    <div class="row">
         @foreach ($statCards as $card)
-            <div class="col-md-6 col-xl-2">
-                <a href="{{ $card['url'] }}" class="dashboard-stat-link text-decoration-none">
-                    <div class="card h-100 card-outline card-{{ $card['color'] }}">
-                        <div class="card-body d-flex justify-content-between gap-3">
-                            <div class="min-w-0"><div class="text-body-secondary small">{{ $card['label'] }}</div><div class="fs-4 fw-bold mt-1 text-body text-truncate">{{ $card['value'] }}</div><small class="text-body-secondary">{{ $card['note'] }}</small></div>
-                            <i class="bi {{ $card['icon'] }} fs-2 text-{{ $card['color'] }}"></i>
-                        </div>
+            <div class="col-sm-6 col-lg-4 col-xl-2">
+                <a href="{{ $card['url'] }}" class="small-box text-bg-{{ $card['color'] }} text-decoration-none">
+                    <div class="inner">
+                        <h3>{{ $card['value'] }}</h3>
+                        <p>{{ $card['label'] }}</p>
+                        <p class="mb-0"><small>{{ $card['note'] }}</small></p>
                     </div>
+                    <i class="small-box-icon bi {{ $card['icon'] }}" aria-hidden="true"></i>
+                    <span class="small-box-footer">Mở chi tiết <i class="bi bi-arrow-right"></i></span>
                 </a>
             </div>
         @endforeach
