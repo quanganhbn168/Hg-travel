@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MenuItem extends Model
 {
-    protected $fillable = ['menu_id', 'parent_id', 'title', 'url', 'route_name', 'target', 'position', 'is_active'];
-    protected function casts(): array { return ['is_active' => 'boolean']; }
+    protected $fillable = ['menu_id', 'parent_id', 'linked_source_id', 'linked_source_type', 'title', 'url', 'route_name', 'target', 'position', 'is_active'];
+    protected function casts(): array { return ['linked_source_id' => 'integer', 'position' => 'integer', 'is_active' => 'boolean']; }
     public function menu(): BelongsTo { return $this->belongsTo(Menu::class); }
     public function parent(): BelongsTo { return $this->belongsTo(self::class, 'parent_id'); }
     public function children(): HasMany { return $this->hasMany(self::class, 'parent_id')->orderBy('position'); }

@@ -201,6 +201,262 @@ const initReordering = (root) => {
     });
 };
 
+const menuDecodeSource = (encoded) => {
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+
+    return JSON.parse(new TextDecoder().decode(bytes));
+};
+
+const menuOwnEditor = (node) => node.querySelector(':scope > .menu-builder__item > [data-menu-editor]');
+const menuOwnChildren = (node) => node.querySelector(':scope > [data-menu-list]');
+const menuField = (node, name) => menuOwnEditor(node)?.querySelector(`[data-menu-field="${name}"]`);
+
+const menuSetHeaderState = (node) => {
+    const title = menuField(node, 'title')?.value.trim() || 'Mục menu mới';
+    const active = menuField(node, 'is_active')?.checked ?? true;
+    const label = node.querySelector(':scope > .menu-builder__item [data-menu-item-label]');
+    const activeLabel = node.querySelector(':scope > .menu-builder__item [data-menu-active-label]');
+
+    if (label) label.textContent = title;
+    if (activeLabel) {
+        activeLabel.textContent = active ? 'Đang bật' : 'Đang tắt';
+        activeLabel.classList.toggle('text-bg-success', active);
+        activeLabel.classList.toggle('text-bg-secondary', !active);
+    }
+};
+
+const menuSyncEmptyStates = (root) => {
+    root.querySelectorAll('[data-menu-list]').forEach((list) => {
+        const hasNodes = [...list.children].some((child) => child.matches('[data-menu-node]'));
+        const empty = list.querySelector(':scope > [data-menu-empty]');
+
+        if (hasNodes && empty) empty.remove();
+        if (!hasNodes && !empty) {
+            const placeholder = document.createElement('li');
+            placeholder.className = 'menu-builder__empty';
+            placeholder.dataset.menuEmpty = 'true';
+            placeholder.textContent = 'Thả mục vào đây để tạo cấp con.';
+            list.append(placeholder);
+        }
+    });
+};
+
+const menuSetSourceState = (node, source) => {
+    const sourceType = source.source_type || 'custom';
+    const title = source.label || 'Mục menu mới';
+    const titleField = menuField(node, 'title');
+    const urlField = menuField(node, 'url');
+    const routeField = menuField(node, 'route_name');
+    const sourceIdField = menuField(node, 'linked_source_id');
+    const sourceTypeField = menuField(node, 'linked_source_type');
+    const linkSummary = node.querySelector(':scope > .menu-builder__item [data-menu-link]');
+    const itemType = node.querySelector(':scope > .menu-builder__item [data-menu-item-type]');
+
+    if (titleField) titleField.value = title;
+    if (urlField) urlField.value = source.url || '';
+    if (routeField) routeField.value = source.route_name || '';
+    if (sourceIdField) sourceIdField.value = source.source_id || '';
+    if (sourceTypeField) sourceTypeField.value = sourceType;
+    if (linkSummary) linkSummary.textContent = sourceType === 'custom'
+        ? (source.url || 'Chưa có liên kết')
+        : `${source.label} · ${source.meta}`;
+    if (itemType) itemType.textContent = sourceType === 'custom' ? 'Liên kết custom' : source.meta;
+
+    menuSetHeaderState(node);
+};
+
+const menuNewNode = (template, source) => {
+    const node = template.content.firstElementChild.cloneNode(true);
+    const key = `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    node.dataset.itemId = '';
+    node.dataset.menuKey = key;
+    node.querySelectorAll('[id]').forEach((element) => {
+        element.id = element.id.replace('new', key);
+    });
+    menuSetSourceState(node, source);
+
+    return node;
+};
+
+const menuSerializeNode = (node) => {
+    const data = {};
+    const id = Number(node.dataset.itemId || 0);
+
+    if (id > 0) data.id = id;
+
+    menuOwnEditor(node)?.querySelectorAll('[data-menu-field]').forEach((field) => {
+        const name = field.dataset.menuField;
+        if (name === 'id') return;
+        data[name] = field.type === 'checkbox' ? field.checked : field.value;
+    });
+
+    data.children = [...(menuOwnChildren(node)?.children || [])]
+        .filter((child) => child.matches('[data-menu-node]'))
+        .map(menuSerializeNode);
+
+    return data;
+};
+
+const initMenuBuilder = () => {
+    document.querySelectorAll('[data-menu-builder]').forEach((form) => {
+        if (form.dataset.menuBuilderInitialized === 'true') return;
+        form.dataset.menuBuilderInitialized = 'true';
+
+        const rootList = form.querySelector('.menu-builder__root');
+        const template = document.querySelector('template[data-menu-item-template]');
+        const payload = form.querySelector('[data-menu-payload]');
+        if (!rootList || !template || !payload) return;
+
+        const initMenuSortable = (list) => {
+            if (typeof Sortable === 'undefined') return;
+            if (list.dataset.menuSortableInitialized === 'true') return;
+            list.dataset.menuSortableInitialized = 'true';
+
+            Sortable.create(list, {
+                animation: 180,
+                handle: '[data-menu-handle]',
+                draggable: '[data-menu-node]',
+                filter: '[data-menu-empty]',
+                preventOnFilter: false,
+                fallbackOnBody: true,
+                group: { name: 'menu-builder', pull: true, put: true },
+                ghostClass: 'menu-builder__ghost',
+                chosenClass: 'menu-builder__chosen',
+                onMove: (event) => !event.dragged.contains(event.to),
+                onEnd: () => menuSyncEmptyStates(form),
+            });
+        };
+
+        form.querySelectorAll('[data-menu-list]').forEach(initMenuSortable);
+
+        form.querySelectorAll('[data-menu-source-button]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const source = menuDecodeSource(button.dataset.menuSource);
+                const node = menuNewNode(template, source);
+                rootList.append(node);
+                node.querySelectorAll('[data-menu-list]').forEach(initMenuSortable);
+                menuSyncEmptyStates(form);
+                menuOpenNode(node);
+                node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm mục vào menu', showConfirmButton: false, timer: 1600 });
+            });
+        });
+
+        const search = form.querySelector('[data-menu-source-search]');
+        search?.addEventListener('input', () => {
+            const query = search.value.trim().toLowerCase();
+
+            form.querySelectorAll('[data-menu-source-group]').forEach((group) => {
+                let visible = 0;
+                group.querySelectorAll('[data-menu-source-button]').forEach((button) => {
+                    const matches = !query || (button.dataset.menuSearch || '').includes(query);
+                    button.hidden = !matches;
+                    if (matches) visible += 1;
+                });
+                group.hidden = visible === 0;
+                if (query && visible > 0) group.open = true;
+            });
+        });
+
+        form.querySelector('[data-menu-custom-add]')?.addEventListener('click', async () => {
+            const label = form.querySelector('[data-menu-custom-label]')?.value.trim() || '';
+            const url = form.querySelector('[data-menu-custom-url]')?.value.trim() || '';
+            const target = form.querySelector('[data-menu-custom-target]')?.value || '_self';
+
+            if (!label || !url || url === '#') {
+                await Swal.fire('Thiếu thông tin', 'Vui lòng nhập nhãn hiển thị và URL hợp lệ.', 'warning');
+                return;
+            }
+
+            if (!url.startsWith('/') && !/^https?:\/\//i.test(url)) {
+                await Swal.fire('URL chưa hợp lệ', 'Dùng URL đầy đủ hoặc đường dẫn nội bộ bắt đầu bằng /.', 'warning');
+                return;
+            }
+
+            const node = menuNewNode(template, {
+                label,
+                meta: 'Liên kết custom',
+                source_type: 'custom',
+                source_id: null,
+                route_name: null,
+                url,
+                target,
+            });
+            menuField(node, 'target').value = target;
+            rootList.append(node);
+            node.querySelectorAll('[data-menu-list]').forEach(initMenuSortable);
+            form.querySelector('[data-menu-custom-label]').value = '';
+            form.querySelector('[data-menu-custom-url]').value = '';
+            menuSyncEmptyStates(form);
+            menuOpenNode(node);
+            node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã thêm link custom', showConfirmButton: false, timer: 1600 });
+        });
+
+        form.addEventListener('click', async (event) => {
+            const toggle = event.target.closest('[data-menu-toggle]');
+            const remove = event.target.closest('[data-menu-remove]');
+            const node = event.target.closest('[data-menu-node]');
+
+            if (toggle && node) {
+                event.preventDefault();
+                const editor = menuOwnEditor(node);
+                const isOpen = editor && !editor.hidden;
+                if (editor) editor.hidden = isOpen;
+                toggle.setAttribute('aria-expanded', String(!isOpen));
+                toggle.querySelector('[data-menu-toggle-icon]')?.classList.toggle('bi-chevron-right', isOpen);
+                toggle.querySelector('[data-menu-toggle-icon]')?.classList.toggle('bi-chevron-down', !isOpen);
+            }
+
+            if (remove && node) {
+                event.preventDefault();
+                const result = await Swal.fire({
+                    title: 'Xóa mục menu này?',
+                    text: 'Mục con đi kèm cũng sẽ được bỏ khỏi cấu trúc menu.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Xóa',
+                    cancelButtonText: 'Hủy',
+                    confirmButtonColor: '#dc3545',
+                });
+                if (result.isConfirmed) {
+                    node.remove();
+                    menuSyncEmptyStates(form);
+                }
+            }
+        });
+
+        form.addEventListener('input', (event) => {
+            const node = event.target.closest('[data-menu-node]');
+            if (node && event.target.matches('[data-menu-field="title"]')) menuSetHeaderState(node);
+        });
+        form.addEventListener('change', (event) => {
+            const node = event.target.closest('[data-menu-node]');
+            if (node && event.target.matches('[data-menu-field="is_active"]')) menuSetHeaderState(node);
+        });
+        form.addEventListener('submit', () => {
+            payload.value = JSON.stringify([...rootList.children]
+                .filter((node) => node.matches('[data-menu-node]'))
+                .map(menuSerializeNode));
+        });
+
+        menuSyncEmptyStates(form);
+    });
+};
+
+const menuOpenNode = (node) => {
+    const editor = menuOwnEditor(node);
+    const toggle = node.querySelector(':scope > .menu-builder__item [data-menu-toggle]');
+    const icon = toggle?.querySelector('[data-menu-toggle-icon]');
+
+    if (editor) editor.hidden = false;
+    toggle?.setAttribute('aria-expanded', 'true');
+    icon?.classList.remove('bi-chevron-right');
+    icon?.classList.add('bi-chevron-down');
+};
+
 const initTomSelect = () => {
     if (typeof TomSelect === 'undefined') return;
 
@@ -232,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initReordering(root);
     });
     initTomSelect();
+    initMenuBuilder();
 });
 
 document.addEventListener('submit', async (event) => {

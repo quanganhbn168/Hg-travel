@@ -6,11 +6,12 @@ use App\Models\Destination;
 use App\Models\Menu;
 use App\Models\MenuItem;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class FrontendMenuService
 {
+    public function __construct(private readonly MenuLinkResolver $linkResolver) {}
+
     public function items(string $location): array
     {
         $key = $this->cacheKey($location);
@@ -70,24 +71,11 @@ class FrontendMenuService
     {
         return [
             'title' => $item->title,
-            'url' => $this->resolveUrl($item->route_name, $item->url),
+            'url' => $this->linkResolver->resolve($item),
             'route_name' => $item->route_name,
             'target' => $item->target ?: '_self',
             'children' => [],
         ];
-    }
-
-    private function resolveUrl(?string $routeName, ?string $url): string
-    {
-        if ($routeName && Route::has($routeName)) {
-            return route($routeName);
-        }
-
-        if (blank($url)) {
-            return '#';
-        }
-
-        return Str::startsWith($url, ['http://', 'https://', '#', '/', 'mailto:', 'tel:']) ? $url : url($url);
     }
 
     private function fallback(string $location): array
