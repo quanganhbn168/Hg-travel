@@ -32,7 +32,7 @@
 
         <div class="row g-3">
             <div class="col-xl-4">
-                <x-card title="Thêm vào menu" type="primary" :collapsible="true">
+                <x-card title="Thêm vào menu" type="primary">
                     <div class="menu-source-picker" data-menu-source-picker>
                         <label class="form-label" for="menu-source-search">Tìm nội dung</label>
                         <input id="menu-source-search" type="search" class="form-control mb-3" data-menu-source-search placeholder="Tên tour, dịch vụ, bài viết...">
@@ -56,7 +56,6 @@
                                             >
                                                 <span class="min-w-0">
                                                     <strong class="d-block text-truncate">{{ $source['label'] }}</strong>
-                                                    <small class="text-body-secondary">{{ $source['meta'] }}</small>
                                                 </span>
                                                 <i class="bi bi-plus-lg text-primary" aria-hidden="true"></i>
                                             </button>
