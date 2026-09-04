@@ -9,13 +9,22 @@
 <div class="row g-4">
     <div class="col-lg-5">
         <x-image-upload
+            name="banner_image"
+            label="Banner riêng của tour"
+            :existing-url="$tour->banner_image"
+            placeholder="Tải banner riêng cho tour"
+            :max-files="1"
+        />
+        <p class="small text-body-secondary mb-4">Ảnh này hiển thị ở đầu trang chi tiết tour. Nếu để trống, hệ thống dùng banner chung.</p>
+
+        <x-image-upload
             name="cover_image"
             label="Ảnh đại diện tour"
             :existing-url="$cover?->path"
             placeholder="Tải ảnh đại diện tour"
             :max-files="1"
         />
-        <p class="small text-body-secondary mb-0">Ảnh đại diện xuất hiện đầu tiên ở thẻ tour, banner và album. Tải ảnh mới sẽ thay ảnh đại diện đang dùng.</p>
+        <p class="small text-body-secondary mb-0">Ảnh đại diện xuất hiện ở thẻ tour và album, không thay thế banner tour.</p>
     </div>
     <div class="col-lg-7">
         <x-image-upload

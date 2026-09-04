@@ -461,6 +461,7 @@ class TourController extends Controller
         return $card + [
             'code' => $tour->code,
             'description' => $tour->description ?: $tour->summary,
+            'banner_image_url' => $this->imageUrl($tour->banner_image),
             'seo_title' => $tour->seo_title,
             'seo_description' => $tour->seo_description ?: $tour->summary,
             'max_guests' => $tour->max_guests,

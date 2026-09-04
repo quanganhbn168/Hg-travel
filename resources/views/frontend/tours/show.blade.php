@@ -28,7 +28,7 @@
 @endsection
 
 @section('content')
-    <section class="tour-detail-hero page-banner" style="--page-banner-image: url('{{ $siteAssets['page_banner'] }}');">
+    <section class="tour-detail-hero page-banner" style="--page-banner-image: url('{{ $tour['banner_image_url'] ?: $siteAssets['page_banner'] }}');">
         <div class="container">
             <div class="tour-detail-hero-inner text-center">
                 <span class="section-eyebrow">{{ $tour['category'] ?: 'Hành trình chọn lọc' }}</span>

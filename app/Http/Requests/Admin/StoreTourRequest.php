@@ -21,6 +21,8 @@ class StoreTourRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'summary' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'banner_image' => ['nullable', 'string', 'max:4096'],
+            'banner_image_remove' => ['nullable', 'boolean'],
             'duration_days' => ['required', 'integer', 'min:1'],
             'duration_nights' => ['nullable', 'integer', 'min:0'],
             'transport' => ['nullable', 'string', 'max:120'],

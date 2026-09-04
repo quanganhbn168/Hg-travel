@@ -10,7 +10,7 @@
     $activeTab = match (true) {
         $hasTabError(['schedules']) => 'schedules',
         $hasTabError(['description', 'itineraries', 'sections', 'inclusions']) => 'content',
-        $hasTabError(['cover_image', 'gallery_images', 'cover_image_id', 'remove_image_ids']) => 'media',
+        $hasTabError(['banner_image', 'cover_image', 'gallery_images', 'cover_image_id', 'remove_image_ids']) => 'media',
         $hasTabError(['seo_title', 'seo_description', 'published_at', 'sort_order']) => 'seo',
         default => 'general',
     };

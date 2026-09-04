@@ -55,6 +55,7 @@ class TourService
             $this->syncCategories($tour, $data['tour_category_ids'] ?? []);
             $this->syncDestinations($tour, $data['destination_ids'] ?? []);
             $this->syncItineraries($tour, $data['itineraries'] ?? []);
+            $this->syncBannerImage($tour, $data);
             $this->syncImages($tour, $data);
             $this->syncSchedules($tour, $data['schedules'] ?? []);
             $this->syncSections($tour, $data['sections'] ?? []);
@@ -71,6 +72,7 @@ class TourService
             $this->syncCategories($tour, $data['tour_category_ids'] ?? []);
             $this->syncDestinations($tour, $data['destination_ids'] ?? []);
             $this->syncItineraries($tour, $data['itineraries'] ?? []);
+            $this->syncBannerImage($tour, $data);
             $this->syncImages($tour, $data);
             $this->syncSchedules($tour, $data['schedules'] ?? []);
             $this->syncSections($tour, $data['sections'] ?? []);
@@ -125,6 +127,22 @@ class TourService
                 'accommodation' => filled($itinerary['accommodation'] ?? null) ? trim($itinerary['accommodation']) : null,
                 'sort_order' => $index + 1,
             ]);
+        }
+    }
+
+    /** @param array<string, mixed> $data */
+    private function syncBannerImage(Tour $tour, array $data): void
+    {
+        if ((bool) ($data['banner_image_remove'] ?? false)) {
+            $tour->update(['banner_image' => null]);
+
+            return;
+        }
+
+        $bannerPath = trim((string) ($data['banner_image'] ?? ''));
+
+        if ($bannerPath !== '') {
+            $tour->update(['banner_image' => $bannerPath]);
         }
     }
 
