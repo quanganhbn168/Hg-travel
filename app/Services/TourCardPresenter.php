@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Promotion;
 use App\Models\Tour;
-use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class TourCardPresenter
 {
@@ -39,7 +39,7 @@ class TourCardPresenter
             'duration_days' => (int) $tour->duration_days,
             'transport' => $tour->transport ?: 'Theo chương trình',
             'next_departure' => filled($tour->getAttribute('next_departure_date'))
-                ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
+                ? Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
                 : null,
             'price' => $price,
             'price_label' => $this->moneyLabel($price),
@@ -87,7 +87,7 @@ class TourCardPresenter
 
         foreach ([$tour->images->first()?->path, $primaryDestination?->cover_image] as $path) {
             if (filled($path)) {
-                return Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path);
+                return app(MediaReferenceService::class)->url($path);
             }
         }
 

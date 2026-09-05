@@ -20,6 +20,7 @@ class AboutController extends Controller
             ->all();
 
         return view('frontend.about', [
+            ...$about->presentationData($page, $siteSettings->general()),
             'about' => $page,
             'profileContent' => $profileContent,
             'siteSettings' => $siteSettings->general(),

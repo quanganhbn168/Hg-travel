@@ -8,9 +8,21 @@ use Illuminate\Validation\Rule;
 
 class StoreTourRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
-    protected function prepareForValidation(): void { $this->merge(['slug' => $this->filled('slug') ? Str::slug((string) $this->input('slug')) : Str::slug((string) $this->input('name'))]); }
-    public function rules(): array { return $this->baseRules() + ['code' => ['required', 'string', 'max:50', Rule::unique('tours', 'code')], 'slug' => ['required', 'string', 'max:255', Rule::unique('tours', 'slug'), Rule::unique('slugs', 'slug')->where(fn ($q) => $q->where('locale', app()->getLocale()))]]; }
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['slug' => $this->filled('slug') ? Str::slug((string) $this->input('slug')) : Str::slug((string) $this->input('name'))]);
+    }
+
+    public function rules(): array
+    {
+        return $this->baseRules() + ['code' => ['required', 'string', 'max:50', Rule::unique('tours', 'code')], 'slug' => ['required', 'string', 'max:255', Rule::unique('tours', 'slug'), Rule::unique('slugs', 'slug')->where(fn ($q) => $q->where('locale', app()->getLocale()))]];
+    }
+
     protected function baseRules(): array
     {
         return [
@@ -43,6 +55,8 @@ class StoreTourRequest extends FormRequest
             'gallery_images' => ['nullable', 'string', 'max:24576'],
             'remove_image_ids' => ['nullable', 'array'],
             'remove_image_ids.*' => ['integer', 'distinct'],
+            'image_order' => ['nullable', 'array'],
+            'image_order.*' => ['integer', 'distinct'],
             'itineraries' => ['nullable', 'array'],
             'itineraries.*.day_number' => ['required', 'integer', 'min:1', 'distinct'],
             'itineraries.*.title' => ['required', 'string', 'max:255'],

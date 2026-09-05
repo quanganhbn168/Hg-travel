@@ -13,9 +13,15 @@ class ServiceCatalogAdminService
     {
         $query = ServiceCategory::query()->withCount('services')->orderBy('sort_order')->orderBy('name');
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
-        if (($filters['status'] ?? null) === 'active') $query->where('is_active', true);
-        if (($filters['status'] ?? null) === 'inactive') $query->where('is_active', false);
+        if ($search !== '') {
+            $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+        }
+        if (($filters['status'] ?? null) === 'active') {
+            $query->where('is_active', true);
+        }
+        if (($filters['status'] ?? null) === 'inactive') {
+            $query->where('is_active', false);
+        }
 
         return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
     }
@@ -45,10 +51,18 @@ class ServiceCatalogAdminService
     {
         $query = Service::query()->with('category')->orderBy('sort_order')->orderBy('name');
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
-        if (filled($filters['category'] ?? null)) $query->where('service_category_id', $filters['category']);
-        if (($filters['status'] ?? null) === 'active') $query->where('is_active', true);
-        if (($filters['status'] ?? null) === 'inactive') $query->where('is_active', false);
+        if ($search !== '') {
+            $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+        }
+        if (filled($filters['category'] ?? null)) {
+            $query->where('service_category_id', $filters['category']);
+        }
+        if (($filters['status'] ?? null) === 'active') {
+            $query->where('is_active', true);
+        }
+        if (($filters['status'] ?? null) === 'inactive') {
+            $query->where('is_active', false);
+        }
 
         return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
     }
@@ -68,7 +82,7 @@ class ServiceCatalogAdminService
 
     public function updateService(Service $service, array $data): void
     {
-        $service->update($this->servicePayload($data));
+        $service->update($this->servicePayload($data, $service));
     }
 
     public function deleteService(Service $service): void
@@ -89,7 +103,7 @@ class ServiceCatalogAdminService
         ];
     }
 
-    private function servicePayload(array $data): array
+    private function servicePayload(array $data, ?Service $service = null): array
     {
         $benefits = is_array($data['benefits'] ?? null)
             ? $data['benefits']
@@ -103,7 +117,7 @@ class ServiceCatalogAdminService
             'description' => $data['description'] ?? null,
             'intro' => $data['intro'] ?? null,
             'benefits' => collect($benefits)->map(fn ($item) => trim((string) $item))->filter()->values()->all(),
-            'cover_image' => $data['cover_image'] ?? null,
+            'cover_image' => app(MediaReferenceService::class)->field($data, 'cover_image', $service?->cover_image),
             'seo_title' => $data['seo_title'] ?? null,
             'seo_description' => $data['seo_description'] ?? null,
             'sort_order' => (int) ($data['sort_order'] ?? 0),

@@ -2,16 +2,23 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Services\MediaPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UploadMediaRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
+        $policy = app(MediaPolicy::class);
+        $imagesOnly = ! $this->routeIs('admin.media.upload.library');
+
         return [
-            'file' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx'],
+            'file' => $policy->rules($imagesOnly),
         ];
     }
 }

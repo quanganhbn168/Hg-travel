@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
+use App\Services\MediaReferenceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -31,7 +32,7 @@ class PostController extends Controller
         }
 
         return view('frontend.posts.index', [
-            'posts' => $query->latest('published_at')->latest('id')->paginate(9)->withQueryString(),
+            'posts' => $query->latest('published_at')->latest('id')->paginate(9)->withQueryString()->through(fn ($post) => $this->present($post)),
             'categories' => PostCategory::query()
                 ->where('is_active', true)
                 ->withCount(['posts' => fn (Builder $postQuery) => $this->publishedPosts($postQuery)])
@@ -72,7 +73,18 @@ class PostController extends Controller
             ->orderBy('name')
             ->get();
 
+        $this->present($post);
+        $relatedPosts->each(fn ($item) => $this->present($item));
+        $sidebarPosts->each(fn ($item) => $this->present($item));
+
         return view('frontend.posts.show', compact('post', 'relatedPosts', 'sidebarPosts', 'sidebarCategories'));
+    }
+
+    private function present(Post $post): Post
+    {
+        $post->setAttribute('cover_url', app(MediaReferenceService::class)->url($post->cover_image));
+
+        return $post;
     }
 
     private function publishedPosts(?Builder $query = null): Builder

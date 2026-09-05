@@ -1,7 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AboutPageController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\CommonController;
+use App\Http\Controllers\Admin\ContactSubmissionController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DestinationController;
 use App\Http\Controllers\Admin\MediaController;
@@ -10,41 +14,33 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\PromotionController;
-use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\SliderController;
-use App\Http\Controllers\Admin\TestimonialController;
-use App\Http\Controllers\Admin\ContactSubmissionController;
-use App\Http\Controllers\Admin\CommonController;
-use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\ServiceCategoryController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SliderController;
+use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\TourCategoryController;
 use App\Http\Controllers\Admin\TourController;
 use App\Http\Controllers\Admin\TourImportController;
 use App\Http\Controllers\Admin\TravelMomentController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\BookingController as FrontendBookingController;
-use App\Http\Controllers\Frontend\PageController as FrontendPageController;
-use App\Http\Controllers\Admin\AboutPageController;
 use App\Http\Controllers\Frontend\ContactController as FrontendContactController;
 use App\Http\Controllers\Frontend\DestinationController as FrontendDestinationController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use App\Http\Controllers\Frontend\PostController as FrontendPostController;
+use App\Http\Controllers\Frontend\SeoController;
 use App\Http\Controllers\Frontend\ServiceController as FrontendServiceController;
 use App\Http\Controllers\Frontend\SlugController;
 use App\Http\Controllers\Frontend\TourController as FrontendTourController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
-Route::get('/robots.txt', function () {
-    return response(
-        "User-agent: *\nDisallow:\n\nSitemap: ".url('/sitemap.xml')."\n",
-        200,
-        ['Content-Type' => 'text/plain; charset=UTF-8'],
-    );
-})->name('robots');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/gioi-thieu', AboutController::class)->name('about');
 Route::get('/tours', [FrontendTourController::class, 'index'])->name('tours.index');
 Route::get('/tours/danh-muc/{category:slug}', [FrontendTourController::class, 'category'])->name('tours.category');
@@ -75,6 +71,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admi
     Route::get('media/list', [MediaController::class, 'list'])->name('media.list');
     Route::post('media/upload/temp', [MediaController::class, 'uploadTemp'])->name('media.upload.temp');
     Route::post('media/upload/editor', [MediaController::class, 'uploadEditor'])->name('media.upload.editor');
+    Route::post('media/upload/library', [MediaController::class, 'uploadLibrary'])->name('media.upload.library');
+    Route::get('media/{media}/usage', [MediaController::class, 'usage'])->name('media.usage');
+    Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    Route::put('media/{media}/restore', [MediaController::class, 'restore'])->name('media.restore');
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::get('settings/website', [SettingController::class, 'website'])->name('settings.website');
     Route::put('settings/website', [SettingController::class, 'updateWebsite'])->name('settings.website.update');
@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admi
     Route::put('settings/media', [SettingController::class, 'updateMedia'])->name('settings.media.update');
     Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
     Route::put('settings/seo', [SettingController::class, 'updateSeo'])->name('settings.seo.update');
+    Route::put('settings/robots', [SettingController::class, 'updateRobots'])->name('settings.robots.update');
     Route::get('settings/contact', [SettingController::class, 'contact'])->name('settings.contact');
     Route::put('settings/contact', [SettingController::class, 'updateContact'])->name('settings.contact.update');
     Route::get('settings/tour', [SettingController::class, 'tour'])->name('settings.tour');

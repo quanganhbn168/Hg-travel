@@ -8,10 +8,12 @@ use App\Models\Promotion;
 use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\TourSchedule;
-use App\Settings\TourSettings;
 use App\Services\DestinationTreeService;
+use App\Services\MediaReferenceService;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
+use App\Settings\TourSettings;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -404,7 +406,7 @@ class TourController extends Controller
             'duration_days' => (int) $tour->duration_days,
             'transport' => $tour->transport ?: 'Theo chương trình',
             'next_departure' => filled($tour->getAttribute('next_departure_date'))
-                ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
+                ? Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
                 : null,
             'price' => $price,
             'price_label' => $this->moneyLabel($tour->starting_price, $tour->currency),
@@ -565,7 +567,6 @@ class TourController extends Controller
             return null;
         }
 
-        return Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path);
+        return app(MediaReferenceService::class)->url($path);
     }
-
 }

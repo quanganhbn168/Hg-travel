@@ -1,37 +1,8 @@
 @extends('layouts.master')
 
 @section('title', $about->seo_title ?: $about->hero_title)
-@section('meta_description', $about->seo_description ?: $about->hero_intro)
+@section('meta_description', $about->seo_description ?: $about->hero_intro ?: '')
 @section('body_class', 'about-page')
-
-@php
-    $profileImage = static function (?string $path, string $fallback): string {
-        if (blank($path)) {
-            return asset($fallback);
-        }
-
-        return \Illuminate\Support\Str::startsWith($path, ['http://', 'https://']) ? $path : asset($path);
-    };
-
-    $heroImage = $profileImage($about->hero_image, 'images/about/hg-trip/letter-travel.jpg');
-    $letterImage = $profileImage($about->background_image, 'images/about/hg-trip/journey-beijing.jpg');
-    $storyImage = $profileImage($about->story_image, 'images/about/hg-trip/journey-kazakhstan.jpg');
-    $companyName = $siteSettings->company_name ?: $siteSettings->site_name ?: 'HG TRIP';
-    $marketCards = collect($about->markets ?: [])
-        ->map(fn ($market) => ['name' => trim((string) ($market['name'] ?? $market)), 'detail' => trim((string) ($market['detail'] ?? ''))])
-        ->filter(fn (array $market) => $market['name'] !== '')
-        ->values();
-    $content = $profileContent;
-    $intro = $content['company_intro'];
-    $story = $content['story'];
-    $storySteps = $content['story_steps'];
-    $values = $content['values'];
-    $products = $content['featured_products'];
-    $support = $content['support'];
-    $leaders = $content['leaders'];
-    $clients = $content['clients'];
-    $organisation = $content['organisation'];
-@endphp
 
 @push('page_styles')
     <link rel="stylesheet" href="{{ asset('css/about.css') }}?v={{ filemtime(public_path('css/about.css')) }}">
@@ -154,7 +125,7 @@
     </section>
 
     <section class="about-clients-section">
-        <div class="container"><div class="about-clients-heading"><div><span class="section-eyebrow">{{ $clients['eyebrow'] }}</span><h2>{!! nl2br(e($clients['title'])) !!}</h2></div><p>{{ $clients['intro'] }}</p></div><div class="about-client-logos">@foreach($clients['items'] as $client)<div><img src="{{ $profileImage($client['image'], 'images/placeholder.svg') }}" alt="{{ $client['name'] }}" loading="lazy"></div>@endforeach</div></div>
+        <div class="container"><div class="about-clients-heading"><div><span class="section-eyebrow">{{ $clients['eyebrow'] }}</span><h2>{!! nl2br(e($clients['title'])) !!}</h2></div><p>{{ $clients['intro'] }}</p></div><div class="about-client-logos">@foreach($clients['items'] as $client)<div><img src="{{ $client['image_url'] }}" alt="{{ $client['name'] }}" loading="lazy"></div>@endforeach</div></div>
     </section>
 
     <section class="about-organisation-section">

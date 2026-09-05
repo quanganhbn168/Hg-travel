@@ -12,10 +12,13 @@ use App\Models\Testimonial;
 use App\Models\Tour;
 use App\Models\TourCategory;
 use App\Models\TravelMoment;
+use App\Services\DestinationTreeService;
+use App\Services\MediaReferenceService;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
-use App\Services\DestinationTreeService;
 use App\Services\TravelServiceCatalog;
+use App\Settings\WebsiteSettings;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
@@ -29,8 +32,7 @@ class HomeController extends Controller
         StructuredDataService $structuredData,
         DestinationTreeService $destinationTree,
         TravelServiceCatalog $serviceCatalog,
-    ): View
-    {
+    ): View {
         $settings = $siteSettings->general();
         $mediaSettings = $siteSettings->media();
         $sliderItems = Slider::query()
@@ -137,7 +139,7 @@ class HomeController extends Controller
         ]);
     }
 
-    private function brandIntroduction(\App\Settings\WebsiteSettings $settings): array
+    private function brandIntroduction(WebsiteSettings $settings): array
     {
         return [
             'title' => $settings->about_title,
@@ -175,7 +177,7 @@ class HomeController extends Controller
             ->all();
     }
 
-    private function partners(\App\Settings\WebsiteSettings $settings): array
+    private function partners(WebsiteSettings $settings): array
     {
         return collect(preg_split('/\R/u', (string) $settings->partner_names))
             ->map(fn (string $name): string => trim($name))
@@ -403,7 +405,7 @@ class HomeController extends Controller
         $nextSchedule = $this->nextSchedule($tour);
         $nextDeparture = $nextSchedule?->departure_date
             ?: (filled($tour->getAttribute('next_departure_date'))
-                ? \Carbon\Carbon::parse($tour->getAttribute('next_departure_date'))
+                ? Carbon::parse($tour->getAttribute('next_departure_date'))
                 : null);
 
         $destinations = $tour->relationLoaded('destinations')
@@ -420,8 +422,8 @@ class HomeController extends Controller
             'slug' => $tour->slug,
             'booking_open' => (bool) $tour->booking_open,
             'summary' => $tour->summary,
-            'duration' => $tour->duration_days . ' ngày' . ($tour->duration_nights ? ' ' . $tour->duration_nights . ' đêm' : ''),
-            'duration_compact' => (int) $tour->duration_days . 'N' . ((int) $tour->duration_nights > 0 ? (int) $tour->duration_nights . 'Đ' : ''),
+            'duration' => $tour->duration_days.' ngày'.($tour->duration_nights ? ' '.$tour->duration_nights.' đêm' : ''),
+            'duration_compact' => (int) $tour->duration_days.'N'.((int) $tour->duration_nights > 0 ? (int) $tour->duration_nights.'Đ' : ''),
             'transport' => $tour->transport ?: 'Theo chương trình',
             'next_departure' => $nextDeparture?->format('d/m/Y'),
             'next_departure_at' => $nextDeparture?->copy()->startOfDay()->toIso8601String(),
@@ -474,7 +476,7 @@ class HomeController extends Controller
         return (float) $amount > 0 ? number_format((float) $amount, 0, ',', '.').'đ' : 'Liên hệ';
     }
 
-    private function countdownLabel(?\Carbon\Carbon $departure): ?string
+    private function countdownLabel(?Carbon $departure): ?string
     {
         if (! $departure) {
             return null;
@@ -529,7 +531,7 @@ class HomeController extends Controller
             return null;
         }
 
-        return Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path);
+        return app(MediaReferenceService::class)->url($path);
     }
 
     private function linkUrl(?string $path): string

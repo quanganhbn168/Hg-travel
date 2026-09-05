@@ -11,7 +11,7 @@ class PermissionSeeder extends Seeder
     {
         foreach ([
             'admin.access', 'dashboard.view', 'about.view', 'about.update',
-            'media.view', 'media.upload', 'settings.view', 'settings.update',
+            'media.view', 'media.upload', 'media.delete', 'settings.view', 'settings.update',
             'destinations.view', 'destinations.create', 'destinations.update', 'destinations.delete',
             'travel-moments.view', 'travel-moments.create', 'travel-moments.update', 'travel-moments.delete',
             'tour-categories.view', 'tour-categories.create', 'tour-categories.update', 'tour-categories.delete',

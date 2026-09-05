@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title', ($post->seo_title ?: $post->name).' | '.$siteSettings->site_name)
-@section('meta_description', $post->seo_description ?: $post->summary)
+@section('meta_description', $post->seo_description ?: $post->summary ?: '')
 @section('meta_keywords', $post->seo_keywords ?: 'cẩm nang du lịch, kinh nghiệm du lịch')
 @section('canonical', route('posts.show', $post))
 @section('body_class', 'blog-page blog-detail-page')
@@ -15,7 +15,7 @@
 @endsection
 
 @section('content')
-    @php($coverImage = filled($post->cover_image) ? (\Illuminate\Support\Str::startsWith($post->cover_image, ['http://', 'https://', '/']) ? $post->cover_image : asset($post->cover_image)) : null)
+
     <div class="breadcrumb-bar"><div class="container">@yield('breadcrumb')</div></div>
 
     <section class="section-space post-detail-section">
@@ -33,7 +33,7 @@
                             @if ($post->summary)<p>{{ $post->summary }}</p>@endif
                         </header>
 
-                        @if ($coverImage)<figure class="post-detail-cover"><img src="{{ $coverImage }}" alt="{{ $post->name }}"></figure>@endif
+                        @if ($post->cover_url)<figure class="post-detail-cover"><img src="{{ $post->cover_url }}" alt="{{ $post->name }}"></figure>@endif
 
                         <div class="post-detail-content">{!! nl2br(e($post->content ?: $post->summary)) !!}</div>
 
@@ -51,8 +51,8 @@
                             </div>
                             <div class="row g-4">
                                 @foreach ($relatedPosts as $relatedPost)
-                                    @php($relatedImage = filled($relatedPost->cover_image) ? (\Illuminate\Support\Str::startsWith($relatedPost->cover_image, ['http://', 'https://', '/']) ? $relatedPost->cover_image : asset($relatedPost->cover_image)) : null)
-                                    <div class="col-md-4"><article class="blog-card"><a class="blog-card-image" href="{{ route('posts.show', $relatedPost) }}">@if ($relatedImage)<img src="{{ $relatedImage }}" alt="{{ $relatedPost->name }}" loading="lazy">@else<span><i class="bi bi-journal-richtext"></i></span>@endif</a><div class="blog-card-body"><div class="blog-card-meta"><span>{{ $relatedPost->category?->name ?: 'Cẩm nang' }}</span>@if ($relatedPost->published_at)<time datetime="{{ $relatedPost->published_at->toDateString() }}">{{ $relatedPost->published_at->format('d/m/Y') }}</time>@endif</div><h3><a href="{{ route('posts.show', $relatedPost) }}">{{ $relatedPost->name }}</a></h3><a class="blog-card-more" href="{{ route('posts.show', $relatedPost) }}">Đọc bài viết <i class="bi bi-arrow-up-right"></i></a></div></article></div>
+
+                                    <div class="col-md-4"><article class="blog-card"><a class="blog-card-image" href="{{ route('posts.show', $relatedPost) }}">@if ($relatedPost->cover_url)<img src="{{ $relatedPost->cover_url }}" alt="{{ $relatedPost->name }}" loading="lazy">@else<span><i class="bi bi-journal-richtext"></i></span>@endif</a><div class="blog-card-body"><div class="blog-card-meta"><span>{{ $relatedPost->category?->name ?: 'Cẩm nang' }}</span>@if ($relatedPost->published_at)<time datetime="{{ $relatedPost->published_at->toDateString() }}">{{ $relatedPost->published_at->format('d/m/Y') }}</time>@endif</div><h3><a href="{{ route('posts.show', $relatedPost) }}">{{ $relatedPost->name }}</a></h3><a class="blog-card-more" href="{{ route('posts.show', $relatedPost) }}">Đọc bài viết <i class="bi bi-arrow-up-right"></i></a></div></article></div>
                                 @endforeach
                             </div>
                         </section>
@@ -77,9 +77,9 @@
                                 <h2>Bài viết mới</h2>
                                 <div class="post-sidebar-list">
                                     @foreach ($sidebarPosts as $sidebarPost)
-                                        @php($sidebarImage = filled($sidebarPost->cover_image) ? (\Illuminate\Support\Str::startsWith($sidebarPost->cover_image, ['http://', 'https://', '/']) ? $sidebarPost->cover_image : asset($sidebarPost->cover_image)) : null)
+
                                         <a class="post-sidebar-item" href="{{ route('posts.show', $sidebarPost) }}">
-                                            @if ($sidebarImage)<img src="{{ $sidebarImage }}" alt="" loading="lazy">@endif
+                                            @if ($sidebarPost->cover_url)<img src="{{ $sidebarPost->cover_url }}" alt="" loading="lazy">@endif
                                             <span><strong>{{ $sidebarPost->name }}</strong>@if ($sidebarPost->published_at)<small>{{ $sidebarPost->published_at->format('d/m/Y') }}</small>@endif</span>
                                         </a>
                                     @endforeach

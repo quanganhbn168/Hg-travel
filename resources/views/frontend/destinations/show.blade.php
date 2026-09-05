@@ -2,7 +2,6 @@
 
 @section('title', $page['title'].' | '.$siteSettings->site_name)
 @section('meta_description', $page['description'])
-@section('meta_robots', 'index,follow')
 @section('canonical', $canonical)
 @section('og_title', $page['title'])
 @section('og_description', $page['description'])

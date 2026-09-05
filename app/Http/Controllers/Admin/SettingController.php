@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Http\Requests\Admin\UpdateContactSettingsRequest;
 use App\Http\Requests\Admin\UpdateMediaSettingsRequest;
+use App\Http\Requests\Admin\UpdateRobotsRequest;
 use App\Http\Requests\Admin\UpdateSeoSettingsRequest;
 use App\Http\Requests\Admin\UpdateTourSettingsRequest;
 use App\Http\Requests\Admin\UpdateWebsiteSettingsRequest;
+use App\Services\RobotsFileService;
 use App\Services\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -60,9 +62,13 @@ class SettingController extends Controller
             : 'Đã lưu cài đặt media.');
     }
 
-    public function seo(): View
+    public function seo(RobotsFileService $robots): View
     {
-        return view('admin.settings.seo', ['settings' => $this->settingService->seo()]);
+        return view('admin.settings.seo', [
+            'settings' => $this->settingService->seo(),
+            'robots' => $robots->read(),
+            'canUpdateSettings' => auth('admin')->user()->hasPermissionTo('settings.update', 'web'),
+        ]);
     }
 
     public function updateSeo(UpdateSeoSettingsRequest $request): RedirectResponse
@@ -70,6 +76,15 @@ class SettingController extends Controller
         $this->settingService->updateSeo($request->validated());
 
         return back()->with('success', 'Đã lưu cài đặt SEO.');
+    }
+
+    public function updateRobots(UpdateRobotsRequest $request, RobotsFileService $robots): RedirectResponse
+    {
+        $data = $request->validated();
+        $robots->save($data['robots_content'], $data['robots_revision']);
+
+        return redirect()->to(route('admin.settings.seo').'#robots-settings')
+            ->with('success', 'Đã ghi file public/robots.txt. Nội dung có hiệu lực ngay, không cần chạy command.');
     }
 
     public function contact(): View

@@ -2,11 +2,30 @@
 
 namespace App\Services;
 
+use App\Data\SiteSettingsData;
 use App\Models\AboutPage;
 use App\Models\Service;
 
 class AboutPageService
 {
+    public function presentationData(AboutPage $page, SiteSettingsData $settings): array
+    {
+        $images = app(MediaReferenceService::class);
+        $content = $this->profileContent($page);
+        $content['clients']['items'] = array_map(fn (array $client) => $client + ['image_url' => $images->url($client['image'] ?? null, 'images/placeholder.svg')], $content['clients']['items']);
+
+        return [
+            'heroImage' => $images->url($page->hero_image, 'images/about/hg-trip/letter-travel.jpg'),
+            'letterImage' => $images->url($page->background_image, 'images/about/hg-trip/journey-beijing.jpg'),
+            'storyImage' => $images->url($page->story_image, 'images/about/hg-trip/journey-kazakhstan.jpg'),
+            'companyName' => $settings->company_name ?: $settings->site_name ?: 'HG TRIP',
+            'marketCards' => collect($page->markets ?: [])->map(fn ($market) => ['name' => trim((string) (is_array($market) ? ($market['name'] ?? '') : $market)), 'detail' => is_array($market) ? trim((string) ($market['detail'] ?? '')) : ''])->filter(fn ($market) => $market['name'] !== '')->values(),
+            'content' => $content, 'intro' => $content['company_intro'], 'story' => $content['story'],
+            'storySteps' => $content['story_steps'], 'values' => $content['values'], 'products' => $content['featured_products'],
+            'support' => $content['support'], 'leaders' => $content['leaders'], 'clients' => $content['clients'], 'organisation' => $content['organisation'],
+        ];
+    }
+
     public function current(): AboutPage
     {
         return AboutPage::firstOrCreate(['key' => 'about'], $this->defaults());
@@ -145,10 +164,10 @@ class AboutPageService
             'markets_title' => "Kết nối những hành trình\nkhông giới hạn biên giới.",
             'markets_intro' => 'Từ một chuyến đi trong nước đến những thị trường quốc tế, HG TRIP chuẩn bị đồng bộ trải nghiệm và vận hành.',
             'profile_content' => self::defaultProfileContent($this->defaultSupportServiceIds()),
-            'core_values' => [['title'=>'Chuyên nghiệp','description'=>'Quy trình rõ ràng, tác phong chuyên nghiệp và luôn nâng cao chất lượng trong từng dịch vụ.'],['title'=>'Uy tín','description'=>'Cam kết dịch vụ minh bạch, đúng như thỏa thuận và bảo đảm chất lượng.'],['title'=>'Tận tâm','description'=>'Lấy khách hàng làm trung tâm, lắng nghe và đáp ứng tối đa nhu cầu.'],['title'=>'Sáng tạo','description'=>'Cải tiến sản phẩm cá nhân hóa để tạo trải nghiệm khác biệt.'],['title'=>'Chia sẻ','description'=>'Luôn đồng hành, chia sẻ trách nhiệm và thành công cùng khách hàng, đối tác.']],
-            'markets' => [['name'=>'Nội địa','detail'=>'Khám phá Việt Nam theo nhịp điệu riêng'],['name'=>'Inbound','detail'=>'Đón khách quốc tế đến Việt Nam'],['name'=>'Outbound','detail'=>'Hành trình quốc tế được thiết kế riêng'],['name'=>'Dịch vụ khác','detail'=>'Visa, vé máy bay, khách sạn và các hỗ trợ cần thiết cho chuyến đi']],
-            'commitments' => ['Không phát sinh chi phí bất hợp lý','Hỗ trợ khẩn cấp 24/7','Lịch trình tối ưu','Đối tác được lựa chọn kỹ','Trải nghiệm cá nhân hóa','Bảo hiểm đầy đủ'],
-            'audiences' => ['Doanh nghiệp','Ngân hàng','Bảo hiểm','Gia đình','Cặp đôi','Nhóm bạn','Khách VIP'],
+            'core_values' => [['title' => 'Chuyên nghiệp', 'description' => 'Quy trình rõ ràng, tác phong chuyên nghiệp và luôn nâng cao chất lượng trong từng dịch vụ.'], ['title' => 'Uy tín', 'description' => 'Cam kết dịch vụ minh bạch, đúng như thỏa thuận và bảo đảm chất lượng.'], ['title' => 'Tận tâm', 'description' => 'Lấy khách hàng làm trung tâm, lắng nghe và đáp ứng tối đa nhu cầu.'], ['title' => 'Sáng tạo', 'description' => 'Cải tiến sản phẩm cá nhân hóa để tạo trải nghiệm khác biệt.'], ['title' => 'Chia sẻ', 'description' => 'Luôn đồng hành, chia sẻ trách nhiệm và thành công cùng khách hàng, đối tác.']],
+            'markets' => [['name' => 'Nội địa', 'detail' => 'Khám phá Việt Nam theo nhịp điệu riêng'], ['name' => 'Inbound', 'detail' => 'Đón khách quốc tế đến Việt Nam'], ['name' => 'Outbound', 'detail' => 'Hành trình quốc tế được thiết kế riêng'], ['name' => 'Dịch vụ khác', 'detail' => 'Visa, vé máy bay, khách sạn và các hỗ trợ cần thiết cho chuyến đi']],
+            'commitments' => ['Không phát sinh chi phí bất hợp lý', 'Hỗ trợ khẩn cấp 24/7', 'Lịch trình tối ưu', 'Đối tác được lựa chọn kỹ', 'Trải nghiệm cá nhân hóa', 'Bảo hiểm đầy đủ'],
+            'audiences' => ['Doanh nghiệp', 'Ngân hàng', 'Bảo hiểm', 'Gia đình', 'Cặp đôi', 'Nhóm bạn', 'Khách VIP'],
             'ceo_name' => 'Bà Nguyễn Thị Hương Giang',
             'ceo_bio' => 'Với trên 20 năm kinh nghiệm trong lĩnh vực du lịch, bà từng có gần 10 năm giữ vị trí Giám đốc Công ty Cổ phần Du lịch Hapro thuộc Tổng công ty Thương mại Hà Nội; sau đó là thành viên Hội đồng thành viên, Phó Giám đốc Công ty Cổ phần Lữ hành Nam Cường đến hết năm 2025.',
             'deputy_name' => 'Bà Vũ Thị Thùy Hương',

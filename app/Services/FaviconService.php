@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -115,8 +116,8 @@ final class FaviconService
             ]);
         }
 
-        $mediaRoot = realpath(public_path('media'));
-        $source = realpath(public_path($relative));
+        $mediaRoot = realpath(Storage::disk('public_media')->path(''));
+        $source = $mediaRoot ? realpath($mediaRoot.DIRECTORY_SEPARATOR.substr($relative, 6)) : false;
 
         if (! $mediaRoot || ! $source || ! Str::startsWith(strtolower($source), strtolower($mediaRoot.DIRECTORY_SEPARATOR))) {
             throw ValidationException::withMessages([

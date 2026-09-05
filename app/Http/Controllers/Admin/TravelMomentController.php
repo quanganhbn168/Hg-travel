@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TravelMoment;
 use App\Models\TravelMomentGroup;
+use App\Services\MediaReferenceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class TravelMomentController extends Controller
@@ -76,11 +78,16 @@ class TravelMomentController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $image = app(MediaReferenceService::class)->field($data, 'image_url', $moment?->image_url);
+        if (blank($image)) {
+            throw ValidationException::withMessages(['image_url' => 'Khoảnh khắc cần có ảnh. Hãy chọn ảnh thay thế hoặc xóa bản ghi khoảnh khắc.']);
+        }
+
         return [
             'group_id' => (int) $data['group_id'],
             'title' => trim($data['title']),
             'slug' => filled($data['slug'] ?? null) ? Str::slug($data['slug']) : Str::slug($data['title']),
-            'image_url' => $request->boolean('image_url_remove') ? null : ($data['image_url'] ?? $moment?->image_url),
+            'image_url' => $image,
             'alt_text' => $data['alt_text'] ?? $data['title'],
             'caption' => $data['caption'] ?? null,
             'sort_order' => (int) ($data['sort_order'] ?? 0),

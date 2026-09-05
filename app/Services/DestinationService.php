@@ -18,11 +18,21 @@ class DestinationService
             ->orderBy('sort_order')
             ->orderBy('name');
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
-        if (($filters['status'] ?? null) === 'active') $query->where('is_active', true);
-        if (($filters['status'] ?? null) === 'inactive') $query->where('is_active', false);
-        if (filled($filters['type'] ?? null)) $query->where('type', $filters['type']);
-        if (filled($filters['market'] ?? null)) $query->where('market', $filters['market']);
+        if ($search !== '') {
+            $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+        }
+        if (($filters['status'] ?? null) === 'active') {
+            $query->where('is_active', true);
+        }
+        if (($filters['status'] ?? null) === 'inactive') {
+            $query->where('is_active', false);
+        }
+        if (filled($filters['type'] ?? null)) {
+            $query->where('type', $filters['type']);
+        }
+        if (filled($filters['market'] ?? null)) {
+            $query->where('market', $filters['market']);
+        }
         $paginator = $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
         $counts = $this->destinationTree->publishedTourCounts($this->destinationTree->activeNodes());
         $paginator->setCollection($paginator->getCollection()->each(function (Destination $destination) use ($counts): void {
@@ -35,7 +45,7 @@ class DestinationService
     public function formContext(?Destination $destination = null): array
     {
         return [
-            'destination' => $destination ?: new Destination(),
+            'destination' => $destination ?: new Destination,
             'parentOptions' => $this->destinationTree->selectOptions(null, $destination),
             'types' => DestinationTreeService::TYPES,
             'markets' => DestinationTreeService::MARKETS,
@@ -57,9 +67,7 @@ class DestinationService
 
         $this->ensureValidParent($destination, $data['parent_id'] ?? null);
         $payload = $this->payload($data);
-        if (! ($data['cover_image_remove'] ?? false) && blank($data['cover_image'] ?? null)) {
-            $payload['cover_image'] = $destination->cover_image;
-        }
+        $payload['cover_image'] = app(MediaReferenceService::class)->field($data, 'cover_image', $destination->cover_image);
         $destination->update($payload);
     }
 

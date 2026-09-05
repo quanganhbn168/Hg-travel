@@ -14,7 +14,7 @@
     <meta name="description" content="@yield('meta_description', $siteSettings->seo_description ?: '')">
     <meta name="keywords" content="@yield('meta_keywords', $siteSettings->seo_keywords ?: '')">
     <meta name="author" content="{{ $siteSettings->site_name }}">
-    <meta name="robots" content="@yield('meta_robots', 'index,follow')">
+    <meta name="robots" content="index, follow">
     <meta name="format-detection" content="telephone=no">
     <link rel="canonical" href="@yield('canonical', url()->current())">
 

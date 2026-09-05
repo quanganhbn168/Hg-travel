@@ -4,10 +4,10 @@ namespace App\View\Composers;
 
 use App\Models\Page;
 use App\Services\FrontendMenuService;
+use App\Services\MediaReferenceService;
 use App\Services\SiteSettingsService;
 use App\Services\TravelServiceCatalog;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MasterViewComposer
@@ -74,7 +74,7 @@ class MasterViewComposer
     private function isActive(array $item): bool
     {
         if ($item['route_name'] && Route::has($item['route_name'])) {
-            return request()->routeIs($item['route_name'] . '*');
+            return request()->routeIs($item['route_name'].'*');
         }
 
         $url = $item['url'] ?: '/';
@@ -98,7 +98,7 @@ class MasterViewComposer
             return request()->path() === $path;
         }
 
-        return $path === '' ? request()->is('/') : request()->is($path) || request()->is($path . '/*');
+        return $path === '' ? request()->is('/') : request()->is($path) || request()->is($path.'/*');
     }
 
     private function assetUrl(?string $path): ?string
@@ -107,12 +107,12 @@ class MasterViewComposer
             return null;
         }
 
-        return Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path);
+        return app(MediaReferenceService::class)->url($path);
     }
 
     private function phoneHref(?string $phone): ?string
     {
-        return filled($phone) ? 'tel:' . preg_replace('/[^0-9+]/', '', $phone) : null;
+        return filled($phone) ? 'tel:'.preg_replace('/[^0-9+]/', '', $phone) : null;
     }
 
     private function contactPhones(object $settings): array

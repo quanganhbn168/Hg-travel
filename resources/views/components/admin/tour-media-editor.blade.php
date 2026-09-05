@@ -1,11 +1,3 @@
-@props(['tour'])
-
-@php
-    $images = $tour->relationLoaded('images') ? $tour->images : collect();
-    $cover = $images->firstWhere('is_cover', true);
-    $gallery = $images->reject(fn ($image) => $cover && $image->is($cover));
-@endphp
-
 <div class="row g-4">
     <div class="col-lg-5">
         <x-image-upload
@@ -36,11 +28,13 @@
         <p class="small text-body-secondary">Tối đa 12 ảnh mỗi lần. Có thể chọn ảnh đã có bên dưới làm ảnh đại diện.</p>
 
         @if ($gallery->isNotEmpty())
-            <div class="row g-3 mt-1">
+            <div class="row g-3 mt-1" data-tour-gallery-sort>
                 @foreach ($gallery as $image)
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-4" data-image-id="{{ $image->id }}">
+                        <input type="hidden" name="image_order[]" value="{{ $image->id }}">
+                        <button type="button" class="btn btn-sm btn-outline-secondary mb-1" data-image-handle aria-label="Kéo để đổi thứ tự ảnh">↕ Kéo sắp xếp</button>
                         <label class="border rounded p-2 d-block h-100 bg-body-tertiary">
-                            <img src="{{ \Illuminate\Support\Str::startsWith($image->path, ['http://', 'https://', '/']) ? $image->path : asset($image->path) }}" alt="{{ $image->alt_text ?: $tour->name }}" class="img-fluid rounded mb-2 w-100" style="aspect-ratio: 4 / 3; object-fit: cover;">
+                            <img src="{{ $image->preview_url }}" alt="{{ $image->alt_text ?: $tour->name }}" class="img-fluid rounded mb-2 w-100" style="aspect-ratio: 4 / 3; object-fit: cover;">
                             <span class="d-flex flex-column gap-1 small">
                                 <span><input class="form-check-input me-1" type="radio" name="cover_image_id" value="{{ $image->id }}" @checked((string) old('cover_image_id') === (string) $image->id)> Dùng làm ảnh đại diện</span>
                                 <span><input class="form-check-input me-1" type="checkbox" name="remove_image_ids[]" value="{{ $image->id }}" @checked(in_array($image->id, old('remove_image_ids', [])))> Gỡ khỏi tour</span>

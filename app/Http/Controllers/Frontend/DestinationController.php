@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Models\Tour;
 use App\Services\DestinationTreeService;
+use App\Services\MediaReferenceService;
 use App\Services\StructuredDataService;
 use App\Services\TourCardPresenter;
 use Illuminate\Database\Eloquent\Builder;
@@ -112,9 +113,7 @@ class DestinationController extends Controller
             return null;
         }
 
-        return str_starts_with($path, '/') || filter_var($path, FILTER_VALIDATE_URL)
-            ? $path
-            : asset($path);
+        return app(MediaReferenceService::class)->url($path);
     }
 
     private function firstDescendantImage(Destination $destination, Collection $nodes): ?string

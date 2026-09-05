@@ -3,7 +3,7 @@
         'admin.settings.website' => ['icon' => 'bi-globe2', 'label' => 'Website', 'description' => 'Thương hiệu và nội dung nền'],
         'admin.settings.business' => ['icon' => 'bi-building', 'label' => 'Doanh nghiệp', 'description' => 'Thông tin pháp lý'],
         'admin.settings.media' => ['icon' => 'bi-images', 'label' => 'Media', 'description' => 'Logo, ảnh và upload'],
-        'admin.settings.seo' => ['icon' => 'bi-search', 'label' => 'SEO', 'description' => 'Metadata mặc định'],
+        'admin.settings.seo' => ['icon' => 'bi-search', 'label' => 'SEO', 'description' => 'Metadata và robots.txt'],
         'admin.settings.contact' => ['icon' => 'bi-telephone', 'label' => 'Liên hệ', 'description' => 'Điện thoại, email, mạng xã hội'],
         'admin.settings.tour' => ['icon' => 'bi-calendar3', 'label' => 'Tour', 'description' => 'Lịch khởi hành và slot'],
     ];

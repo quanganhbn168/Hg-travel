@@ -4,10 +4,6 @@ namespace App\Services;
 
 use App\Models\Tour;
 use App\Models\TourCategory;
-use App\Models\TourImage;
-use App\Models\TourInclusion;
-use App\Models\TourSchedule;
-use App\Models\TourSection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,9 +17,16 @@ class TourService
     {
         $query = Tour::with(['categories', 'destinations'])->orderBy('sort_order')->orderByDesc('id');
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
-        if (! empty($filters['status'])) $query->where('status', $filters['status']);
-        if (array_key_exists('active', $filters) && $filters['active'] !== null && $filters['active'] !== '') $query->where('is_active', (bool) $filters['active']);
+        if ($search !== '') {
+            $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+        }
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+        if (array_key_exists('active', $filters) && $filters['active'] !== null && $filters['active'] !== '') {
+            $query->where('is_active', (bool) $filters['active']);
+        }
+
         return $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
     }
 
@@ -79,8 +82,16 @@ class TourService
             $this->syncInclusions($tour, $data['inclusions'] ?? []);
         });
     }
-    public function delete(Tour $tour): void { $tour->delete(); }
-    private function payload(array $data): array { return ['code' => trim($data['code']), 'name' => trim($data['name']), 'slug' => $data['slug'] ?: Str::slug($data['name']), 'summary' => $data['summary'] ?? null, 'description' => $data['description'] ?? null, 'duration_days' => (int) $data['duration_days'], 'duration_nights' => (int) ($data['duration_nights'] ?? 0), 'transport' => filled($data['transport'] ?? null) ? trim($data['transport']) : null, 'starting_price' => $data['starting_price'], 'currency' => strtoupper($data['currency']), 'max_guests' => $data['max_guests'] ?? null, 'status' => $data['status'], 'is_featured' => (bool) ($data['is_featured'] ?? false), 'is_active' => (bool) ($data['is_active'] ?? false), 'booking_open' => (bool) ($data['booking_open'] ?? false), 'seo_title' => $data['seo_title'] ?? null, 'seo_description' => $data['seo_description'] ?? null, 'published_at' => $data['published_at'] ?? null, 'sort_order' => (int) ($data['sort_order'] ?? 0)]; }
+
+    public function delete(Tour $tour): void
+    {
+        $tour->delete();
+    }
+
+    private function payload(array $data): array
+    {
+        return ['code' => trim($data['code']), 'name' => trim($data['name']), 'slug' => $data['slug'] ?: Str::slug($data['name']), 'summary' => $data['summary'] ?? null, 'description' => $data['description'] ?? null, 'duration_days' => (int) $data['duration_days'], 'duration_nights' => (int) ($data['duration_nights'] ?? 0), 'transport' => filled($data['transport'] ?? null) ? trim($data['transport']) : null, 'starting_price' => $data['starting_price'], 'currency' => strtoupper($data['currency']), 'max_guests' => $data['max_guests'] ?? null, 'status' => $data['status'], 'is_featured' => (bool) ($data['is_featured'] ?? false), 'is_active' => (bool) ($data['is_active'] ?? false), 'booking_open' => (bool) ($data['booking_open'] ?? false), 'seo_title' => $data['seo_title'] ?? null, 'seo_description' => $data['seo_description'] ?? null, 'published_at' => $data['published_at'] ?? null, 'sort_order' => (int) ($data['sort_order'] ?? 0)];
+    }
 
     /** @param array<int, int|string> $categoryIds */
     private function syncCategories(Tour $tour, array $categoryIds): void
@@ -155,32 +166,32 @@ class TourService
             ->unique()
             ->values();
 
+        if ($removeIds->count() !== $tour->images()->whereIn('id', $removeIds)->count()) {
+            throw ValidationException::withMessages(['remove_image_ids' => 'Ảnh cần gỡ không thuộc tour này.']);
+        }
         if ($removeIds->isNotEmpty()) {
             $tour->images()->whereIn('id', $removeIds)->delete();
         }
 
         if ((bool) ($data['cover_image_remove'] ?? false)) {
             $tour->images()->where('is_cover', true)->delete();
-            $tour->clearMediaCollection('tour_images');
         }
 
         $coverPath = trim((string) ($data['cover_image'] ?? ''));
-        if ($coverPath !== '') {
-            $tour->clearMediaCollection('tour_images');
-            $tour->images()->update(['is_cover' => false]);
-            $tour->images()->create([
-                'path' => $coverPath,
-                'alt_text' => $tour->name,
-                'is_cover' => true,
-                'sort_order' => 0,
-            ]);
-        } elseif (filled($data['cover_image_id'] ?? null)) {
+        if (filled($data['cover_image_id'] ?? null)) {
             $cover = $tour->images()->whereKey((int) $data['cover_image_id'])->first();
-
-            if ($cover) {
-                $tour->clearMediaCollection('tour_images');
-                $tour->images()->update(['is_cover' => false]);
-                $cover->update(['is_cover' => true, 'sort_order' => 0]);
+            if (! $cover) {
+                throw ValidationException::withMessages(['cover_image_id' => 'Ảnh đại diện không thuộc tour này hoặc đã được gỡ.']);
+            }
+            $tour->images()->where('is_cover', true)->whereKeyNot($cover->id)->delete();
+            $cover->update(['is_cover' => true, 'sort_order' => 0]);
+        } elseif ($coverPath !== '' && ! ($data['cover_image_remove'] ?? false)) {
+            $coverPath = app(MediaReferenceService::class)->resolve($coverPath, 'cover_image')['path'];
+            $cover = $tour->images()->where('is_cover', true)->first();
+            if ($cover?->path !== $coverPath) {
+                $tour->images()->where('is_cover', true)->delete();
+                $image = $tour->images()->firstOrNew(['path' => $coverPath]);
+                $image->fill(['alt_text' => $tour->name, 'is_cover' => true, 'sort_order' => 0])->save();
             }
         }
 
@@ -191,13 +202,29 @@ class TourService
             ->values();
 
         $nextSortOrder = (int) $tour->images()->max('sort_order') + 1;
+        if ($galleryPaths->count() > config('media.gallery_batch_limit')) {
+            throw ValidationException::withMessages(['gallery_images' => 'Chỉ được thêm tối đa 12 ảnh trong một lần lưu.']);
+        }
         foreach ($galleryPaths as $path) {
+            $path = app(MediaReferenceService::class)->resolve($path, 'gallery_images')['path'];
+            if ($tour->images()->where('path', $path)->exists()) {
+                continue;
+            }
             $tour->images()->create([
                 'path' => $path,
                 'alt_text' => $tour->name,
                 'is_cover' => false,
                 'sort_order' => $nextSortOrder++,
             ]);
+        }
+        $orderIds = array_values(array_diff(array_map('intval', $data['image_order'] ?? []), $removeIds->all()));
+        if ($orderIds !== []) {
+            if (count(array_unique($orderIds)) !== count($orderIds) || count($orderIds) !== $tour->images()->whereIn('id', $orderIds)->count()) {
+                throw ValidationException::withMessages(['image_order' => 'Thứ tự ảnh không hợp lệ.']);
+            }
+            foreach ($orderIds as $index => $id) {
+                $tour->images()->whereKey($id)->where('is_cover', false)->update(['sort_order' => $index + 1]);
+            }
         }
     }
 
@@ -220,6 +247,7 @@ class TourService
                 }
 
                 $schedule?->delete();
+
                 continue;
             }
 
@@ -269,6 +297,7 @@ class TourService
 
             if ((bool) ($sectionData['remove'] ?? false)) {
                 $section?->delete();
+
                 continue;
             }
 

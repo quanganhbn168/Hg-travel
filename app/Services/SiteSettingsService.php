@@ -9,8 +9,9 @@ use App\Settings\MediaSettings;
 use App\Settings\SeoSettings;
 use App\Settings\TourSettings;
 use App\Settings\WebsiteSettings;
+use App\Support\MediaFields;
+use Spatie\LaravelSettings\Exceptions\MissingSettings;
 use Spatie\LaravelSettings\Settings;
-use Throwable;
 
 class SiteSettingsService
 {
@@ -49,7 +50,7 @@ class SiteSettingsService
 
     public function media(): MediaSettings
     {
-        return $this->load(MediaSettings::class, [
+        $settings = $this->load(MediaSettings::class, [
             'media_allowed_extensions' => 'jpg,jpeg,png,webp,gif,pdf,doc,docx',
             'media_max_size' => 10,
             'logo_url' => null,
@@ -58,7 +59,18 @@ class SiteSettingsService
             'page_banner_url' => null,
             'homepage_hero_url' => null,
             'about_image_url' => null,
+            'media_ids' => [],
         ]);
+        $references = app(MediaReferenceService::class);
+        foreach (MediaFields::SETTINGS as $field) {
+            if ($id = ($settings->media_ids[$field] ?? null)) {
+                if ($media = $references->find('media:'.$id)) {
+                    $settings->$field = $references->originalPath($media);
+                }
+            }
+        }
+
+        return $settings;
     }
 
     public function seo(): SeoSettings
@@ -147,8 +159,9 @@ class SiteSettingsService
 
     /**
      * @template T of Settings
-     * @param class-string<T> $settingsClass
-     * @param array<string, mixed> $fallback
+     *
+     * @param  class-string<T>  $settingsClass
+     * @param  array<string, mixed>  $fallback
      * @return T
      */
     private function load(string $settingsClass, array $fallback): Settings
@@ -158,7 +171,12 @@ class SiteSettingsService
             $settings->toArray();
 
             return $settings;
-        } catch (Throwable) {
+        } catch (MissingSettings $exception) {
+            report($exception);
+            if (request()->is('admin/*')) {
+                throw $exception;
+            }
+
             return $settingsClass::fake($fallback, false);
         }
     }

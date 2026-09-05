@@ -115,7 +115,7 @@ class TravelServiceCatalog
             'description' => $service->description,
             'intro' => $service->intro ?: $service->description,
             'benefits' => $service->benefits ?: [],
-            'cover_image' => $service->cover_image,
+            'cover_image' => app(MediaReferenceService::class)->url($service->cover_image),
             'seo_title' => $service->seo_title,
             'seo_description' => $service->seo_description ?: $service->intro,
         ];

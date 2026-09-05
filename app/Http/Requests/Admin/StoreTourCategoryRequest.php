@@ -8,8 +8,23 @@ use Illuminate\Validation\Rule;
 
 class StoreTourCategoryRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
-    protected function prepareForValidation(): void { $this->merge(['slug' => $this->filled('slug') ? Str::slug((string) $this->input('slug')) : Str::slug((string) $this->input('name'))]); }
-    public function rules(): array { return $this->baseRules() + ['slug' => ['required', 'string', 'max:255', Rule::unique('tour_categories', 'slug'), Rule::unique('slugs', 'slug')->where(fn ($q) => $q->where('locale', app()->getLocale()))]]; }
-    protected function baseRules(): array { return ['parent_id' => ['nullable', 'integer', 'exists:tour_categories,id'], 'name' => ['required', 'string', 'max:255'], 'description' => ['nullable', 'string'], 'cover_image' => ['nullable', 'string', 'max:4096'], 'seo_title' => ['nullable', 'string', 'max:255'], 'seo_description' => ['nullable', 'string'], 'sort_order' => ['nullable', 'integer', 'min:0'], 'is_active' => ['nullable', 'boolean'], 'is_home' => ['nullable', 'boolean']]; }
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['slug' => $this->filled('slug') ? Str::slug((string) $this->input('slug')) : Str::slug((string) $this->input('name'))]);
+    }
+
+    public function rules(): array
+    {
+        return $this->baseRules() + ['slug' => ['required', 'string', 'max:255', Rule::unique('tour_categories', 'slug'), Rule::unique('slugs', 'slug')->where(fn ($q) => $q->where('locale', app()->getLocale()))]];
+    }
+
+    protected function baseRules(): array
+    {
+        return ['parent_id' => ['nullable', 'integer', 'exists:tour_categories,id'], 'name' => ['required', 'string', 'max:255'], 'description' => ['nullable', 'string'], 'cover_image' => ['nullable', 'string', 'max:4096'], 'cover_image_remove' => ['nullable', 'boolean'], 'seo_title' => ['nullable', 'string', 'max:255'], 'seo_description' => ['nullable', 'string'], 'sort_order' => ['nullable', 'integer', 'min:0'], 'is_active' => ['nullable', 'boolean'], 'is_home' => ['nullable', 'boolean']];
+    }
 }

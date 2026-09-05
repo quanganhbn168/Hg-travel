@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') | {{ $adminBrandName }}</title>
     <x-favicon-links />
@@ -51,6 +52,8 @@
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
+    <script>window.hgMediaConfig = { list: @json(route('admin.media.list')), upload: @json(route('admin.media.upload.temp')), editor: @json(route('admin.media.upload.editor')) };</script>
+    <script src="{{ asset('js/media.js') }}?v={{ filemtime(public_path('js/media.js')) }}"></script>
     @stack('js')
     @if (session('success'))
         <script>

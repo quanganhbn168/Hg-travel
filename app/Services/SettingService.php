@@ -8,6 +8,8 @@ use App\Settings\MediaSettings;
 use App\Settings\SeoSettings;
 use App\Settings\TourSettings;
 use App\Settings\WebsiteSettings;
+use App\Support\MediaFields;
+use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\Settings;
 
 class SettingService
@@ -69,18 +71,32 @@ class SettingService
     /** @param array<string, mixed> $data */
     public function updateMedia(array $data): bool
     {
-        $this->save($this->media(), $data, [
-            'logo_url', 'image_share_url', 'page_banner_url', 'homepage_hero_url', 'about_image_url',
-            'media_allowed_extensions', 'media_max_size',
-        ]);
+        return DB::transaction(function () use ($data): bool {
+            $settings = $this->media();
+            $references = app(MediaReferenceService::class);
+            $ids = $settings->media_ids;
+            foreach (MediaFields::SETTINGS as $field) {
+                $value = $references->field($data, $field, $settings->$field);
+                // An unchanged legacy reference, even if broken, must not block unrelated settings edits.
+                if ($value !== $settings->$field) {
+                    $resolved = $references->resolve($value, $field);
+                    $data[$field] = $resolved['path'];
+                    $ids[$field] = $resolved['id'];
+                } else {
+                    $data[$field] = $settings->$field;
+                }
+            }
+            $faviconChanged = filled($data['favicon_master'] ?? null);
+            if ($faviconChanged) {
+                $favicon = $references->resolve($data['favicon_master'], 'favicon_master');
+                $this->favicons->generateFromUpload($favicon['path']);
+                $ids['favicon_master'] = $favicon['id'];
+            }
+            $data['media_ids'] = $ids;
+            $this->save($settings, $data, [...MediaFields::SETTINGS, 'media_ids', 'media_allowed_extensions', 'media_max_size']);
 
-        if (blank($data['favicon_master'] ?? null)) {
-            return false;
-        }
-
-        $this->favicons->generateFromUpload((string) $data['favicon_master']);
-
-        return true;
+            return $faviconChanged;
+        });
     }
 
     /** @param array<string, mixed> $data */
