@@ -101,6 +101,7 @@ class HomeController extends Controller
             'serviceCategories' => $serviceCatalog->homeCards(),
             'featuredTours' => $featuredTours,
             'promotionalTours' => $promotionalTours,
+            'promotionTitle' => $this->promotionTitle($promotionalTours),
             'promotionBackdropUrl' => $promotionBackdropUrl,
             'impactBackdropUrl' => $impactBackdropUrl,
             'featuredDestinations' => $featuredDestinations,
@@ -189,9 +190,13 @@ class HomeController extends Controller
     private function featuredTours(): array
     {
         return $this->withNextDeparture($this->publishedTours())
-            ->where('is_featured', true)
+            ->where(fn (Builder $query) => $query->where('is_featured', true)
+                ->orWhere(fn (Builder $fallback) => $fallback->where('booking_open', true)
+                    ->whereHas('schedules', fn (Builder $schedule) => $this->availableSchedule($schedule))))
             ->with(['destinations', 'categories', 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order')])
+            ->orderByDesc('is_featured')
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->limit(3)
             ->get()
             ->map(fn (Tour $tour): array => $this->tourCard($tour))
@@ -228,9 +233,9 @@ class HomeController extends Controller
 
     private function promotionalTours(): array
     {
-        return $this->withNextDeparture($this->publishedTours())
+        $query = $this->withNextDeparture($this->publishedTours())
+            ->where('booking_open', true)
             ->whereHas('schedules', fn (Builder $query) => $this->availableSchedule($query))
-            ->whereHas('promotions', fn (Builder $query) => $this->activePromotion($query))
             ->with([
                 'destinations',
                 'categories',
@@ -238,10 +243,36 @@ class HomeController extends Controller
                 'promotions' => fn ($query) => $this->activePromotion($query)->orderBy('discount_value'),
             ])
             ->orderBy('next_departure_date')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+
+        $tours = (clone $query)
+            ->whereHas('promotions', fn (Builder $query) => $this->activePromotion($query))
             ->limit(6)
-            ->get()
+            ->get();
+
+        if ($tours->count() < 3) {
+            $tours = $tours->concat((clone $query)
+                ->whereNotIn('id', $tours->modelKeys())
+                ->limit(3 - $tours->count())
+                ->get());
+        }
+
+        return $tours
             ->map(fn (Tour $tour): array => $this->tourCard($tour, $tour->promotions->first()))
+            ->values()
             ->all();
+    }
+
+    private function promotionTitle(array $tours): string
+    {
+        $discounted = collect($tours)->filter(fn (array $tour): bool => (int) $tour['discount_percent'] > 0)->count();
+
+        if ($discounted === 0) {
+            return 'Hành trình sắp khởi hành';
+        }
+
+        return $discounted === count($tours) ? 'Ưu đãi đang diễn ra' : 'Ưu đãi & khởi hành sắp tới';
     }
 
     private function destinations(DestinationTreeService $destinationTree, Collection $nodes, array $counts): array

@@ -21,10 +21,10 @@
         <div class="about-hero-mark" aria-hidden="true"><span>EST.</span><strong>HG</strong><span>TRIP</span></div>
     </section>
 
-    <section class="about-letter" id="thu-ngo" style="--about-letter-image: url('{{ $letterImage }}')">
+    <section class="about-letter" id="thu-ngo">
         <div class="container">
             <div class="about-letter-layout">
-                <div class="about-letter-image" aria-hidden="true"></div>
+                <div class="about-letter-image"><img src="{{ $letterImage }}" alt="Khách hàng cầm cờ HG TRIP trong hành trình khám phá" loading="lazy" width="1024" height="1536"></div>
                 <article class="about-letter-card">
                     <span class="section-eyebrow">{{ $about->letter_title }}</span>
                     <div class="about-rich-copy">{!! nl2br(e($about->letter_content)) !!}</div>
@@ -42,7 +42,7 @@
                     <h2>{!! nl2br(e($intro['title'])) !!}</h2>
                 </div>
                 <div class="about-company-intro-copy">
-                    <p>{{ $companyName }} {{ $intro['lead'] }}</p>
+                    <p><strong class="about-company-name">{{ $companyName }}</strong> {{ $intro['lead'] }}</p>
                     <p>{{ $intro['content'] }}</p>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                 <div class="about-story-fact"><i class="bi bi-people-fill"></i><span>{{ $story['fact'] }}</span></div>
             </div>
             <figure class="about-story-photo">
-                <img src="{{ $storyImage }}" alt="{{ $story['photo_alt'] }}" loading="lazy" width="771" height="578">
+                <img src="{{ $storyImage }}" alt="{{ $story['photo_alt'] }}" loading="lazy" width="1115" height="1982">
                 <figcaption>{{ $story['photo_caption'] }}</figcaption>
             </figure>
         </div>

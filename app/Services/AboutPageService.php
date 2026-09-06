@@ -16,8 +16,8 @@ class AboutPageService
 
         return [
             'heroImage' => $images->url($page->hero_image, 'images/about/hg-trip/letter-travel.jpg'),
-            'letterImage' => $images->url($page->background_image, 'images/about/hg-trip/journey-beijing.jpg'),
-            'storyImage' => $images->url($page->story_image, 'images/about/hg-trip/journey-kazakhstan.jpg'),
+            'letterImage' => $images->url($page->background_image, 'images/about/hg-trip/hg-trip-traveller.png'),
+            'storyImage' => $images->url($page->story_image, 'images/about/hg-trip/hg-trip-south-africa.jpg'),
             'companyName' => $settings->company_name ?: $settings->site_name ?: 'HG TRIP',
             'marketCards' => collect($page->markets ?: [])->map(fn ($market) => ['name' => trim((string) (is_array($market) ? ($market['name'] ?? '') : $market)), 'detail' => is_array($market) ? trim((string) ($market['detail'] ?? '')) : ''])->filter(fn ($market) => $market['name'] !== '')->values(),
             'content' => $content, 'intro' => $content['company_intro'], 'story' => $content['story'],
@@ -122,7 +122,7 @@ class AboutPageService
                 ],
             ],
             'organisation' => [
-                'eyebrow' => 'BỘ MÁY VÀ HIỆN DIỆ',
+                'eyebrow' => 'BỘ MÁY VÀ HIỆN DIỆN',
                 'title' => 'Một đội ngũ vận hành sát sao, kết nối đa thị trường.',
                 'intro' => 'Từ tư vấn, kinh doanh, điều hành đến hướng dẫn viên và đội xe, các bộ phận cùng phối hợp để mỗi kế hoạch diễn ra thông suốt.',
                 'cta_label' => 'Liên hệ HG TRIP',
@@ -172,9 +172,9 @@ class AboutPageService
             'ceo_bio' => 'Với trên 20 năm kinh nghiệm trong lĩnh vực du lịch, bà từng có gần 10 năm giữ vị trí Giám đốc Công ty Cổ phần Du lịch Hapro thuộc Tổng công ty Thương mại Hà Nội; sau đó là thành viên Hội đồng thành viên, Phó Giám đốc Công ty Cổ phần Lữ hành Nam Cường đến hết năm 2025.',
             'deputy_name' => 'Bà Vũ Thị Thùy Hương',
             'deputy_bio' => 'Có 10 năm kinh nghiệm chuyên sâu trong công tác điều hành tour, từng là Trưởng phòng Điều hành tại Công ty Cổ phần Lữ hành Nam Cường; trực tiếp tổ chức, phối hợp lịch trình, điều phối dịch vụ và quản lý vận hành hành trình.',
-            'background_image' => null,
+            'background_image' => 'images/about/hg-trip/hg-trip-traveller.png',
             'hero_image' => null,
-            'story_image' => 'images/about/hg-trip/journey-kazakhstan.jpg',
+            'story_image' => 'images/about/hg-trip/hg-trip-south-africa.jpg',
             'seo_title' => 'Về HG TRIP',
             'seo_description' => 'Tìm hiểu câu chuyện, đội ngũ và cam kết dịch vụ của HG TRIP.',
         ];

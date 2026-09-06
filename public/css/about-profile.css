@@ -30,3 +30,71 @@
 .about-page .about-leader-list h3{margin:0}
 .about-page .about-leader-divider{height:1px;margin:1rem 0;border:0;background:rgba(239,194,111,.85)}
 @media(max-width:575px){.about-page .about-leaders-intro .section-eyebrow{font-size:clamp(1.125rem,6vw,1.3rem);letter-spacing:.065em}.about-page .about-leaders h2{font-size:clamp(.95rem,4vw,1.1rem)}.about-page .about-leaders-intro{margin-bottom:2.25rem}.about-page .about-leader-list article{padding-inline:0}}
+
+/* Feedback khách hàng: cân dòng theo chiều rộng thật, giữ nguyên nội dung CMS. */
+.about-page {
+    --about-copy-size: clamp(.9375rem, .88rem + .15vw, 1.025rem);
+    --about-card-title-size: clamp(1.125rem, 1rem + .4vw, 1.375rem);
+}
+.about-page :is(h1, h2, h3) { text-wrap: balance; }
+.about-page :is(p, li, .about-rich-copy) { text-wrap: pretty; }
+.about-page :is(.about-hero p, .about-company-intro-copy p, .about-story-copy > p, .about-rich-copy) {
+    font-size: var(--about-copy-size);
+    line-height: 1.8;
+}
+.about-company-intro-grid {
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 4vw, 4rem);
+}
+.about-page .about-company-name {
+    display: block;
+    margin-bottom: .65rem;
+    font-size: clamp(.8125rem, 1.05vw, .9375rem);
+    font-weight: 600;
+    line-height: 1.6;
+    text-wrap: balance;
+}
+.about-story-steps-heading p { max-width: 32rem; }
+.about-story-steps article { padding-inline: 1rem; }
+.about-page .about-story-steps h3 {
+    min-height: 2.8em;
+    font-size: clamp(1rem, .95rem + .15vw, 1.125rem);
+    line-height: 1.4;
+}
+.about-page .about-story-steps p { font-size: .875rem; line-height: 1.75; }
+.about-featured-products article { display: flex; flex-direction: column; gap: 1rem; }
+.about-featured-products > article > i { margin-bottom: .75rem; flex-shrink: 0; }
+.about-page .about-featured-products h3 {
+    max-width: none;
+    margin: 0;
+    font-size: var(--about-card-title-size);
+    line-height: 1.4;
+}
+.about-page .about-featured-products p { max-width: none; font-size: var(--about-copy-size); }
+.about-featured-products a { position: static; align-self: flex-end; margin-top: auto; padding-top: .5rem; }
+.about-lists .container { grid-template-columns: minmax(0, .8fr) minmax(0, 1.8fr) minmax(0, .8fr); gap: 2rem; }
+.about-lists .container > div { display: block; margin-top: 0; }
+.about-lists ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .875rem 1.25rem; font-size: .875rem; line-height: 1.65; }
+.about-letter-layout { align-items: center; background: #fff; }
+.about-letter-image { min-height: 0; background: none; }
+.about-letter-image img { display: block; width: 100%; height: auto; }
+.about-story-photo { justify-self: center; width: 100%; }
+.about-story-photo img { width: 100%; height: auto; max-height: 40rem; aspect-ratio: auto; object-fit: contain; }
+.about-story-photo figcaption { position: static; max-width: none; padding: 1rem 0 0; text-align: center; box-shadow: none; text-wrap: balance; }
+@media (max-width: 1199px) {
+    .about-lists .container { grid-template-columns: 1fr; gap: 2rem; }
+    .about-page .about-company-name { font-size: .9375rem; }
+}
+@media (max-width: 991px) {
+    .about-company-intro-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .about-letter-image { max-width: 28rem; margin-inline: auto; }
+    .about-page .about-story-steps h3 { min-height: 0; }
+}
+@media (max-width: 575px) {
+    .about-story-steps { grid-template-columns: 1fr; }
+    .about-story-steps article { padding: 1.25rem; border: 0; border-bottom: 1px solid #e0e6e8; }
+    .about-story-steps article:nth-child(n) { border-left: 0; }
+    .about-story-steps h3 { margin-top: 0; }
+    .about-lists ul { grid-template-columns: 1fr; }
+    .about-page .about-company-name { font-size: 1rem; }
+}

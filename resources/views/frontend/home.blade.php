@@ -102,7 +102,7 @@
 
     <section class="section-space home-surface-section" aria-labelledby="featured-tours-title" data-aos="fade-up">
         <div class="container"><div class="section-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3"><div><span class="section-eyebrow">Tour nổi bật</span><h2 id="featured-tours-title" class="section-title">Những hành trình tiêu biểu</h2><p class="section-description">Những hành trình tiêu biểu đang mở bán, cân bằng giữa trải nghiệm, thời gian và chất lượng dịch vụ.</p></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả hành trình <i class="bi bi-arrow-up-right"></i></a></div>
-            <div class="home-featured-tours-grid">@forelse ($featuredTours as $tour)<div class="home-featured-tour-item">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="home-empty-state"><i class="bi bi-map"></i><strong>Tour nổi bật đang được cập nhật</strong><span>Hành trình sẽ xuất hiện tại đây khi được đánh dấu nổi bật trong hệ thống quản trị.</span></div>@endforelse</div>
+            <div class="home-featured-tours-grid">@forelse ($featuredTours as $tour)<div class="home-featured-tour-item">@include('frontend.tours.partials.card', ['tour' => $tour])</div>@empty<div class="home-empty-state"><i class="bi bi-map"></i><strong>Tour nổi bật đang được cập nhật</strong><span>Các hành trình đang mở bán sẽ sớm được cập nhật tại đây.</span></div>@endforelse</div>
         </div>
     </section>
 
@@ -113,8 +113,8 @@
         <div class="home-promo-overlay" aria-hidden="true"></div>
         <div class="container home-promo-content">
             @if ($promotionalTours)
-                <div class="promo-slider-heading"><div><h2 id="promotion-title">Ưu đãi đang diễn ra</h2></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
-                <div class="home-promo-slider-wrap"><div class="home-promo-slider swiper" data-promo-swiper aria-label="Các tour đang ưu đãi"><div class="swiper-wrapper">@foreach ($promotionalTours as $tour)<div class="swiper-slide">@include('frontend.tours.partials.card', ['tour' => $tour, 'showPromotionMeta' => true])</div>@endforeach</div></div><div class="home-promo-slider-navigation" aria-label="Điều khiển tour ưu đãi"><button type="button" data-promo-prev aria-label="Ưu đãi trước"><i class="bi bi-arrow-left"></i></button><button type="button" data-promo-next aria-label="Ưu đãi tiếp theo"><i class="bi bi-arrow-right"></i></button></div></div>
+                <div class="promo-slider-heading"><div><h2 id="promotion-title">{{ $promotionTitle }}</h2></div><a class="section-more" href="{{ route('tours.index') }}">Xem tất cả tour <i class="bi bi-arrow-up-right"></i></a></div>
+                <div class="home-promo-slider-wrap"><div class="home-promo-slider swiper" data-promo-swiper aria-label="{{ $promotionTitle }}"><div class="swiper-wrapper">@foreach ($promotionalTours as $tour)<div class="swiper-slide">@include('frontend.tours.partials.card', ['tour' => $tour, 'showPromotionMeta' => true])</div>@endforeach</div></div><div class="home-promo-slider-navigation" aria-label="Điều khiển tour ưu đãi"><button type="button" data-promo-prev aria-label="Ưu đãi trước"><i class="bi bi-arrow-left"></i></button><button type="button" data-promo-next aria-label="Ưu đãi tiếp theo"><i class="bi bi-arrow-right"></i></button></div></div>
             @else
                 <h2 id="promotion-title" class="visually-hidden">Ưu đãi đang diễn ra</h2>
                 <div class="home-empty-state home-empty-state-dark"><i class="bi bi-ticket-perforated"></i><strong>Ưu đãi mới đang được chuẩn bị</strong><span>Các tour có chương trình đang diễn ra sẽ được hiển thị tại đây.</span></div>
