@@ -16,7 +16,11 @@ class PostService
 
     public function formContext(?Post $post = null): array
     {
-        return ['post' => $post ?: new Post(['is_active' => true]), 'categories' => PostCategory::where('is_active', true)->orderBy('name')->get()];
+        return [
+            'post' => $post ?: new Post(['is_active' => true]),
+            'contentHtml' => app(PostContentService::class)->toHtml($post?->content),
+            'categories' => PostCategory::where('is_active', true)->orderBy('name')->get(),
+        ];
     }
 
     public function create(array $data): Post
@@ -36,6 +40,8 @@ class PostService
 
     private function payload(array $data, ?Post $post = null): array
     {
+        $data['content'] = app(PostContentService::class)->toHtml($data['content'] ?? null);
+
         return ['post_category_id' => $data['post_category_id'] ?? null, 'name' => trim($data['name']), 'slug' => $data['slug'] ?: Str::slug($data['name']), 'summary' => $data['summary'] ?? null, 'content' => $data['content'] ?? null, 'cover_image' => app(MediaReferenceService::class)->field($data, 'cover_image', $post?->cover_image), 'seo_title' => $data['seo_title'] ?? null, 'seo_description' => $data['seo_description'] ?? null, 'seo_keywords' => $data['seo_keywords'] ?? null, 'is_featured' => (bool) ($data['is_featured'] ?? false), 'is_active' => (bool) ($data['is_active'] ?? false), 'published_at' => $data['published_at'] ?? null];
     }
 }

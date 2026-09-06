@@ -35,7 +35,7 @@
 
                         @if ($post->cover_url)<figure class="post-detail-cover"><img src="{{ $post->cover_url }}" alt="{{ $post->name }}"></figure>@endif
 
-                        <div class="post-detail-content">{!! nl2br(e($post->content ?: $post->summary)) !!}</div>
+                    <div class="post-detail-content">{!! $contentHtml !!}</div>
 
                         <div class="post-detail-actions">
                             <a class="btn btn-outline-brand" href="{{ route('posts.index') }}"><i class="bi bi-arrow-left"></i>Quay lại cẩm nang</a>

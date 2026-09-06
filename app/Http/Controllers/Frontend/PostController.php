@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Services\MediaReferenceService;
+use App\Services\PostContentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -77,7 +78,11 @@ class PostController extends Controller
         $relatedPosts->each(fn ($item) => $this->present($item));
         $sidebarPosts->each(fn ($item) => $this->present($item));
 
-        return view('frontend.posts.show', compact('post', 'relatedPosts', 'sidebarPosts', 'sidebarCategories'));
+        $contentHtml = $post->content
+            ? app(PostContentService::class)->toHtml($post->content)
+            : nl2br(e($post->summary));
+
+        return view('frontend.posts.show', compact('post', 'contentHtml', 'relatedPosts', 'sidebarPosts', 'sidebarCategories'));
     }
 
     private function present(Post $post): Post
