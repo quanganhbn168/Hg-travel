@@ -141,9 +141,10 @@
         <div class="container">
             <div class="tour-detail-navigation-inner">
                 <a href="#tong-quan">Tổng quan</a>
+                @if ($tour['highlights'])<a href="#diem-noi-bat">Điểm nổi bật</a>@endif
                 @if ($tour['schedules'])<a href="#lich-khoi-hanh">Giá & lịch khởi hành</a>@endif
                 @if ($tour['itineraries'])<a href="#lich-trinh">Lịch trình</a>@endif
-                @if ($tour['inclusions'])<a href="#dich-vu">Dịch vụ</a>@endif
+                @if ($tour['sections'] || $tour['inclusions'])<a href="#dich-vu">Dịch vụ & lưu ý</a>@endif
                 @if ($tour['reviews'])<a href="#danh-gia">Đánh giá</a>@endif
                 @if ($tour['booking_open'])<a class="tour-detail-navigation-cta" href="#tour-booking-modal" data-bs-toggle="modal" data-bs-target="#tour-booking-modal">Đặt tour</a>@endif
             </div>
@@ -165,6 +166,15 @@
                                 <p class="mb-0">{{ $tour['summary'] }}</p>
                             @endif
                         </section>
+
+                        @if ($tour['highlights'])
+                            <section id="diem-noi-bat" class="tour-detail-section tour-highlights">
+                                @foreach ($tour['highlights'] as $section)
+                                    <div class="tour-detail-section-heading"><h2>{{ $section['title'] }}</h2></div>
+                                    @if ($section['content'])<div class="tour-rich-text">{!! $section['content'] !!}</div>@endif
+                                @endforeach
+                            </section>
+                        @endif
 
                         @if ($tour['schedules'])
                             <section id="lich-khoi-hanh" class="tour-detail-section">
@@ -190,10 +200,11 @@
 
                         @if ($tour['itineraries'])
                             <section id="lich-trinh" class="tour-detail-section">
-                                <div class="tour-detail-section-heading">
+                                <div class="tour-detail-section-heading tour-itinerary-heading">
                                     <h2>Lịch trình chi tiết</h2>
+                                    <button type="button" class="tour-content-toggle" data-itinerary-toggle aria-controls="tour-itinerary-list" hidden>Mở tất cả các ngày</button>
                                 </div>
-                                <div class="tour-itinerary-list">
+                                <div class="tour-itinerary-list" id="tour-itinerary-list">
                                     @foreach ($tour['itineraries'] as $itinerary)
                                         <details class="tour-itinerary-item" @if ($loop->first) open @endif>
                                             <summary>
@@ -206,10 +217,14 @@
                                                     <div class="tour-rich-text">{!! $itinerary['description'] !!}</div>
                                                 @endif
                                                 @if ($itinerary['meals'] || $itinerary['accommodation'])
-                                                    <div class="tour-itinerary-meta">
-                                                        @if ($itinerary['meals'])<span><i class="bi bi-cup-hot"></i>{{ $itinerary['meals'] }}</span>@endif
-                                                        @if ($itinerary['accommodation'])<span><i class="bi bi-building"></i>{{ $itinerary['accommodation'] }}</span>@endif
-                                                    </div>
+                                                    <dl class="tour-itinerary-meta">
+                                                        @if ($itinerary['meal_lines'])
+                                                            <div><dt><i class="bi bi-cup-hot" aria-hidden="true"></i>Bữa ăn</dt><dd>@foreach ($itinerary['meal_lines'] as $line)<span>{{ $line }}</span>@endforeach</dd></div>
+                                                        @endif
+                                                        @if ($itinerary['accommodation_lines'])
+                                                            <div><dt><i class="bi bi-building" aria-hidden="true"></i>Nghỉ đêm & khách sạn</dt><dd>@foreach ($itinerary['accommodation_lines'] as $line)<span>{{ $line }}</span>@endforeach</dd></div>
+                                                        @endif
+                                                    </dl>
                                                 @endif
                                             </div>
                                         </details>
@@ -218,28 +233,23 @@
                             </section>
                         @endif
 
-                        @if ($tour['sections'])
-                            @foreach ($tour['sections'] as $section)
-                                <section class="tour-detail-section">
-                                    <div class="tour-detail-section-heading">
-                                        <h2>{{ $section['title'] ?: 'Thông tin hành trình' }}</h2>
-                                    </div>
-                                    @if ($section['content'])<div class="tour-rich-text">{!! $section['content'] !!}</div>@endif
-                                </section>
-                            @endforeach
-                        @endif
-
-                        @if ($tour['inclusions'])
+                        @if ($tour['sections'] || $tour['inclusions'])
                             <section id="dich-vu" class="tour-detail-section">
                                 <div class="tour-detail-section-heading">
-                                    <h2>Dịch vụ bao gồm</h2>
+                                    <h2>Dịch vụ & thông tin cần biết</h2>
                                 </div>
-                                <div class="tour-inclusion-grid">
-                                    @foreach ($tour['inclusions'] as $inclusion)
-                                        <div class="tour-inclusion-item {{ $inclusion['type'] === 'excluded' ? 'is-excluded' : '' }}">
-                                            <i class="bi {{ $inclusion['type'] === 'excluded' ? 'bi-x-circle' : 'bi-check-circle' }}"></i>
-                                            <span>{{ $inclusion['content'] }}</span>
-                                        </div>
+                                <div class="tour-policy-list">
+                                    @foreach ($tour['inclusion_groups'] as $group)
+                                        <details class="tour-policy-item">
+                                            <summary><h3>{{ $group['title'] }}</h3><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
+                                            <div class="tour-policy-content"><ul class="tour-service-list @if ($group['type'] === 'excluded') is-excluded @endif">@foreach ($group['items'] as $item)<li>{{ $item }}</li>@endforeach</ul></div>
+                                        </details>
+                                    @endforeach
+                                    @foreach ($tour['sections'] as $section)
+                                        <details class="tour-policy-item">
+                                            <summary><h3>{{ $section['title'] }}</h3><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
+                                            <div class="tour-policy-content">@if ($section['content'])<div class="tour-rich-text">{!! $section['content'] !!}</div>@endif</div>
+                                        </details>
                                     @endforeach
                                 </div>
                             </section>

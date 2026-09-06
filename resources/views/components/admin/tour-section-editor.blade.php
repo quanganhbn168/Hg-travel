@@ -1,78 +1,18 @@
-@props(['sections' => null])
-
+@props(['sections' => null, 'group' => 'details'])
 @php
-    $items = collect(old('sections', $sections instanceof \Illuminate\Support\Collection ? $sections->map(fn ($section): array => [
-        'id' => $section->id,
-        'type' => $section->type,
-        'title' => $section->title,
-        'content' => $section->content,
-    ])->all() : (array) $sections));
+    $items = collect(old('sections', $sections instanceof \Illuminate\Support\Collection ? $sections->map(fn ($section): array => $section->only(['id', 'type', 'title', 'content']))->all() : (array) $sections))
+        ->filter(fn ($item) => (($item['type'] ?? 'other') === 'highlights') === ($group === 'highlights'));
+    $sectionTypes = \App\Support\TourContent::sectionTypes();
 @endphp
-
-<div data-tour-section-editor>
-    <div class="d-grid gap-3" data-tour-section-list>
+<div data-tour-repeater="sections" data-index-prefix="{{ $group }}" data-tour-section-editor>
+    <div class="tour-editor-toolbar"><span class="text-body-secondary small">{{ $group === 'highlights' ? 'Hiển thị trước lịch trình chi tiết trên trang tour.' : 'Khách bấm mở từng mục ở cuối lịch trình. Kéo để đổi thứ tự các mục.' }}</span><button type="button" class="btn btn-sm btn-outline-secondary" data-expand-rows>Mở tất cả</button></div>
+    <div class="d-grid gap-3" data-repeater-list>
         @foreach ($items as $index => $item)
-            @php($item = (array) $item)
-            <div class="border rounded-3 p-3 bg-body-tertiary" data-tour-section-row>
-                <input type="hidden" name="sections[{{ $index }}][id]" value="{{ $item['id'] ?? '' }}">
-                <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-                    <strong class="text-primary">Phần nội dung {{ $loop->iteration }}</strong>
-                    <label class="form-check mb-0 text-danger"><input class="form-check-input" type="checkbox" name="sections[{{ $index }}][remove]" value="1" @checked($item['remove'] ?? false)> Xóa phần này</label>
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-4"><x-input name="sections[{{ $index }}][type]" label="Nhóm nội dung" :value="$item['type'] ?? 'other'" placeholder="Ví dụ: pricing, policy, notes" /></div>
-                    <div class="col-md-8"><x-input name="sections[{{ $index }}][title]" label="Tiêu đề hiển thị" :value="$item['title'] ?? ''" placeholder="Ví dụ: Điều kiện đăng ký" /></div>
-                    <div class="col-12"><x-tinymce name="sections[{{ $index }}][content]" label="Nội dung" :value="$item['content'] ?? ''" rows="7" :id="'tour_section_'.$index.'_content'" /></div>
-                </div>
-            </div>
+            @include('admin.tours.partials.section-row', ['index' => $index, 'item' => (array) $item, 'open' => $loop->first])
         @endforeach
     </div>
-    <template data-tour-section-template>
-        <div class="border rounded-3 p-3 bg-body-tertiary" data-tour-section-row>
-            <input type="hidden" name="sections[__INDEX__][id]" value="">
-            <div class="d-flex align-items-center justify-content-between gap-3 mb-3"><strong class="text-primary">Phần nội dung mới</strong><button type="button" class="btn btn-sm btn-outline-danger" data-tour-section-remove><i class="bi bi-trash me-1"></i>Xóa</button></div>
-            <div class="row g-3">
-                <div class="col-md-4"><label class="form-label">Nhóm nội dung</label><input class="form-control" name="sections[__INDEX__][type]" value="other" placeholder="Ví dụ: pricing, policy, notes"></div>
-                <div class="col-md-8"><label class="form-label">Tiêu đề hiển thị</label><input class="form-control" name="sections[__INDEX__][title]" placeholder="Ví dụ: Điều kiện đăng ký"></div>
-                <div class="col-12"><label class="form-label">Nội dung</label><textarea class="form-control tinymce-editor" name="sections[__INDEX__][content]" id="tour_section___INDEX___content" rows="7"></textarea></div>
-            </div>
-        </div>
-    </template>
-    <button class="btn btn-outline-primary mt-3" type="button" data-tour-section-add><i class="bi bi-plus-circle me-1"></i>Thêm phần nội dung</button>
+    <p class="tour-editor-empty" data-repeater-empty @if ($items->isNotEmpty()) hidden @endif>Chưa có nội dung trong nhóm này.</p>
+    <template data-repeater-template>@include('admin.tours.partials.section-row', ['index' => '__INDEX__', 'item' => ['type' => $group === 'highlights' ? 'highlights' : 'other'], 'open' => true])</template>
+    <button type="button" class="btn btn-outline-primary mt-3" data-repeater-add><i class="bi bi-plus-circle me-1"></i>{{ $group === 'highlights' ? 'Thêm điểm nổi bật' : 'Thêm mục thông tin' }}</button>
+    <div class="tour-editor-undo mt-3" data-repeater-undo hidden><span>Đã gỡ mục khỏi bản nhập.</span> <button type="button" class="btn btn-sm btn-link" data-undo-remove>Hoàn tác</button></div>
 </div>
-
-@pushOnce('css')
-<style>
-    [data-tour-section-editor] .tox-tinymce { min-height: 240px; }
-</style>
-@endpushOnce
-
-@pushOnce('js')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('[data-tour-section-editor]').forEach(function (root) {
-            const list = root.querySelector('[data-tour-section-list]');
-            const template = root.querySelector('[data-tour-section-template]');
-            const addButton = root.querySelector('[data-tour-section-add]');
-            let nextIndex = list.querySelectorAll('[data-tour-section-row]').length;
-
-            root.addEventListener('click', function (event) {
-                const remove = event.target.closest('[data-tour-section-remove]');
-                if (!remove) return;
-                const row = remove.closest('[data-tour-section-row]');
-                const textarea = row?.querySelector('.tinymce-editor');
-                if (textarea && window.tinymce) window.tinymce.get(textarea.id)?.remove();
-                row?.remove();
-            });
-
-            addButton.addEventListener('click', function () {
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = template.innerHTML.replaceAll('__INDEX__', String(nextIndex++));
-                const row = wrapper.firstElementChild;
-                list.appendChild(row);
-                window.initHgTinyMceEditors?.(row);
-            });
-        });
-    });
-</script>
-@endpushOnce

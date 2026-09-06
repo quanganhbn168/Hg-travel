@@ -13,6 +13,7 @@ use App\Services\MediaReferenceService;
 use App\Services\SiteSettingsService;
 use App\Services\StructuredDataService;
 use App\Settings\TourSettings;
+use App\Support\TourContent;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -460,10 +461,17 @@ class TourController extends Controller
         $card = $this->cardData($tour);
         $card['next_departure'] = $tour->schedules->first()?->departure_date?->format('d/m/Y');
         $reviewCount = $tour->reviews->count();
+        $sections = $tour->sections
+            ->filter(fn ($section): bool => filled($section->title) || filled($section->content))
+            ->map(fn ($section): array => [
+                'type' => $section->type,
+                'title' => $section->title ?: (TourContent::sectionTypes()[$section->type] ?? 'Thông tin khác'),
+                'content' => TourContent::html($section->content),
+            ]);
 
         return $card + [
             'code' => $tour->code,
-            'description' => $tour->description ?: $tour->summary,
+            'description' => TourContent::html($tour->description ?: $tour->summary),
             'banner_image_url' => $this->imageUrl($tour->banner_image),
             'seo_title' => $tour->seo_title,
             'seo_description' => $tour->seo_description ?: $tour->summary,
@@ -475,17 +483,19 @@ class TourController extends Controller
             'itineraries' => $tour->itineraries->map(fn ($itinerary): array => [
                 'day_number' => $itinerary->day_number,
                 'title' => $itinerary->title,
-                'description' => $itinerary->description,
+                'description' => TourContent::html($itinerary->description),
                 'meals' => $itinerary->meals,
                 'accommodation' => $itinerary->accommodation,
+                'meal_lines' => TourContent::lines($itinerary->meals),
+                'accommodation_lines' => TourContent::lines($itinerary->accommodation),
             ])->values()->all(),
-            'sections' => $tour->sections
-                ->filter(fn ($section): bool => filled($section->title) || filled($section->content))
-                ->map(fn ($section): array => [
-                    'type' => $section->type,
-                    'title' => $section->title,
-                    'content' => $section->content,
-                ])->values()->all(),
+            'highlights' => $sections->where('type', 'highlights')->values()->all(),
+            'sections' => $sections->where('type', '!=', 'highlights')->values()->all(),
+            'inclusion_groups' => $tour->inclusions->groupBy('type')->map(fn ($items, $type): array => [
+                'title' => $type === 'excluded' ? 'Giá tour không bao gồm' : 'Giá tour bao gồm',
+                'type' => $type,
+                'items' => $items->pluck('content')->all(),
+            ])->sortBy(fn ($group) => $group['type'] === 'excluded' ? 1 : 0)->values()->all(),
             'inclusions' => $tour->inclusions->map(fn ($inclusion): array => [
                 'type' => $inclusion->type,
                 'content' => $inclusion->content,

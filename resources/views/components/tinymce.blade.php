@@ -71,38 +71,52 @@
 <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    tinymce.init({
-        selector: '.tinymce-editor', license_key: 'gpl', height: 400,
-        plugins: 'lists link image media table code wordcount advlist autolink charmap preview searchreplace visualblocks fullscreen',
-        toolbar: 'undo redo | blocks | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image media code | preview removeformat fullscreen',
-        menubar: true, branding: false, promotion: false, image_caption: true, image_title: true,
-        content_style: 'body { font-family:Source Sans 3,Helvetica,Arial,sans-serif; font-size:15px }',
-        relative_urls: false, remove_script_host: true, convert_urls: false,
-        automatic_uploads: true, file_picker_types: 'image',
-        file_picker_callback: callback => HgMedia.picker(item => callback(item.original_url, { alt: item.name })),
-        images_upload_handler: async (blobInfo, progress) => {
-            const editor = tinymce.activeEditor;
-            const form = editor?.getElement().closest('form');
-            const data = new FormData(); data.append('file', blobInfo.blob(), blobInfo.filename());
-            HgMedia.busy(form, 1);
-            try { const response = await HgMedia.request(window.hgMediaConfig.editor, { method: 'POST', body: data }); progress(100); return response.location; }
-            finally { HgMedia.busy(form, -1); }
-        },
-        setup: editor => {
-            editor.on('change input', () => editor.save());
-            editor.on('init', () => editor.getElement().removeAttribute('required'));
-            const submit = saveAndCreate => {
-                editor.save();
-                const form = editor.getElement().closest('form');
-                if (!form) return;
-                const buttons = Array.from(form.elements).filter(button => button.type === 'submit');
-                const button = buttons.find(button => saveAndCreate ? button.value === 'save_and_create' : button.value !== 'save_and_create');
-                button ? form.requestSubmit(button) : form.requestSubmit();
+    window.initHgTinyMceEditors = (root = document) => {
+        root.querySelectorAll('.tinymce-editor').forEach(target => {
+            if (target.dataset.editorInitializing || tinymce.get(target.id)) return;
+            if (target.closest('[data-tour-form]') && (!target.getClientRects().length || target.closest('details:not([open])'))) return;
+            target.dataset.editorInitializing = 'true';
+            const tourEditor = Boolean(target.closest('[data-tour-form]'));
+            const options = {
+                target, license_key: 'gpl', height: tourEditor ? 340 : 400,
+                plugins: 'lists link image media table code wordcount advlist autolink charmap preview searchreplace visualblocks fullscreen',
+                toolbar: tourEditor ? 'undo redo | blocks | bold italic underline | bullist numlist | link image table | removeformat fullscreen' : 'undo redo | blocks | bold italic underline strikethrough forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image media code | preview removeformat fullscreen',
+                menubar: !tourEditor, branding: false, promotion: false, image_caption: true, image_title: true,
+                ...(tourEditor ? { block_formats: 'Đoạn văn=p;Tiêu đề mục=h3;Tiêu đề nhỏ=h4' } : {}),
+                content_style: 'body { font-family:Source Sans 3,Helvetica,Arial,sans-serif; font-size:15px }',
+                relative_urls: false, remove_script_host: true, convert_urls: false,
+                automatic_uploads: true, file_picker_types: 'image',
+                file_picker_callback: callback => HgMedia.picker(item => callback(item.original_url, { alt: item.name })),
+                images_upload_handler: async (blobInfo, progress) => {
+                    const editor = tinymce.activeEditor;
+                    const form = editor?.getElement().closest('form');
+                    const data = new FormData(); data.append('file', blobInfo.blob(), blobInfo.filename());
+                    HgMedia.busy(form, 1);
+                    try { const response = await HgMedia.request(window.hgMediaConfig.editor, { method: 'POST', body: data }); progress(100); return response.location; }
+                    finally { HgMedia.busy(form, -1); }
+                },
+                setup: editor => {
+                    editor.on('change input', () => { editor.save(); editor.getElement().dispatchEvent(new Event('input', { bubbles: true })); });
+                    editor.on('init', () => { editor.getElement().removeAttribute('required'); delete target.dataset.editorInitializing; });
+                    editor.on('remove', () => { delete target.dataset.editorInitializing; });
+                    const submit = saveAndCreate => {
+                        editor.save();
+                        const form = editor.getElement().closest('form');
+                        if (!form) return;
+                        const buttons = Array.from(form.elements).filter(button => button.type === 'submit');
+                        const button = buttons.find(button => saveAndCreate ? button.value === 'save_and_create' : button.value !== 'save_and_create');
+                        button ? form.requestSubmit(button) : form.requestSubmit();
             };
             editor.addShortcut('meta+s', 'Save Form', () => submit(false));
             editor.addShortcut('meta+shift+s', 'Save and Create New', () => submit(true));
         }
-    });
+            };
+            if (tourEditor) tinymce.createEditor(target.id, options).render();
+            else tinymce.init(options).catch(() => { delete target.dataset.editorInitializing; });
+        });
+    };
+    window.initHgTinyMceEditors();
+    document.addEventListener('shown.bs.tab', () => window.initHgTinyMceEditors());
     document.querySelectorAll('form').forEach(form => form.addEventListener('submit', () => tinymce.triggerSave()));
 });
 </script>

@@ -1,4 +1,28 @@
 (() => {
+    const initContentNavigation = () => {
+        const toggle = document.querySelector('[data-itinerary-toggle]');
+        const days = [...document.querySelectorAll('.tour-itinerary-item')];
+        if (toggle && days.length) {
+            toggle.hidden = false;
+            const sync = () => { toggle.textContent = days.every(day => day.open) ? 'Thu gọn tất cả các ngày' : 'Mở tất cả các ngày'; };
+            toggle.addEventListener('click', () => { const open = !days.every(day => day.open); days.forEach(day => { day.open = open; }); sync(); });
+            days.forEach(day => day.addEventListener('toggle', sync));
+            sync();
+        }
+        const links = [...document.querySelectorAll('.tour-detail-navigation a[href^="#"]:not([data-bs-toggle])')];
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    links.forEach(link => {
+                        if (link.hash === '#' + entry.target.id) link.setAttribute('aria-current', 'location');
+                        else link.removeAttribute('aria-current');
+                    });
+                });
+            }, { rootMargin: '-10% 0px -65% 0px' });
+            links.forEach(link => { const section = document.querySelector(link.hash); if (section) observer.observe(section); });
+        }
+    };
     const initTourGalleries = () => {
         if (typeof window.Swiper === 'undefined') return;
 
@@ -91,10 +115,12 @@
             initTourGalleries();
             initSchedulePickers();
             initTourBookingModal();
+            initContentNavigation();
         }, { once: true });
     } else {
         initTourGalleries();
         initSchedulePickers();
         initTourBookingModal();
+        initContentNavigation();
     }
 })();

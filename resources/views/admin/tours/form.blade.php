@@ -16,7 +16,7 @@
     };
 @endphp
 
-<form id="admin-save-form" action="{{ $isEditing ? route('admin.tours.update', $tour) : route('admin.tours.store') }}" method="POST">
+<form data-tour-form id="admin-save-form" action="{{ $isEditing ? route('admin.tours.update', $tour) : route('admin.tours.store') }}" method="POST">
     @csrf
     @if ($isEditing)
         @method('PUT')
@@ -27,6 +27,12 @@
             <h3 class="card-title mb-0"><i class="bi bi-map me-2"></i>{{ $isEditing ? 'Thiết lập tour' : 'Tạo tour mới' }}</h3>
         </div>
         <div class="card-body">
+            @if ($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <strong>Chưa lưu được. Anh/chị kiểm tra các mục sau:</strong>
+                    <ul class="mb-0 mt-2">@foreach ($errors->messages() as $key => $messages)<li><button type="button" class="btn btn-link text-danger p-0 text-start" data-error-field="{{ $key }}">{{ $messages[0] }}</button></li>@endforeach</ul>
+                </div>
+            @endif
             <ul class="nav nav-pills mb-4" id="tour-form-tabs" role="tablist">
                 <li class="nav-item" role="presentation"><button class="nav-link @if ($activeTab === 'general') active @endif" id="tour-general-tab" data-bs-toggle="tab" data-bs-target="#tour-general" type="button" role="tab" aria-controls="tour-general" aria-selected="{{ $activeTab === 'general' ? 'true' : 'false' }}"><i class="bi bi-info-circle me-1"></i>Thông tin tour</button></li>
                 <li class="nav-item" role="presentation"><button class="nav-link @if ($activeTab === 'schedules') active @endif" id="tour-schedules-tab" data-bs-toggle="tab" data-bs-target="#tour-schedules" type="button" role="tab" aria-controls="tour-schedules" aria-selected="{{ $activeTab === 'schedules' ? 'true' : 'false' }}"><i class="bi bi-calendar3 me-1"></i>Lịch khởi hành <span class="badge text-bg-secondary ms-1">{{ $schedules->count() }}</span></button></li>
@@ -83,23 +89,36 @@
                 </section>
 
                 <section class="tab-pane fade @if ($activeTab === 'content') show active @endif" id="tour-content" role="tabpanel" aria-labelledby="tour-content-tab" tabindex="0">
-                    <div class="mb-4">
-                        <h4 class="h6 text-primary mb-3">Mô tả chi tiết</h4>
-                        <x-tinymce name="description" label="Nội dung giới thiệu tour" :value="$tour->description" rows="10" />
-                    </div>
-                    <div class="border-top pt-4 mb-4">
-                        <h4 class="h6 text-primary mb-2">Lịch trình theo ngày</h4>
-                        <div class="alert alert-info small py-2 mb-3"><strong>Cách nhập dễ đọc:</strong> tạo từng ngày riêng; trong mỗi ngày tách ý thành đoạn ngắn hoặc danh sách gạch đầu dòng bằng thanh công cụ. Không dồn toàn bộ lịch trình thành một đoạn dài. Có thể thêm, xóa hoặc sắp xếp lại từng ngày trước khi lưu.</div>
-                        <x-admin.tour-itinerary-editor :itineraries="$itineraries" />
-                    </div>
-                    <div class="border-top pt-4 mb-4">
-                        <h4 class="h6 text-primary mb-2">Nội dung bổ sung</h4>
-                        <p class="text-body-secondary small">Dùng cho điều kiện, chính sách, lưu ý, bảng giá hoặc các phần thông tin riêng của tour.</p>
-                        <x-admin.tour-section-editor :sections="$sections" />
-                    </div>
-                    <div class="border-top pt-4">
-                        <h4 class="h6 text-primary mb-3">Dịch vụ bao gồm / không bao gồm</h4>
-                        <x-admin.tour-inclusion-editor :inclusions="$inclusions" />
+                    <nav class="tour-content-tabs nav nav-pills" role="tablist" aria-label="Chỉnh sửa chương trình tour">
+                        @foreach (['intro' => 'Giới thiệu', 'highlights' => 'Điểm nổi bật', 'itinerary' => 'Lịch trình theo ngày', 'policies' => 'Dịch vụ & chính sách'] as $key => $label)
+                            <button type="button" class="nav-link @if ($loop->first) active @endif" id="tour-edit-{{ $key }}-tab" data-bs-toggle="tab" data-bs-target="#tour-edit-{{ $key }}" role="tab" aria-controls="tour-edit-{{ $key }}" aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $label }}</button>
+                        @endforeach
+                    </nav>
+                    <div class="tab-content tour-content-panels">
+                        <div class="tab-pane show active" id="tour-edit-intro" role="tabpanel" aria-labelledby="tour-edit-intro-tab" tabindex="0">
+                            <h4 class="h6">Thông tin hành trình</h4>
+                            <p class="text-body-secondary small">Phần giới thiệu hiển thị đầu nội dung trang tour. Nhập điểm nổi bật và từng ngày ở các mục bên cạnh.</p>
+                            <x-tinymce name="description" label="Giới thiệu hành trình" :value="\App\Support\TourContent::html($tour->description)" rows="10" />
+                        </div>
+                        <div class="tab-pane" id="tour-edit-highlights" role="tabpanel" aria-labelledby="tour-edit-highlights-tab" tabindex="0">
+                            <h4 class="h6">Điểm nổi bật của hành trình</h4>
+                            <x-admin.tour-section-editor :sections="$sections" group="highlights" />
+                        </div>
+                        <div class="tab-pane" id="tour-edit-itinerary" role="tabpanel" aria-labelledby="tour-edit-itinerary-tab" tabindex="0">
+                            <h4 class="h6">Lịch trình theo ngày</h4>
+                            <x-admin.tour-itinerary-editor :itineraries="$itineraries" />
+                        </div>
+                        <div class="tab-pane" id="tour-edit-policies" role="tabpanel" aria-labelledby="tour-edit-policies-tab" tabindex="0">
+                            <h4 class="h6">Dịch vụ, chính sách & lưu ý</h4>
+                            <x-admin.tour-section-editor :sections="$sections" group="details" />
+                            <details class="tour-editor-card mt-4" @if ($inclusions->isNotEmpty()) open @endif>
+                                <summary class="tour-editor-summary"><span class="tour-editor-row-title">Danh sách dịch vụ từng dòng</span><i class="bi bi-chevron-down tour-editor-chevron" aria-hidden="true"></i></summary>
+                                <div class="tour-editor-fields">
+                                    <p class="text-body-secondary small">Dùng cho các dịch vụ ngắn, mỗi dòng một mục. Nếu đã nhập đầy đủ trong mục Giá tour bao gồm / không bao gồm phía trên, không cần nhập lại.</p>
+                                    <x-admin.tour-inclusion-editor :inclusions="$inclusions" />
+                                </div>
+                            </details>
+                        </div>
                     </div>
                 </section>
 
@@ -127,7 +146,11 @@
                 </section>
             </div>
         </div>
-        <div class="card-footer d-flex flex-wrap justify-content-end gap-2">
+        <div class="card-footer tour-form-actions d-flex flex-wrap align-items-center justify-content-end gap-2">
+            <span class="small text-body-secondary me-auto" data-save-state aria-live="polite">Lưu thay đổi để cập nhật tour.</span>
+            @if ($isEditing && $tour->status === 'published' && $tour->is_active)
+                <a href="{{ route('tours.show', $tour) }}" target="_blank" rel="noopener" class="btn btn-outline-secondary">Xem trang tour <i class="bi bi-box-arrow-up-right ms-1"></i></a>
+            @endif
             <a href="{{ route('admin.tours.index') }}" class="btn btn-default">Hủy bỏ</a>
             @if (! $isEditing)
                 <button type="submit" name="submit_action" value="save_and_create" class="btn btn-outline-primary">Lưu & tạo mới</button>
@@ -136,3 +159,10 @@
         </div>
     </div>
 </form>
+
+@pushOnce('css')
+<link rel="stylesheet" href="{{ asset('css/admin-tour.css') }}?v={{ filemtime(public_path('css/admin-tour.css')) }}">
+@endPushOnce
+@pushOnce('js')
+<script src="{{ asset('js/admin-tour.js') }}?v={{ filemtime(public_path('js/admin-tour.js')) }}"></script>
+@endPushOnce

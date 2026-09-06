@@ -23,6 +23,24 @@ class StoreTourRequest extends FormRequest
         return $this->baseRules() + ['code' => ['required', 'string', 'max:50', Rule::unique('tours', 'code')], 'slug' => ['required', 'string', 'max:255', Rule::unique('tours', 'slug'), Rule::unique('slugs', 'slug')->where(fn ($q) => $q->where('locale', app()->getLocale()))]];
     }
 
+    public function messages(): array
+    {
+        return [
+            'itineraries.*.title.required' => 'Vui lòng nhập tiêu đề cho ngày này.',
+            'itineraries.*.day_number.required' => 'Ngày trong lịch trình chưa hợp lệ. Vui lòng kiểm tra lại thứ tự.',
+            'itineraries.*.day_number.distinct' => 'Số ngày bị trùng. Vui lòng kiểm tra lại thứ tự lịch trình.',
+            'sections.*.title.max' => 'Tiêu đề mục không được dài quá :max ký tự.',
+            'sections.*.type.max' => 'Nhóm nội dung không hợp lệ. Vui lòng chọn lại trong danh sách.',
+            'inclusions.*.content.required' => 'Vui lòng nhập nội dung dịch vụ hoặc gỡ dòng đang để trống.',
+            'inclusions.*.content.max' => 'Mỗi dòng dịch vụ tối đa :max ký tự. Nội dung dài có thể nhập ở mục thông tin phía trên.',
+            'inclusions.*.type.required' => 'Vui lòng chọn Bao gồm hoặc Không bao gồm cho dịch vụ.',
+            'schedules.*.departure_date.required' => 'Vui lòng chọn ngày khởi hành.',
+            'schedules.*.return_date.after_or_equal' => 'Ngày về phải bằng hoặc sau ngày khởi hành.',
+            'schedules.*.price.required' => 'Vui lòng nhập giá cho đợt khởi hành.',
+            'schedules.*.seats_total.required' => 'Vui lòng nhập số khách tối đa cho đợt khởi hành.',
+        ];
+    }
+
     protected function baseRules(): array
     {
         return [
@@ -59,10 +77,10 @@ class StoreTourRequest extends FormRequest
             'image_order.*' => ['integer', 'distinct'],
             'itineraries' => ['nullable', 'array'],
             'itineraries.*.day_number' => ['required', 'integer', 'min:1', 'distinct'],
-            'itineraries.*.title' => ['required', 'string', 'max:255'],
+            'itineraries.*.title' => ['required', 'string'],
             'itineraries.*.description' => ['nullable', 'string'],
-            'itineraries.*.meals' => ['nullable', 'string', 'max:255'],
-            'itineraries.*.accommodation' => ['nullable', 'string', 'max:255'],
+            'itineraries.*.meals' => ['nullable', 'string'],
+            'itineraries.*.accommodation' => ['nullable', 'string'],
             'schedules' => ['nullable', 'array'],
             'schedules.*.id' => ['nullable', 'integer'],
             'schedules.*.departure_date' => ['required', 'date'],
