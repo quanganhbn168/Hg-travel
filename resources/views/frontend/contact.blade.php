@@ -2,7 +2,6 @@
 
 @section('title', 'Liên hệ | '.$siteSettings->site_name)
 @section('meta_description', 'Liên hệ '.$siteSettings->site_name.' để được tư vấn tour, visa, vé máy bay và khách sạn.')
-@section('canonical', route('contact'))
 @section('body_class', 'contact-page')
 
 @push('page_styles')

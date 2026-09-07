@@ -3,7 +3,6 @@
 @section('title', ($page->seo_title ?: $page->name).' | '.$siteSettings->site_name)
 @section('meta_description', $page->seo_description ?: $page->sub_title ?: '')
 @section('meta_keywords', $page->seo_keywords ?: '')
-@section('canonical', route('pages.show', ['page' => $page->slug]))
 @section('body_class', 'static-page')
 
 @push('page_styles')

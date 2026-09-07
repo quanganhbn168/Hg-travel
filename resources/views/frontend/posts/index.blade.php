@@ -2,7 +2,6 @@
 
 @section('title', 'Cẩm nang du lịch | '.$siteSettings->site_name)
 @section('meta_description', 'Cập nhật kinh nghiệm, cảm hứng và thông tin hữu ích để chuẩn bị hành trình cùng '.$siteSettings->site_name.'.')
-@section('canonical', route('posts.index'))
 @section('body_class', 'blog-page')
 
 @push('page_styles')

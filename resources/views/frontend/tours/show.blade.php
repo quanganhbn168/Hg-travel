@@ -3,7 +3,9 @@
 @section('title', $tour['seo_title'] ?: $tour['name'].' | '.$siteSettings->site_name)
 @section('meta_description', $tour['seo_description'] ?: $tour['summary'] ?: 'Thông tin chi tiết '.$tour['name'])
 @section('meta_keywords', 'tour '.$tour['name'].', '.$tour['category'].', tour du lịch')
-@section('canonical', route('tours.show', ['tour' => $tour['slug']]))
+@if ($tour['image_url'] ?: $tour['banner_image_url'])
+@section('og_image', $tour['image_url'] ?: $tour['banner_image_url'])
+@endif
 @section('body_class', 'tour-detail-page')
 
 @push('page_styles')

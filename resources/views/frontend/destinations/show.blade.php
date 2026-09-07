@@ -2,13 +2,7 @@
 
 @section('title', $page['title'].' | '.$siteSettings->site_name)
 @section('meta_description', $page['description'])
-@section('canonical', $canonical)
-@section('og_title', $page['title'])
-@section('og_description', $page['description'])
 @section('og_image', $coverImageUrl ?: asset('images/logo-hgtrip.png'))
-@section('twitter_title', $page['title'])
-@section('twitter_description', $page['description'])
-@section('twitter_image', $coverImageUrl ?: asset('images/logo-hgtrip.png'))
 @section('body_class', 'destination-page')
 
 @push('page_styles')

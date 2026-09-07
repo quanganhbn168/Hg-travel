@@ -16,19 +16,19 @@
     <meta name="author" content="{{ $siteSettings->site_name }}">
     <meta name="robots" content="index, follow">
     <meta name="format-detection" content="telephone=no">
-    <link rel="canonical" href="@yield('canonical', url()->current())">
+    <link rel="canonical" href="{{ url()->current() }}">
 
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:site_name" content="{{ $siteSettings->site_name }}">
-    <meta property="og:title" content="@yield('og_title', $siteSettings->seo_title ?: $siteSettings->site_name)">
-    <meta property="og:description" content="@yield('og_description', $siteSettings->seo_description ?: '')">
+    <meta property="og:title" content="@yield('title', $siteSettings->seo_title ?: $siteSettings->site_name)">
+    <meta property="og:description" content="@yield('meta_description', $siteSettings->seo_description ?: '')">
     <meta property="og:url" content="@yield('og_url', url()->current())">
     <meta property="og:locale" content="vi_VN">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('twitter_title', $siteSettings->seo_title ?: $siteSettings->site_name)">
-    <meta name="twitter:description" content="@yield('twitter_description', $siteSettings->seo_description ?: '')">
+    <meta name="twitter:title" content="@yield('title', $siteSettings->seo_title ?: $siteSettings->site_name)">
+    <meta name="twitter:description" content="@yield('meta_description', $siteSettings->seo_description ?: '')">
     <meta property="og:image" content="@yield('og_image', $shareImage)">
-    <meta name="twitter:image" content="@yield('twitter_image', $shareImage)">
+    <meta name="twitter:image" content="@yield('og_image', $shareImage)">
     @stack('meta')
     @yield('structured_data')
 

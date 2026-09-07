@@ -2,7 +2,6 @@
 
 @section('title', 'Đặt tour | '.$siteSettings->site_name)
 @section('meta_description', 'Gửi yêu cầu đặt tour để HG tư vấn lịch khởi hành, chi phí và các dịch vụ phù hợp.')
-@section('canonical', route('booking.create'))
 @section('body_class', 'booking-page')
 
 @push('page_styles')

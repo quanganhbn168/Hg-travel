@@ -2,7 +2,6 @@
 
 @section('title', $category['label'].' | Dịch vụ | '.$siteSettings->site_name)
 @section('meta_description', $category['description'])
-@section('canonical', route('services.category', ['category' => $category['slug']]))
 @section('body_class', 'services-page services-category-page')
 
 @push('page_styles')

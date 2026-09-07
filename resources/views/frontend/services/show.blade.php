@@ -1,9 +1,11 @@
 @extends('layouts.master')
 
-@section('title', $service['title'].' | '.$siteSettings->site_name)
-@section('meta_description', $service['intro'])
+@section('title', ($service['seo_title'] ?: $service['title']).' | '.$siteSettings->site_name)
+@section('meta_description', $service['seo_description'] ?: $service['intro'])
 @section('meta_keywords', $service['title'].', dịch vụ du lịch, '.$siteSettings->site_name)
-@section('canonical', route('services.show', ['service' => $service['slug']]))
+@if ($service['cover_image'])
+@section('og_image', $service['cover_image'])
+@endif
 @section('body_class', 'services-page service-detail-page')
 
 @push('page_styles')

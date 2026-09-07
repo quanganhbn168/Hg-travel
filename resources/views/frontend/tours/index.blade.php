@@ -3,7 +3,6 @@
 @section('title', $page['title'].' | '.$siteSettings->site_name)
 @section('meta_description', $page['description'])
 @section('meta_keywords', 'tour du lịch, tour Việt Nam, '.$page['title'])
-@section('canonical', url()->current())
 @section('body_class', 'tour-page')
 
 @push('page_styles')

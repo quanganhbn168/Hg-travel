@@ -2,6 +2,9 @@
 
 @section('title', $about->seo_title ?: $about->hero_title)
 @section('meta_description', $about->seo_description ?: $about->hero_intro ?: '')
+@if ($heroImage)
+@section('og_image', $heroImage)
+@endif
 @section('body_class', 'about-page')
 
 @push('page_styles')

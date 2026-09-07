@@ -2,7 +2,6 @@
 
 @section('title', 'Dịch vụ du lịch | '.$siteSettings->site_name)
 @section('meta_description', 'Dịch vụ thiết kế hành trình, visa, vé máy bay, khách sạn, vận chuyển, hướng dẫn viên và sự kiện từ '.$siteSettings->site_name.'.')
-@section('canonical', route('services.index'))
 @section('body_class', 'services-page')
 
 @push('page_styles')

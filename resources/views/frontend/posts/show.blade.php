@@ -3,7 +3,10 @@
 @section('title', ($post->seo_title ?: $post->name).' | '.$siteSettings->site_name)
 @section('meta_description', $post->seo_description ?: $post->summary ?: '')
 @section('meta_keywords', $post->seo_keywords ?: 'cẩm nang du lịch, kinh nghiệm du lịch')
-@section('canonical', route('posts.show', $post))
+@section('og_type', 'article')
+@if ($post->cover_url)
+@section('og_image', $post->cover_url)
+@endif
 @section('body_class', 'blog-page blog-detail-page')
 
 @push('page_styles')
