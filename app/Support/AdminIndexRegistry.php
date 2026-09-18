@@ -234,9 +234,15 @@ final class AdminIndexRegistry
 
     public static function permissionNameFor(string $resource, string $ability): string
     {
-        $permissionResource = self::permissionResourceFor($resource);
+        $permissionResource = str_replace(
+            '_',
+            '-',
+            self::permissionResourceFor($resource),
+        );
 
-        return $permissionResource !== '' ? $permissionResource.'.'.$ability : '';
+        return $permissionResource !== ''
+            ? $permissionResource.'.'.$ability
+            : '';
     }
 
     public static function can(string $resource, string $ability): bool
