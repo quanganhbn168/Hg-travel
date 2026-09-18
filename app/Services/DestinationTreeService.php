@@ -21,6 +21,24 @@ final class DestinationTreeService
         'international' => 'Nước ngoài',
     ];
 
+    public const CHILD_TYPE_RULES = [
+        '__root__' => ['continent'],
+        'continent' => ['country'],
+        'country' => ['region', 'city'],
+        'region' => ['city'],
+        'city' => [],
+    ];
+
+    /** @return array<int, string> */
+    public function allowedChildTypes(Destination|string|null $parent = null): array
+    {
+        $parentType = $parent instanceof Destination
+            ? (string) $parent->type
+            : (is_string($parent) && $parent !== '' ? $parent : '__root__');
+
+        return self::CHILD_TYPE_RULES[$parentType] ?? [];
+    }
+
     public function activeNodes(): Collection
     {
         return Destination::query()
