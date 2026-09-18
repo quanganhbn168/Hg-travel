@@ -12,7 +12,7 @@ class UserService
 {
     public function paginate(array $filters = []): LengthAwarePaginator
     {
-        return User::with('roles')
+        $paginator = User::with('roles')
             ->when(
                 filled($filters['search'] ?? null),
                 fn ($query) => $query->where(
@@ -24,6 +24,36 @@ class UserService
             ->latest()
             ->paginate((int) ($filters['per_page'] ?? 20))
             ->withQueryString();
+
+        $activeAdminCount = User::query()
+            ->where('is_active', true)
+            ->whereHas(
+                'roles',
+                fn ($query) => $query
+                    ->where('name', 'admin')
+                    ->where('guard_name', 'web')
+            )
+            ->count();
+
+        $currentAdminId = (int) auth('admin')->id();
+
+        $paginator->getCollection()->each(
+            function (User $user) use ($activeAdminCount, $currentAdminId): void {
+                $isSelf = $currentAdminId > 0
+                    && $currentAdminId === (int) $user->getKey();
+
+                $isLastActiveAdmin = (bool) $user->is_active
+                    && $user->roles->contains('name', 'admin')
+                    && $activeAdminCount <= 1;
+
+                $user->setAttribute(
+                    'access_protected',
+                    $isSelf || $isLastActiveAdmin,
+                );
+            }
+        );
+
+        return $paginator;
     }
 
     public function formContext(?User $user = null): array
