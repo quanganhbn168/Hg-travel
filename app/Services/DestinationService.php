@@ -4,40 +4,104 @@ namespace App\Services;
 
 use App\Models\Destination;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class DestinationService
 {
-    public function __construct(private readonly DestinationTreeService $destinationTree) {}
+    private const PARENT_TYPES = ['continent', 'country', 'region'];
 
-    public function paginate(array $filters): LengthAwarePaginator
+    public function __construct(
+        private readonly DestinationTreeService $destinationTree,
+        private readonly MediaReferenceService $mediaReferences,
+    ) {}
+
+    public function indexContext(array $filters): array
+    {
+        $activeNodes = $this->destinationTree->activeNodes();
+        $tourCounts = $this->destinationTree->publishedTourCounts($activeNodes);
+        $nodes = $this->destinationTree->allNodes();
+
+        $this->decorateDestinations($nodes, $tourCounts);
+
+        $parentOptions = $this->parentOptions(null, $nodes);
+        $quickParentOptions = $this->parentOptions(null, $activeNodes);
+
+        return [
+            'destinations' => $this->paginate($filters, $tourCounts),
+            'destinationTree' => $this->destinationTree->treeRows($nodes),
+            'parentOptions' => $parentOptions,
+            'quickParentOptions' => $quickParentOptions,
+            'quickParentMeta' => collect($quickParentOptions)->mapWithKeys(
+                fn (array $option): array => [
+                    (string) $option['id'] => [
+                        'name' => $option['path'],
+                        'type' => $option['type'],
+                        'market' => $option['market'],
+                    ],
+                ],
+            )->all(),
+            'destinationStats' => [
+                'total' => $nodes->count(),
+                'countries' => $nodes->where('type', 'country')->count(),
+                'places' => $nodes->whereIn('type', ['region', 'city'])->count(),
+                'missing_images' => $nodes->filter(
+                    fn (Destination $destination): bool => blank($destination->cover_image)
+                )->count(),
+            ],
+            'types' => DestinationTreeService::TYPES,
+            'markets' => DestinationTreeService::MARKETS,
+        ];
+    }
+
+    public function paginate(array $filters, ?array $tourCounts = null): LengthAwarePaginator
     {
         $query = Destination::with('parent')
             ->withCount('children')
             ->orderBy('market')
             ->orderBy('sort_order')
             ->orderBy('name');
+
         $search = trim((string) ($filters['search'] ?? ''));
+
         if ($search !== '') {
-            $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+            $query->where(
+                fn ($q) => $q
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+            );
         }
+
         if (($filters['status'] ?? null) === 'active') {
             $query->where('is_active', true);
         }
+
         if (($filters['status'] ?? null) === 'inactive') {
             $query->where('is_active', false);
         }
+
+        if (filled($filters['parent_id'] ?? null)) {
+            $query->where('parent_id', (int) $filters['parent_id']);
+        }
+
         if (filled($filters['type'] ?? null)) {
             $query->where('type', $filters['type']);
         }
+
         if (filled($filters['market'] ?? null)) {
             $query->where('market', $filters['market']);
         }
-        $paginator = $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
-        $counts = $this->destinationTree->publishedTourCounts($this->destinationTree->activeNodes());
-        $paginator->setCollection($paginator->getCollection()->each(function (Destination $destination) use ($counts): void {
-            $destination->setAttribute('tours_count', $counts[(int) $destination->getKey()] ?? 0);
-        }));
+
+        $paginator = $query
+            ->paginate((int) ($filters['per_page'] ?? 15))
+            ->withQueryString();
+
+        $tourCounts ??= $this->destinationTree->publishedTourCounts(
+            $this->destinationTree->activeNodes()
+        );
+
+        $this->decorateDestinations($paginator->getCollection(), $tourCounts);
 
         return $paginator;
     }
@@ -46,10 +110,20 @@ class DestinationService
     {
         return [
             'destination' => $destination ?: new Destination,
-            'parentOptions' => $this->destinationTree->selectOptions(null, $destination),
+            'parentOptions' => $this->parentOptions($destination),
             'types' => DestinationTreeService::TYPES,
             'markets' => DestinationTreeService::MARKETS,
         ];
+    }
+
+    public function parentOptions(?Destination $exclude = null, ?Collection $nodes = null): array
+    {
+        return collect($this->destinationTree->selectOptions($nodes, $exclude))
+            ->filter(
+                fn (array $option): bool => in_array($option['type'], self::PARENT_TYPES, true)
+            )
+            ->values()
+            ->all();
     }
 
     public function create(array $data): Destination
@@ -66,8 +140,14 @@ class DestinationService
         }
 
         $this->ensureValidParent($destination, $data['parent_id'] ?? null);
+
         $payload = $this->payload($data);
-        $payload['cover_image'] = app(MediaReferenceService::class)->field($data, 'cover_image', $destination->cover_image);
+        $payload['cover_image'] = $this->mediaReferences->field(
+            $data,
+            'cover_image',
+            $destination->cover_image,
+        );
+
         $destination->update($payload);
     }
 
@@ -107,19 +187,33 @@ class DestinationService
         $type = (string) ($data['type'] ?? 'city');
 
         if ($parent?->type === 'city') {
-            abort(422, 'Điểm đến cha phải là châu lục, quốc gia hoặc khu vực.');
+            throw ValidationException::withMessages([
+                'parent_id' => 'Điểm đến cha phải là châu lục, quốc gia hoặc khu vực.',
+            ]);
         }
 
         if ($type === 'continent' && $parentId) {
-            abort(422, 'Châu lục không thể nằm dưới một điểm đến khác.');
+            throw ValidationException::withMessages([
+                'parent_id' => 'Châu lục không thể nằm dưới một điểm đến khác.',
+            ]);
         }
 
-        if ($type === 'country' && $parent && $parent->type !== 'continent') {
-            abort(422, 'Quốc gia phải nằm dưới một châu lục.');
+        if ($type === 'country' && $parent?->type !== 'continent') {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Quốc gia phải nằm dưới một châu lục.',
+            ]);
         }
 
-        if ($type === 'region' && $parent && $parent->type !== 'country') {
-            abort(422, 'Khu vực phải nằm dưới một quốc gia.');
+        if ($type === 'region' && $parent?->type !== 'country') {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Khu vực phải nằm dưới một quốc gia.',
+            ]);
+        }
+
+        if ($type === 'city' && ! in_array($parent?->type, ['country', 'region'], true)) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Thành phố / điểm đến phải nằm dưới một quốc gia hoặc khu vực.',
+            ]);
         }
 
         return [
@@ -154,14 +248,37 @@ class DestinationService
             return;
         }
 
-        if ((int) $parentId === (int) $destination->getKey()) {
-            abort(422, 'Điểm đến không thể là cha của chính nó.');
+        $destinationId = (int) $destination->getKey();
+        $parentId = (int) $parentId;
+
+        if ($parentId === $destinationId) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Điểm đến không thể là cha của chính nó.',
+            ]);
         }
 
         $nodes = $this->destinationTree->allNodes();
+        $descendantIds = $this->destinationTree->descendantIds($destinationId, $nodes);
 
-        if (in_array((int) $destination->getKey(), $this->destinationTree->descendantIds((int) $parentId, $nodes), true)) {
-            abort(422, 'Không thể đưa điểm đến vào một node con của chính nó.');
+        if (in_array($parentId, $descendantIds, true)) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Không thể đưa điểm đến vào một node con của chính nó.',
+            ]);
         }
+    }
+
+    private function decorateDestinations(Collection $destinations, array $tourCounts): void
+    {
+        $destinations->each(function (Destination $destination) use ($tourCounts): void {
+            $destination->setAttribute(
+                'tours_count',
+                $tourCounts[(int) $destination->getKey()] ?? 0,
+            );
+
+            $destination->setAttribute(
+                'cover_url',
+                $this->mediaReferences->url($destination->cover_image, null, true),
+            );
+        });
     }
 }
