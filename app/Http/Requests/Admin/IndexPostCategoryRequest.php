@@ -1,4 +1,24 @@
 <?php
+
 namespace App\Http\Requests\Admin;
+
+use App\Http\Requests\Admin\Concerns\HasAdminIndexPagination;
 use Illuminate\Foundation\Http\FormRequest;
-class IndexPostCategoryRequest extends FormRequest { public function authorize(): bool { return true; } public function rules(): array { return ['search' => ['nullable','string','max:255'], 'per_page' => ['nullable','integer','in:10,20,25,50']]; } }
+
+class IndexPostCategoryRequest extends FormRequest
+{
+    use HasAdminIndexPagination;
+
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'search' => ['nullable', 'string', 'max:255'],
+            'per_page' => $this->perPageRules(),
+        ];
+    }
+}
