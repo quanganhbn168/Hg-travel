@@ -519,6 +519,7 @@
                                         name="cover_image"
                                         id="quick-destination-cover"
                                         label="Ảnh đại diện"
+                                        required
                                     />
                                 </div>
 
