@@ -51,7 +51,12 @@ class StoreDestinationRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'summary' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
-            'cover_image' => ['nullable', 'string', 'max:4096'],
+            'cover_image' => [
+                Rule::requiredIf(fn (): bool => $this->input('form_context') === 'quick_destination'),
+                'nullable',
+                'string',
+                'max:4096',
+            ],
             'cover_image_remove' => ['nullable', 'boolean'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
