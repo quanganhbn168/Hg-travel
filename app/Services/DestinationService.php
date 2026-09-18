@@ -102,7 +102,7 @@ class DestinationService
         }
 
         $paginator = $query
-            ->paginate((int) ($filters['per_page'] ?? 15))
+            ->paginate((int) ($filters['per_page'] ?? 20))
             ->withQueryString();
 
         $tourCounts ??= $this->destinationTree->publishedTourCounts(
