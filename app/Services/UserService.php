@@ -125,7 +125,8 @@ class UserService
             ]);
         }
 
-        $currentlyActiveAdmin = (bool) $user->is_active && $user->hasRole('admin');
+        $currentlyActiveAdmin = (bool) $user->is_active
+            && $user->roles()->where('name', 'admin')->where('guard_name', 'web')->exists();
         $willRemainActiveAdmin = $nextActive && $nextRole === 'admin';
 
         if ($currentlyActiveAdmin && ! $willRemainActiveAdmin && ! $this->hasOtherActiveAdmin($user)) {
