@@ -55,6 +55,7 @@
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
     <script src="{{ asset('js/admin-tree.js') }}?v={{ filemtime(public_path('js/admin-tree.js')) }}"></script>
+    <script src="{{ asset('js/admin-index-view.js') }}?v={{ filemtime(public_path('js/admin-index-view.js')) }}"></script>
     <script>
         window.hgMediaConfig = {
             list: @json(route('admin.media.list')),
