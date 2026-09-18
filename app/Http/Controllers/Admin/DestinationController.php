@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\StoreDestinationRequest;
 use App\Http\Requests\Admin\UpdateDestinationRequest;
 use App\Models\Destination;
 use App\Services\DestinationService;
-use App\Services\DestinationTreeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -18,11 +17,10 @@ class DestinationController extends Controller
 
     public function index(IndexDestinationRequest $request): View
     {
-        return view('admin.destinations.index', [
-            'destinations' => $this->destinationService->paginate($request->validated()),
-            'types' => DestinationTreeService::TYPES,
-            'markets' => DestinationTreeService::MARKETS,
-        ]);
+        return view(
+            'admin.destinations.index',
+            $this->destinationService->indexContext($request->validated()),
+        );
     }
 
     public function create(): View
@@ -34,8 +32,26 @@ class DestinationController extends Controller
     {
         $destination = $this->destinationService->create($request->validated());
 
-        return redirect()->route('admin.destinations.edit', $destination)
-            ->with('success', 'Đã tạo điểm đến.');
+        return match ($request->input('submit_action')) {
+            'save_and_create' => redirect()
+                ->route('admin.destinations.create')
+                ->with('success', 'Đã tạo điểm đến. Tiếp tục thêm điểm đến mới.'),
+
+            'quick_create' => redirect()
+                ->route('admin.destinations.index')
+                ->with('success', 'Đã thêm '.$destination->name.'.'),
+
+            'quick_create_another' => redirect()
+                ->route('admin.destinations.index', [
+                    'quick' => 1,
+                    'quick_parent' => $destination->parent_id,
+                ])
+                ->with('success', 'Đã thêm '.$destination->name.'. Tiếp tục thêm điểm đến cùng nhóm.'),
+
+            default => redirect()
+                ->route('admin.destinations.edit', $destination)
+                ->with('success', 'Đã tạo điểm đến.'),
+        };
     }
 
     public function edit(Destination $destination): View
@@ -53,6 +69,7 @@ class DestinationController extends Controller
     public function destroy(Destination $destination): RedirectResponse
     {
         abort_if($destination->is_system, 404);
+
         $this->destinationService->delete($destination);
 
         return back()->with('success', 'Đã xóa điểm đến.');
