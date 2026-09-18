@@ -33,6 +33,7 @@
 
     <div
         data-destination-manager
+        data-index-view-manager
         data-default-view="{{ $defaultView }}"
         data-auto-open-quick="{{ $autoOpenQuick ? '1' : '0' }}"
         data-validation-reopen="{{ $quickValidation ? '1' : '0' }}"
@@ -40,7 +41,6 @@
         <x-admin.index-card
             title="Quản trị điểm đến"
             description="Quản lý cấu trúc Châu lục → Quốc gia → Khu vực → Điểm đến; thêm nhanh ngay tại đúng node cha."
-            icon="bi-geo-alt"
             :create-url="route('admin.destinations.create')"
             create-label="Thêm đầy đủ"
             resource="destination"
@@ -51,7 +51,7 @@
                     action="{{ route('admin.destinations.index') }}"
                     method="GET"
                     class="row g-3 align-items-end"
-                    data-destination-list-filter
+                    data-index-list-filter
                 >
                     <div class="col-xl-3 col-lg-4">
                         <label class="form-label" for="destination-search">Từ khóa</label>
@@ -131,7 +131,7 @@
                         <button
                             type="button"
                             class="btn btn-primary"
-                            data-destination-view="tree"
+                            data-index-view="tree"
                         >
                             <i class="bi bi-diagram-3 me-1"></i>
                             Cây
@@ -139,27 +139,51 @@
                         <button
                             type="button"
                             class="btn btn-default"
-                            data-destination-view="list"
+                            data-index-view="list"
                         >
                             <i class="bi bi-list-ul me-1"></i>
                             Danh sách
                         </button>
                     </div>
 
-                    <button
-                        type="button"
-                        class="btn btn-success btn-sm"
-                        data-quick-destination
-                        data-parent-id=""
-                        data-parent-name=""
-                    >
-                        <i class="bi bi-lightning-charge me-1"></i>
-                        Thêm nhanh
-                    </button>
+                    @if(\App\Support\AdminIndexRegistry::can('destination', 'create'))
+
+
+                        <button
+
+
+                            type="button"
+
+
+                            class="btn btn-success btn-sm"
+
+
+                            data-quick-destination
+
+
+                            data-parent-id=""
+
+
+                            data-parent-name=""
+
+
+                        >
+
+
+                            <i class="bi bi-lightning-charge me-1"></i>
+
+
+                            Thêm nhanh
+
+
+                        </button>
+
+
+                    @endif
                 </div>
             </x-slot:actions>
 
-            <div data-destination-tree-panel>
+            <div data-index-tree-panel data-destination-tree-panel>
                 <div class="destination-summary">
                     <div class="destination-summary__item">
                         <span class="destination-summary__value">{{ $destinationStats['total'] }}</span>
@@ -271,7 +295,7 @@
                             </div>
 
                             <div class="admin-destination-tree__actions">
-                                @if($canHaveChildren)
+                                @if($canHaveChildren && \App\Support\AdminIndexRegistry::can('destination', 'create'))
                                     <button
                                         type="button"
                                         class="btn btn-default btn-sm"
@@ -285,14 +309,13 @@
                                     </button>
                                 @endif
 
-                                <a
-                                    href="{{ route('admin.destinations.edit', $destination) }}"
-                                    class="btn btn-default btn-sm"
-                                    title="{{ $destination->is_system ? 'Chỉnh sửa nội dung' : 'Chỉnh sửa' }}"
-                                    data-bs-toggle="tooltip"
-                                >
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
+                                <x-admin.row-actions
+                                    resource="destination"
+                                    :edit-url="route('admin.destinations.edit', $destination)"
+                                    :delete-url="$destination->is_system ? null : route('admin.destinations.destroy', $destination)"
+                                    :edit-title="$destination->is_system ? 'Chỉnh sửa nội dung' : 'Chỉnh sửa'"
+                                    :allow-delete="! $destination->is_system"
+                                />
                             </div>
                         </x-admin.tree-row>
                     @empty
@@ -303,14 +326,12 @@
                 </div>
             </div>
 
-            <div data-destination-list-panel hidden>
+            <div data-index-list-panel data-destination-list-panel hidden>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
-                                <th data-select-column class="text-center" style="width:48px">
-                                    <input type="checkbox" class="form-check-input" data-check-all aria-label="Chọn tất cả">
-                                </th>
+                                <x-admin.select-all resource="destination" />
                                 <th style="width:76px">Ảnh</th>
                                 <th>Tên điểm đến</th>
                                 <th>Điểm đến cha</th>
@@ -324,19 +345,12 @@
                         <tbody>
                             @forelse($destinations as $destination)
                                 <tr data-record-id="{{ $destination->id }}">
-                                    <td data-select-column class="text-center">
-                                        @if(!$destination->is_system)
-                                            <input
-                                                form="admin-bulk-destination-form"
-                                                type="checkbox"
-                                                name="ids[]"
-                                                value="{{ $destination->id }}"
-                                                class="form-check-input"
-                                                data-check-item
-                                                aria-label="Chọn {{ $destination->name }}"
-                                            >
-                                        @endif
-                                    </td>
+                                    <x-admin.select-item
+                                        resource="destination"
+                                        :id="$destination->id"
+                                        :label="$destination->name"
+                                        :disabled="$destination->is_system"
+                                    />
 
                                     <td>
                                         <x-admin.thumbnail
@@ -403,54 +417,21 @@
                                     </td>
 
                                     <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a
-                                                href="{{ route('admin.destinations.edit', $destination) }}"
-                                                class="btn btn-default"
-                                                title="{{ $destination->is_system ? 'Chỉnh sửa nội dung' : 'Chỉnh sửa' }}"
-                                            >
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-
-                                            @if(!$destination->is_system)
-                                                <button
-                                                    type="submit"
-                                                    form="delete-destination-{{ $destination->id }}"
-                                                    class="btn btn-default text-danger"
-                                                    title="Xóa"
-                                                >
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            @endif
-                                        </div>
+                                        <x-admin.row-actions
+                                            resource="destination"
+                                            :edit-url="route('admin.destinations.edit', $destination)"
+                                            :delete-url="$destination->is_system ? null : route('admin.destinations.destroy', $destination)"
+                                            :edit-title="$destination->is_system ? 'Chỉnh sửa nội dung' : 'Chỉnh sửa'"
+                                            :allow-delete="! $destination->is_system"
+                                        />
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="9" class="text-center py-5">
-                                        Chưa có điểm đến phù hợp.
-                                    </td>
-                                </tr>
+                                <x-admin.empty-state message="Chưa có điểm đến phù hợp." />
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-
-                @foreach($destinations->where('is_system', false) as $destination)
-                    <form
-                        id="delete-destination-{{ $destination->id }}"
-                        action="{{ route('admin.destinations.destroy', $destination) }}"
-                        method="POST"
-                        class="d-none"
-                        data-admin-delete-form
-                        data-delete-title="Xóa điểm đến này?"
-                        data-delete-warning="Điểm đến đã xóa không thể khôi phục."
-                    >
-                        @csrf
-                        @method('DELETE')
-                    </form>
-                @endforeach
-
                 @if($destinations->hasPages())
                     <div class="destination-list-pagination">
                         {{ $destinations->links() }}
