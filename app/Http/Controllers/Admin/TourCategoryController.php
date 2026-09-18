@@ -17,9 +17,10 @@ class TourCategoryController extends Controller
 
     public function index(IndexTourCategoryRequest $request): View
     {
-        return view('admin.tour_categories.index', [
-            'categories' => $this->tourCategoryService->paginate($request->validated()),
-        ]);
+        return view(
+            'admin.tour_categories.index',
+            $this->tourCategoryService->indexContext($request->validated()),
+        );
     }
 
     public function create(): View
@@ -31,13 +32,17 @@ class TourCategoryController extends Controller
     {
         $category = $this->tourCategoryService->create($request->validated());
 
-        return redirect()->route('admin.tour-categories.edit', $category)
+        return redirect()
+            ->route('admin.tour-categories.edit', $category)
             ->with('success', 'Đã tạo danh mục tour.');
     }
 
     public function edit(TourCategory $tourCategory): View
     {
-        return view('admin.tour_categories.edit', $this->tourCategoryService->formContext($tourCategory));
+        return view(
+            'admin.tour_categories.edit',
+            $this->tourCategoryService->formContext($tourCategory),
+        );
     }
 
     public function update(UpdateTourCategoryRequest $request, TourCategory $tourCategory): RedirectResponse
