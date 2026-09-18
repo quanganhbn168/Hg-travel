@@ -11,11 +11,20 @@ use Illuminate\Validation\ValidationException;
 
 class TourService
 {
-    public function __construct(private readonly DestinationTreeService $destinationTree) {}
+    public function __construct(
+        private readonly DestinationTreeService $destinationTree,
+        private readonly MediaReferenceService $mediaReferences,
+    ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
     {
-        $query = Tour::with(['categories', 'destinations'])->orderBy('sort_order')->orderByDesc('id');
+        $query = Tour::with([
+            'categories',
+            'destinations',
+            'images' => fn ($query) => $query
+                ->where('is_cover', true)
+                ->orderBy('sort_order'),
+        ])->orderBy('sort_order')->orderByDesc('id');
         $search = trim((string) ($filters['search'] ?? ''));
         if ($search !== '') {
             $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
@@ -27,7 +36,20 @@ class TourService
             $query->where('is_active', (bool) $filters['active']);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
+        $paginator = $query
+            ->paginate((int) ($filters['per_page'] ?? 20))
+            ->withQueryString();
+
+        $paginator->getCollection()->each(function (Tour $tour): void {
+            $coverPath = $tour->images->first()?->path ?: $tour->banner_image;
+
+            $tour->setAttribute(
+                'cover_url',
+                $this->mediaReferences->url($coverPath, null, true),
+            );
+        });
+
+        return $paginator;
     }
 
     public function formContext(?Tour $tour = null): array
