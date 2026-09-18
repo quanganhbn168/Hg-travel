@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\HasAdminIndexPagination;
 use App\Services\DestinationTreeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class IndexDestinationRequest extends FormRequest
 {
+    use HasAdminIndexPagination;
+
     public function authorize(): bool
     {
         return true;
@@ -26,7 +29,7 @@ class IndexDestinationRequest extends FormRequest
             'status' => ['nullable', 'in:active,inactive'],
             'type' => ['nullable', 'in:'.implode(',', array_keys(DestinationTreeService::TYPES))],
             'market' => ['nullable', 'in:'.implode(',', array_keys(DestinationTreeService::MARKETS))],
-            'per_page' => ['nullable', 'integer', 'in:10,15,25,50'],
+            'per_page' => $this->perPageRules(),
         ];
     }
 }
