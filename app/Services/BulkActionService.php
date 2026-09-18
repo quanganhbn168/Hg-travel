@@ -2,46 +2,27 @@
 
 namespace App\Services;
 
+use App\Services\Admin\Bulk\AdminBulkActionHandler;
+use App\Services\Admin\Bulk\GenericBulkActionHandler;
 use App\Support\AdminIndexRegistry;
+use Illuminate\Support\Str;
 
 class BulkActionService
 {
+    public function __construct(private readonly GenericBulkActionHandler $generic) {}
+
     public function execute(string $resource, string $action, array $ids): string
     {
-        $modelClass = AdminIndexRegistry::modelFor($resource);
-        $label = AdminIndexRegistry::labelFor($resource);
+        return $this->handlerFor($resource)->execute($resource, $action, $ids);
+    }
 
-        if (! $modelClass) {
-            throw new \InvalidArgumentException("Unknown admin resource [{$resource}].");
-        }
+    private function handlerFor(string $resource): AdminBulkActionHandler
+    {
+        $class = 'App\\Services\\Admin\\Bulk\\'.Str::studly($resource).'BulkActionHandler';
 
-        $statusUpdate = AdminIndexRegistry::statusUpdatesFor($resource)[$action] ?? null;
-        if ($statusUpdate) {
-            $attributes = $statusUpdate['attributes'] ?? ['status' => $statusUpdate['value']];
-            $modelClass::query()->whereKey($ids)->update($attributes);
-
-            return $statusUpdate['message'];
-        }
-
-        $query = $modelClass::query()->whereKey($ids);
-
-        if ($resource === 'destination') {
-            $query->where('is_system', false);
-        }
-
-        if ($action === 'delete') {
-            $query->get()->each->delete();
-
-            return "Đã xóa các {$label} được chọn.";
-        }
-
-        $query->update([
-            'is_active' => $action === 'activate',
-        ]);
-
-        return $action === 'activate'
-            ? "Đã kích hoạt các {$label} được chọn."
-            : "Đã ngừng kích hoạt các {$label} được chọn.";
+        return class_exists($class)
+            ? app($class)
+            : $this->generic;
     }
 
     public static function resources(): array
