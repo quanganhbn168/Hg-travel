@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Support\AdminIndexRegistry;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminToggleService
 {
@@ -23,7 +24,11 @@ class AdminToggleService
             throw new AuthorizationException('Nhóm địa lý hệ thống không được thay đổi.');
         }
 
-        $model->update([$field => $value]);
+        if ($resource === 'user' && $field === 'is_active' && $model instanceof User) {
+            app(UserService::class)->setActive($model, $value);
+        } else {
+            $model->update([$field => $value]);
+        }
 
         return [
             'value' => (bool) $model->fresh()->getAttribute($field),
