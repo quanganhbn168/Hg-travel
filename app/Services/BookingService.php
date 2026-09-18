@@ -6,30 +6,75 @@ use App\Models\Booking;
 use App\Models\Tour;
 use App\Models\TourSchedule;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
-    public const STATUSES = ['pending' => 'Chờ xử lý', 'confirmed' => 'Đã xác nhận', 'cancelled' => 'Đã hủy', 'completed' => 'Hoàn tất'];
-    public const PAYMENT_STATUSES = ['unpaid' => 'Chưa thanh toán', 'pending' => 'Đang chờ', 'paid' => 'Đã thanh toán', 'refunded' => 'Đã hoàn tiền'];
+    public const STATUSES = [
+        'pending' => 'Chờ xử lý',
+        'confirmed' => 'Đã xác nhận',
+        'cancelled' => 'Đã hủy',
+        'completed' => 'Hoàn tất',
+    ];
+
+    public const PAYMENT_STATUSES = [
+        'unpaid' => 'Chưa thanh toán',
+        'pending' => 'Đang chờ',
+        'paid' => 'Đã thanh toán',
+        'refunded' => 'Đã hoàn tiền',
+    ];
 
     public function paginate(array $filters): LengthAwarePaginator
     {
         $query = Booking::with('items.tour')->latest();
         $search = trim((string) ($filters['search'] ?? ''));
-        if ($search !== '') $query->where(fn ($q) => $q->where('booking_code', 'like', "%{$search}%")->orWhere('customer_name', 'like', "%{$search}%")->orWhere('customer_phone', 'like', "%{$search}%"));
-        if (! empty($filters['status'])) $query->where('status', $filters['status']);
-        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
+
+        if ($search !== '') {
+            $query->where(
+                fn ($q) => $q
+                    ->where('booking_code', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('customer_phone', 'like', "%{$search}%")
+            );
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query
+            ->paginate((int) ($filters['per_page'] ?? 20))
+            ->withQueryString();
     }
 
-    public function formContext(?Booking $booking = null): array { return ['booking' => $booking ?: new Booking(['status' => 'pending', 'payment_status' => 'unpaid', 'currency' => 'VND']), 'tours' => Tour::where('is_active', true)->where('booking_open', true)->orderBy('name')->get(), 'statuses' => self::STATUSES, 'paymentStatuses' => self::PAYMENT_STATUSES]; }
+    public function formContext(?Booking $booking = null): array
+    {
+        return [
+            'booking' => $booking ?: new Booking([
+                'status' => 'pending',
+                'payment_status' => 'unpaid',
+                'currency' => 'VND',
+            ]),
+            'tours' => Tour::where('is_active', true)
+                ->where('booking_open', true)
+                ->orderBy('name')
+                ->get(),
+            'statuses' => self::STATUSES,
+            'paymentStatuses' => self::PAYMENT_STATUSES,
+        ];
+    }
 
     public function publicFormContext(?Tour $selectedTour = null, ?TourSchedule $selectedSchedule = null): array
     {
         return [
-            'tours' => Tour::query()->where('is_active', true)->where('booking_open', true)->where('status', 'published')->orderBy('name')->get(),
+            'tours' => Tour::query()
+                ->where('is_active', true)
+                ->where('booking_open', true)
+                ->where('status', 'published')
+                ->orderBy('name')
+                ->get(),
             'selectedTour' => $selectedTour,
             'selectedSchedule' => $selectedSchedule,
         ];
@@ -59,6 +104,7 @@ class BookingService
                 ->where('booking_open', true)
                 ->where('status', 'published')
                 ->firstOrFail();
+
             $partySize = (int) $data['adults'] + (int) ($data['children'] ?? 0);
             $schedule = null;
 
@@ -72,11 +118,15 @@ class BookingService
                     ->first();
 
                 if (! $schedule || ! $schedule->isAvailable()) {
-                    throw ValidationException::withMessages(['tour_schedule_id' => 'Lịch khởi hành đã chọn không còn nhận đăng ký.']);
+                    throw ValidationException::withMessages([
+                        'tour_schedule_id' => 'Lịch khởi hành đã chọn không còn nhận đăng ký.',
+                    ]);
                 }
 
                 if ($schedule->seatsLeft() !== null && $partySize > $schedule->seatsLeft()) {
-                    throw ValidationException::withMessages(['tour_schedule_id' => 'Số chỗ còn lại không đủ cho số lượng khách đã chọn.']);
+                    throw ValidationException::withMessages([
+                        'tour_schedule_id' => 'Số chỗ còn lại không đủ cho số lượng khách đã chọn.',
+                    ]);
                 }
 
                 $schedule->increment('seats_reserved', $partySize);
@@ -86,7 +136,9 @@ class BookingService
                 ...$data,
                 'tour_schedule_id' => $schedule?->getKey(),
                 'departure_date' => $schedule?->departure_date?->toDateString() ?: ($data['departure_date'] ?? null),
-                'unit_price' => $schedule && $schedule->effectivePrice() > 0 ? $schedule->effectivePrice() : $tour->starting_price,
+                'unit_price' => $schedule && $schedule->effectivePrice() > 0
+                    ? $schedule->effectivePrice()
+                    : $tour->starting_price,
                 'status' => 'pending',
                 'payment_status' => 'unpaid',
             ]);
@@ -97,6 +149,7 @@ class BookingService
     {
         return DB::transaction(function () use ($data): Booking {
             $tour = Tour::findOrFail($data['tour_id']);
+
             return $this->createRecord($tour, $data);
         });
     }
@@ -104,51 +157,92 @@ class BookingService
     public function update(Booking $booking, array $data): void
     {
         DB::transaction(function () use ($booking, $data): void {
-            $fromStatus = $booking->status;
-            $toStatus = $data['status'];
-
-            if (($fromStatus === 'cancelled') !== ($toStatus === 'cancelled')) {
-                $booking->loadMissing('items');
-
-                foreach ($booking->items as $item) {
-                    if (! $item->tour_schedule_id) {
-                        continue;
-                    }
-
-                    $schedule = TourSchedule::query()->lockForUpdate()->find($item->tour_schedule_id);
-                    if (! $schedule) {
-                        continue;
-                    }
-
-                    $partySize = (int) $item->adults + (int) $item->children;
-                    if ($toStatus === 'cancelled') {
-                        $schedule->update(['seats_reserved' => max(0, (int) $schedule->seats_reserved - $partySize)]);
-                        continue;
-                    }
-
-                    if ($schedule->seatsLeft() !== null && $partySize > $schedule->seatsLeft()) {
-                        throw ValidationException::withMessages(['status' => 'Không thể khôi phục booking vì lịch khởi hành không còn đủ chỗ.']);
-                    }
-
-                    $schedule->increment('seats_reserved', $partySize);
-                }
-            }
+            $this->transitionStatus(
+                $booking,
+                (string) $data['status'],
+                $data['notes'] ?? null,
+            );
 
             $booking->update([
-                'status' => $toStatus,
                 'payment_status' => $data['payment_status'],
                 'notes' => $data['notes'] ?? null,
             ]);
-
-            if ($fromStatus !== $toStatus) {
-                $booking->statusHistories()->create([
-                    'changed_by' => auth('admin')->id() ?? auth()->id(),
-                    'from_status' => $fromStatus,
-                    'to_status' => $toStatus,
-                    'note' => $data['notes'] ?? null,
-                ]);
-            }
         });
+    }
+
+    public function changeStatus(Booking $booking, string $toStatus, ?string $note = null): void
+    {
+        if (! array_key_exists($toStatus, self::STATUSES)) {
+            throw ValidationException::withMessages([
+                'status' => 'Trạng thái booking không hợp lệ.',
+            ]);
+        }
+
+        DB::transaction(function () use ($booking, $toStatus, $note): void {
+            $this->transitionStatus($booking, $toStatus, $note);
+        });
+    }
+
+    private function transitionStatus(Booking $booking, string $toStatus, ?string $note): void
+    {
+        $booking->refresh();
+
+        $fromStatus = (string) $booking->status;
+
+        if ($fromStatus === $toStatus) {
+            return;
+        }
+
+        if (($fromStatus === 'cancelled') !== ($toStatus === 'cancelled')) {
+            $booking->loadMissing('items');
+
+            foreach ($booking->items as $item) {
+                if (! $item->tour_schedule_id) {
+                    continue;
+                }
+
+                $schedule = TourSchedule::query()
+                    ->lockForUpdate()
+                    ->find($item->tour_schedule_id);
+
+                if (! $schedule) {
+                    continue;
+                }
+
+                $partySize = (int) $item->adults + (int) $item->children;
+
+                if ($toStatus === 'cancelled') {
+                    $schedule->update([
+                        'seats_reserved' => max(
+                            0,
+                            (int) $schedule->seats_reserved - $partySize,
+                        ),
+                    ]);
+
+                    continue;
+                }
+
+                if ($schedule->seatsLeft() !== null && $partySize > $schedule->seatsLeft()) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Không thể khôi phục booking vì lịch khởi hành không còn đủ chỗ.',
+                    ]);
+                }
+
+                $schedule->increment('seats_reserved', $partySize);
+            }
+        }
+
+        $booking->update([
+            'status' => $toStatus,
+            'notes' => $note ?? $booking->notes,
+        ]);
+
+        $booking->statusHistories()->create([
+            'changed_by' => auth('admin')->id() ?? auth()->id(),
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+            'note' => $note,
+        ]);
     }
 
     /** @param array<string, mixed> $data */
@@ -157,6 +251,7 @@ class BookingService
         $adults = (int) $data['adults'];
         $children = (int) ($data['children'] ?? 0);
         $total = (float) $data['unit_price'] * ($adults + $children);
+
         $booking = Booking::create([
             'booking_code' => 'BK-'.now()->format('YmdHis').'-'.Str::upper(Str::random(4)),
             'customer_name' => $data['customer_name'],
@@ -172,6 +267,7 @@ class BookingService
             'notes' => $data['notes'] ?? null,
             'booked_at' => now(),
         ]);
+
         $booking->items()->create([
             'tour_id' => $tour->id,
             'tour_schedule_id' => $data['tour_schedule_id'] ?? null,
@@ -182,6 +278,7 @@ class BookingService
             'unit_price' => $data['unit_price'],
             'total_price' => $total,
         ]);
+
         $booking->statusHistories()->create([
             'changed_by' => auth('admin')->id() ?? auth()->id(),
             'from_status' => null,
