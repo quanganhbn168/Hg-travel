@@ -27,7 +27,7 @@ class TourService
             $query->where('is_active', (bool) $filters['active']);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
     }
 
     public function formContext(?Tour $tour = null): array
