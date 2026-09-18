@@ -33,9 +33,74 @@ final class DestinationTreeService
     public function allNodes(): Collection
     {
         return Destination::query()
+            ->withCount('children')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
+    }
+
+    /**
+     * @return Collection<int, array{
+     *     destination: Destination,
+     *     depth: int,
+     *     parent_id: int|null,
+     *     path: string
+     * }>
+     */
+    public function treeRows(?Collection $nodes = null): Collection
+    {
+        $nodes ??= $this->allNodes();
+
+        $byParent = $nodes->groupBy(
+            fn (Destination $node): string => (string) ($node->parent_id ?? 0)
+        );
+
+        $rows = collect();
+        $visited = [];
+
+        $append = function (
+            Destination $destination,
+            int $depth,
+            string $parentPath,
+        ) use (&$append, $byParent, $rows, &$visited): void {
+            $id = (int) $destination->getKey();
+
+            if (isset($visited[$id])) {
+                return;
+            }
+
+            $visited[$id] = true;
+
+            $path = $parentPath === ''
+                ? $destination->name
+                : $parentPath.' / '.$destination->name;
+
+            $rows->push([
+                'destination' => $destination,
+                'depth' => $depth,
+                'parent_id' => $destination->parent_id
+                    ? (int) $destination->parent_id
+                    : null,
+                'path' => $path,
+            ]);
+
+            foreach ($byParent->get((string) $id, collect()) as $child) {
+                $append($child, $depth + 1, $path);
+            }
+        };
+
+        foreach ($byParent->get('0', collect()) as $root) {
+            $append($root, 0, '');
+        }
+
+        // Keep malformed/orphaned legacy nodes visible instead of silently dropping them.
+        foreach ($nodes as $node) {
+            if (! isset($visited[(int) $node->getKey()])) {
+                $append($node, 0, '');
+            }
+        }
+
+        return $rows;
     }
 
     /** @return array<int, array{id: int, label: string, path: string, type: string, market: string, disabled: bool}> */
@@ -44,10 +109,12 @@ final class DestinationTreeService
         $nodes ??= $this->activeNodes();
         $byParent = $nodes->groupBy(fn (Destination $node): string => (string) ($node->parent_id ?? 0));
         $excludedIds = $exclude ? $this->descendantIds($exclude, $nodes) : [];
+
         $build = function (int $parentId, int $depth = 0) use (&$build, $byParent, $excludedIds, $nodes): array {
             return collect($byParent->get((string) $parentId, []))
                 ->flatMap(function (Destination $node) use (&$build, $depth, $excludedIds, $nodes): array {
                     $path = $this->path($node, $nodes);
+
                     $row = [[
                         'id' => (int) $node->getKey(),
                         'label' => str_repeat('— ', $depth).$node->name,
@@ -73,6 +140,7 @@ final class DestinationTreeService
         $id = $destination instanceof Destination ? (int) $destination->getKey() : (int) $destination;
         $byParent = $nodes->groupBy(fn (Destination $node): string => (string) ($node->parent_id ?? 0));
         $ids = [$id];
+
         $visit = function (int $parentId) use (&$visit, &$ids, $byParent): void {
             foreach ($byParent->get((string) $parentId, []) as $child) {
                 $childId = (int) $child->getKey();
@@ -85,6 +153,7 @@ final class DestinationTreeService
                 $visit($childId);
             }
         };
+
         $visit($id);
 
         return $ids;
@@ -182,6 +251,7 @@ final class DestinationTreeService
                     ? route('destinations.show', ['destination' => $current->slug])
                     : route('tours.index', ['destination' => $current->slug]),
             ]);
+
             $current = $current->parent_id ? $byId->get((int) $current->parent_id) : null;
         }
 
@@ -217,7 +287,9 @@ final class DestinationTreeService
             ->with('destinations:id,parent_id')
             ->get(['id']);
 
-        $counts = $nodes->mapWithKeys(fn (Destination $node): array => [(int) $node->getKey() => 0])->all();
+        $counts = $nodes->mapWithKeys(
+            fn (Destination $node): array => [(int) $node->getKey() => 0]
+        )->all();
 
         foreach ($tours as $tour) {
             $seen = [];
@@ -244,6 +316,8 @@ final class DestinationTreeService
             return $destination->name;
         }
 
-        return collect($this->breadcrumb($destination, $nodes))->pluck('name')->implode(' / ');
+        return collect($this->breadcrumb($destination, $nodes))
+            ->pluck('name')
+            ->implode(' / ');
     }
 }
