@@ -28,7 +28,7 @@ class TourCategoryService
             $query->where('is_home', false);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 15))->withQueryString();
+        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
     }
 
     public function formContext(?TourCategory $category = null): array
