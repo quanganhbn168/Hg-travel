@@ -9,26 +9,43 @@ use Illuminate\Support\Str;
 
 class ServiceCatalogAdminService
 {
+    public function __construct(private readonly MediaReferenceService $mediaReferences) {}
+
     public function categories(array $filters): LengthAwarePaginator
     {
-        $query = ServiceCategory::query()->withCount('services')->orderBy('sort_order')->orderBy('name');
+        $query = ServiceCategory::query()
+            ->withCount('services')
+            ->orderBy('sort_order')
+            ->orderBy('name');
+
         $search = trim((string) ($filters['search'] ?? ''));
+
         if ($search !== '') {
-            $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+            $query->where(
+                fn ($inner) => $inner
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+            );
         }
+
         if (($filters['status'] ?? null) === 'active') {
             $query->where('is_active', true);
         }
+
         if (($filters['status'] ?? null) === 'inactive') {
             $query->where('is_active', false);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
+        return $query
+            ->paginate((int) ($filters['per_page'] ?? 20))
+            ->withQueryString();
     }
 
     public function categoryContext(?ServiceCategory $category = null): array
     {
-        return ['category' => $category ?: new ServiceCategory(['is_active' => true])];
+        return [
+            'category' => $category ?: new ServiceCategory(['is_active' => true]),
+        ];
     }
 
     public function createCategory(array $data): ServiceCategory
@@ -43,35 +60,67 @@ class ServiceCatalogAdminService
 
     public function deleteCategory(ServiceCategory $category): void
     {
-        abort_if($category->services()->withTrashed()->exists(), 422, 'Không thể xóa danh mục đang có dịch vụ. Hãy tắt hiển thị hoặc chuyển dịch vụ trước.');
+        abort_if(
+            $category->services()->withTrashed()->exists(),
+            422,
+            'Không thể xóa danh mục đang có dịch vụ. Hãy tắt hiển thị hoặc chuyển dịch vụ trước.',
+        );
+
         $category->delete();
     }
 
     public function services(array $filters): LengthAwarePaginator
     {
-        $query = Service::query()->with('category')->orderBy('sort_order')->orderBy('name');
+        $query = Service::query()
+            ->with('category')
+            ->orderBy('sort_order')
+            ->orderBy('name');
+
         $search = trim((string) ($filters['search'] ?? ''));
+
         if ($search !== '') {
-            $query->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+            $query->where(
+                fn ($inner) => $inner
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+            );
         }
+
         if (filled($filters['category'] ?? null)) {
             $query->where('service_category_id', $filters['category']);
         }
+
         if (($filters['status'] ?? null) === 'active') {
             $query->where('is_active', true);
         }
+
         if (($filters['status'] ?? null) === 'inactive') {
             $query->where('is_active', false);
         }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 20))->withQueryString();
+        $paginator = $query
+            ->paginate((int) ($filters['per_page'] ?? 20))
+            ->withQueryString();
+
+        $paginator->getCollection()->each(function (Service $service): void {
+            $service->setAttribute(
+                'cover_url',
+                $this->mediaReferences->url($service->cover_image, null, true),
+            );
+        });
+
+        return $paginator;
     }
 
     public function serviceContext(?Service $service = null): array
     {
         return [
             'service' => $service ?: new Service(['is_active' => true]),
-            'categories' => ServiceCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(),
+            'categories' => ServiceCategory::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
         ];
     }
 
@@ -116,8 +165,16 @@ class ServiceCatalogAdminService
             'icon' => $data['icon'] ?? null,
             'description' => $data['description'] ?? null,
             'intro' => $data['intro'] ?? null,
-            'benefits' => collect($benefits)->map(fn ($item) => trim((string) $item))->filter()->values()->all(),
-            'cover_image' => app(MediaReferenceService::class)->field($data, 'cover_image', $service?->cover_image),
+            'benefits' => collect($benefits)
+                ->map(fn ($item) => trim((string) $item))
+                ->filter()
+                ->values()
+                ->all(),
+            'cover_image' => $this->mediaReferences->field(
+                $data,
+                'cover_image',
+                $service?->cover_image,
+            ),
             'seo_title' => $data['seo_title'] ?? null,
             'seo_description' => $data['seo_description'] ?? null,
             'sort_order' => (int) ($data['sort_order'] ?? 0),
