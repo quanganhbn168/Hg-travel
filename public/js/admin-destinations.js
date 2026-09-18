@@ -134,8 +134,7 @@
             .querySelector('[data-tree-collapse-all]')
             ?.addEventListener('click', () => {
                 rows.forEach((row) => {
-                    const hasChildren =
-                        row.dataset.treeHasChildren === '1';
+                    const hasChildren = row.dataset.treeHasChildren === '1';
                     const depth = Number(row.dataset.treeDepth || 0);
 
                     if (hasChildren && depth > 0) {
@@ -207,30 +206,18 @@
         render();
     }
 
-    const modalElement = document.getElementById(
-        'quickDestinationModal',
-    );
-    const quickForm = manager.querySelector(
-        '[data-quick-destination-form]',
-    );
-    const parentSelect = quickForm?.querySelector(
-        '#quick-destination-parent',
-    );
-    const typeSelect = quickForm?.querySelector(
-        '#quick-destination-type',
-    );
-    const marketSelect = quickForm?.querySelector(
-        '#quick-destination-market',
-    );
-    const parentLabel = quickForm?.querySelector(
-        '[data-quick-parent-label]',
-    );
-    const nameInput = quickForm?.querySelector(
-        '#quick-destination-name',
-    );
-    const parentMetaElement = manager.querySelector(
-        '[data-destination-parent-meta]',
-    );
+    const modalElement = document.getElementById('quickDestinationModal');
+    const quickForm = manager.querySelector('[data-quick-destination-form]');
+    const parentSelect = quickForm?.querySelector('#quick-destination-parent');
+    const typeSelect = quickForm?.querySelector('#quick-destination-type');
+    const marketSelect = quickForm?.querySelector('#quick-destination-market');
+    const parentLabel = quickForm?.querySelector('[data-quick-parent-label]');
+    const nameInput = quickForm?.querySelector('#quick-destination-name');
+    const parentMetaElement = manager.querySelector('[data-destination-parent-meta]');
+    const parentField = parentSelect?.closest('.col-md-6');
+    const typeField = typeSelect?.closest('.col-md-6');
+    const marketField = marketSelect?.closest('.col-md-6');
+    const advancedAccordion = quickForm?.querySelector('#quickDestinationAdvancedAccordion');
 
     let parentMeta = {};
 
@@ -240,48 +227,91 @@
         parentMeta = {};
     }
 
-    const inferType = (parentType) => {
-        if (!parentType) return 'continent';
-        if (parentType === 'continent') return 'country';
-        if (parentType === 'country') return 'city';
-        if (parentType === 'region') return 'city';
+    const typeOptions = typeSelect
+        ? [...typeSelect.options]
+            .filter((option) => option.value !== '')
+            .map((option) => ({
+                value: option.value,
+                label: option.textContent,
+            }))
+        : [];
 
-        return 'city';
+    const replaceTypeOptions = (allowedTypes, preferredValue = '') => {
+        if (!typeSelect) return;
+
+        const allowed = new Set(allowedTypes || []);
+        const options = typeOptions.filter((option) => allowed.has(option.value));
+
+        typeSelect.replaceChildren(
+            ...options.map((option) => new Option(option.label, option.value)),
+        );
+
+        const nextValue = options.some((option) => option.value === preferredValue)
+            ? preferredValue
+            : options.some((option) => option.value === 'city')
+                ? 'city'
+                : (options[0]?.value || '');
+
+        typeSelect.value = nextValue;
     };
 
-    const updateParentLabel = () => {
-        if (!parentLabel || !parentSelect) return;
+    const currentParentMeta = () => {
+        const parentId = String(parentSelect?.value || '');
 
-        const parentId = String(parentSelect.value || '');
-        const meta = parentMeta[parentId];
-
-        parentLabel.textContent = meta
-            ? `Thêm điểm đến vào ${meta.name}`
-            : 'Thêm điểm đến gốc';
+        return parentMeta[parentId || '__root__'] || parentMeta.__root__ || {
+            name: 'Điểm đến gốc',
+            market: 'international',
+            allowed_child_types: ['continent'],
+        };
     };
 
-    const syncDerivedFields = () => {
+    const syncQuickHierarchy = ({ scoped = false, preserveType = false } = {}) => {
         if (!parentSelect) return;
 
         const parentId = String(parentSelect.value || '');
-        const meta = parentMeta[parentId];
+        const meta = currentParentMeta();
+        const allowedTypes = Array.isArray(meta.allowed_child_types)
+            ? meta.allowed_child_types
+            : [];
+        const previousType = typeSelect?.value || '';
 
-        if (typeSelect) {
-            typeSelect.value = inferType(meta?.type || '');
-        }
+        replaceTypeOptions(
+            allowedTypes,
+            preserveType ? previousType : '',
+        );
 
         if (marketSelect) {
-            marketSelect.value = meta?.market || 'international';
+            marketSelect.value = meta.market || 'international';
         }
 
-        updateParentLabel();
+        if (parentField) {
+            parentField.hidden = scoped;
+        }
+
+        const showType = allowedTypes.length > 1;
+        const showMarket = parentId === '';
+
+        if (typeField) typeField.hidden = !showType;
+        if (marketField) marketField.hidden = !showMarket;
+        if (advancedAccordion) advancedAccordion.hidden = !showType && !showMarket;
+
+        if (parentLabel) {
+            parentLabel.textContent = scoped && parentId
+                ? `Thêm điểm đến vào ${meta.name}`
+                : parentId
+                    ? `${meta.name} · chỉ hiển thị loại điểm đến hợp lệ`
+                    : 'Thêm điểm đến gốc';
+        }
     };
 
-    parentSelect?.addEventListener('change', syncDerivedFields);
+    parentSelect?.addEventListener('change', () => {
+        syncQuickHierarchy({ scoped: false });
+    });
 
     const openQuickModal = ({
         parentId = '',
         preserveConfig = false,
+        scoped = Boolean(parentId),
     } = {}) => {
         if (!modalElement || !parentSelect || !window.bootstrap?.Modal) {
             return;
@@ -289,11 +319,10 @@
 
         parentSelect.value = String(parentId || '');
 
-        if (preserveConfig) {
-            updateParentLabel();
-        } else {
-            syncDerivedFields();
-        }
+        syncQuickHierarchy({
+            scoped,
+            preserveType: preserveConfig,
+        });
 
         bootstrap.Modal.getOrCreateInstance(modalElement).show();
 
@@ -311,16 +340,21 @@
 
         event.preventDefault();
 
+        const parentId = trigger.dataset.parentId || '';
+
         openQuickModal({
-            parentId: trigger.dataset.parentId || '',
+            parentId,
+            scoped: parentId !== '',
         });
     });
 
     if (manager.dataset.autoOpenQuick === '1') {
+        const parentId = parentSelect?.value || '';
+
         openQuickModal({
-            parentId: parentSelect?.value || '',
-            preserveConfig:
-                manager.dataset.validationReopen === '1',
+            parentId,
+            preserveConfig: manager.dataset.validationReopen === '1',
+            scoped: parentId !== '',
         });
     }
 })();
