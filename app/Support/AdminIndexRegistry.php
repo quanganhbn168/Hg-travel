@@ -23,9 +23,15 @@ use Spatie\Permission\Models\Role;
 
 final class AdminIndexRegistry
 {
+    public const PER_PAGE_OPTIONS = [20, 50, 100];
+
+    public const PER_PAGE_ALLOWED = [10, 15, 20, 25, 50, 100];
+
     /**
-     * The single contract shared by admin index views, bulk actions and reorder.
-     * Keep resource names stable: they are also posted by the admin toolbar.
+     * Capability metadata for shared admin actions.
+     *
+     * Blade tables remain module-owned; this map only describes behavior that
+     * generic endpoints/components must know about.
      */
     private const DEFINITIONS = [
         'destination' => [
@@ -53,8 +59,6 @@ final class AdminIndexRegistry
             'toggle_fields' => ['is_active', 'is_home'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Loại hình tour đã xóa không thể khôi phục.',
-            'order_column' => 'sort_order',
-            'reorder_filters' => ['search', 'status', 'home'],
         ],
         'tour' => [
             'model' => Tour::class,
@@ -80,11 +84,6 @@ final class AdminIndexRegistry
             'table' => 'bookings',
             'label' => 'booking',
             'actions' => ['confirm' => 'Xác nhận', 'cancel' => 'Hủy', 'complete' => 'Hoàn tất'],
-            'status_updates' => [
-                'confirm' => ['value' => 'confirmed', 'message' => 'Đã xác nhận các booking được chọn.'],
-                'cancel' => ['value' => 'cancelled', 'message' => 'Đã hủy các booking được chọn.'],
-                'complete' => ['value' => 'completed', 'message' => 'Đã hoàn tất các booking được chọn.'],
-            ],
         ],
         'service_category' => [
             'model' => ServiceCategory::class,
@@ -114,7 +113,7 @@ final class AdminIndexRegistry
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Trang sẽ được đưa vào thùng rác.',
             'order_column' => 'sort_order',
-            'reorder_filters' => ['search', 'status', 'per_page'],
+            'reorder_filters' => ['search', 'status'],
         ],
         'post_category' => [
             'model' => PostCategory::class,
@@ -123,8 +122,6 @@ final class AdminIndexRegistry
             'toggle_fields' => ['is_active'],
             'actions' => ['activate' => 'Kích hoạt', 'deactivate' => 'Ngừng kích hoạt', 'delete' => 'Xóa'],
             'delete_warning' => 'Danh mục sẽ được đưa vào thùng rác.',
-            'order_column' => 'sort_order',
-            'reorder_filters' => ['search', 'per_page'],
         ],
         'post' => [
             'model' => Post::class,
@@ -213,6 +210,18 @@ final class AdminIndexRegistry
         return self::definition($resource)['actions'] ?? [];
     }
 
+    public static function availableBulkActionsFor(string $resource): array
+    {
+        return collect(self::bulkActionsFor($resource))
+            ->filter(
+                fn (string $label, string $action): bool => self::can(
+                    $resource,
+                    $action === 'delete' ? 'delete' : 'update',
+                )
+            )
+            ->all();
+    }
+
     public static function tableFor(string $resource): string
     {
         return (string) (self::definition($resource)['table'] ?? '');
@@ -221,6 +230,23 @@ final class AdminIndexRegistry
     public static function permissionResourceFor(string $resource): string
     {
         return (string) (self::definition($resource)['permission_resource'] ?? self::tableFor($resource));
+    }
+
+    public static function permissionNameFor(string $resource, string $ability): string
+    {
+        $permissionResource = self::permissionResourceFor($resource);
+
+        return $permissionResource !== '' ? $permissionResource.'.'.$ability : '';
+    }
+
+    public static function can(string $resource, string $ability): bool
+    {
+        $permission = self::permissionNameFor($resource, $ability);
+        $user = auth('admin')->user();
+
+        return $permission !== ''
+            && $user !== null
+            && $user->hasPermissionTo($permission, 'web');
     }
 
     public static function modelFor(string $resource): ?string
@@ -269,5 +295,15 @@ final class AdminIndexRegistry
     public static function formIdFor(string $resource): string
     {
         return 'admin-bulk-'.$resource.'-form';
+    }
+
+    public static function perPageOptions(): array
+    {
+        return self::PER_PAGE_OPTIONS;
+    }
+
+    public static function perPageAllowed(): array
+    {
+        return self::PER_PAGE_ALLOWED;
     }
 }
