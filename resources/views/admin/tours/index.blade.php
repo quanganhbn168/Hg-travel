@@ -20,7 +20,7 @@
     :order-start="$tours->firstItem() ?? 1"
 >
     <x-slot:actions>
-        @if(AppSupportAdminIndexRegistry::can('tour', 'update'))
+        @if(auth('admin')->user()?->hasPermissionTo('tours.update', 'web'))
             <a href="{{ route('admin.tours.import.create') }}" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-file-earmark-arrow-up me-1"></i>
                 Nhập lịch Excel
