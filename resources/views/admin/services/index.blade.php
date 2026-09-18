@@ -89,7 +89,7 @@
                                 {{ $service->name }}
                             </a>
                             <small class="d-block text-body-secondary">
-                                {{ $service->description ? IlluminateSupportStr::limit($service->description, 90) : 'Chưa có mô tả' }}
+                                {{ $service->description ? \Illuminate\Support\Str::limit($service->description, 90) : 'Chưa có mô tả' }}
                             </small>
                         </td>
 
