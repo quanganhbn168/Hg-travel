@@ -108,7 +108,7 @@
                 <div class="admin-tree" data-admin-tree>
                     @forelse($categoryTree as $row)
                         @php
-                            /** @var AppModelsTourCategory $category */
+                            /** @var \App\Models\TourCategory $category */
                             $category = $row['item'];
                         @endphp
 
