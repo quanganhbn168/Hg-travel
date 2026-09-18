@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/tom-select/css/tom-select.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/dropzone.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin-tree.css') }}?v={{ filemtime(public_path('css/admin-tree.css')) }}">
     @stack('css')
 </head>
 
@@ -22,6 +23,7 @@
     <div class="app-wrapper">
         @include('admin.partials.header')
         @include('admin.partials.sidebar')
+
         <main class="app-main">
             <div class="app-content-header">
                 <div class="container-fluid">
@@ -33,28 +35,36 @@
                     </div>
                 </div>
             </div>
+
             <div class="app-content">
                 <div class="container-fluid">@yield('content')</div>
             </div>
         </main>
+
         @include('admin.partials.footer')
     </div>
+
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte4/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('vendor/dropzone/dropzone.min.js') }}"></script>
     <script>
-        // Every admin uploader is initialized explicitly with its own endpoint and options.
-        // Disable Dropzone's DOM auto-discovery before DOMContentLoaded to avoid a second,
-        // URL-less instance being attached to elements that use the `.dropzone` class.
         Dropzone.autoDiscover = false;
     </script>
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
     <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
-    <script>window.hgMediaConfig = { list: @json(route('admin.media.list')), upload: @json(route('admin.media.upload.temp')), editor: @json(route('admin.media.upload.editor')) };</script>
+    <script src="{{ asset('js/admin-tree.js') }}?v={{ filemtime(public_path('js/admin-tree.js')) }}"></script>
+    <script>
+        window.hgMediaConfig = {
+            list: @json(route('admin.media.list')),
+            upload: @json(route('admin.media.upload.temp')),
+            editor: @json(route('admin.media.upload.editor'))
+        };
+    </script>
     <script src="{{ asset('js/media.js') }}?v={{ filemtime(public_path('js/media.js')) }}"></script>
     @stack('js')
+
     @if (session('success'))
         <script>
             Swal.fire({
