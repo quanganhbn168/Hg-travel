@@ -137,6 +137,218 @@ class AboutPageService
         ];
     }
 
+    public function adminContext(): array
+    {
+        $about = $this->current();
+
+        return [
+            'about' => $about,
+            'profileContent' => $this->profileContent($about),
+            'services' => Service::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+
+    public function updateFromAdmin(array $data): AboutPage
+    {
+        foreach (['hero_image', 'background_image', 'story_image'] as $field) {
+            if ((bool) ($data[$field.'_remove'] ?? false)) {
+                $data[$field] = null;
+            } elseif (blank($data[$field] ?? null)) {
+                unset($data[$field]);
+            }
+
+            unset($data[$field.'_remove']);
+        }
+
+        $data['core_values'] = $this->entries(
+            $data['core_values_text'] ?? null,
+            ['title', 'description'],
+        );
+
+        $data['markets'] = $this->entries(
+            $data['markets_text'] ?? null,
+            ['name', 'detail'],
+        );
+
+        $data['commitments'] = $this->lines($data['commitments_text'] ?? null);
+        $data['audiences'] = $this->lines($data['audiences_text'] ?? null);
+
+        $data['profile_content'] = [
+            'hero' => [
+                'kicker' => $data['hero_kicker'] ?? '',
+                'cta_label' => $data['hero_cta_label'] ?? '',
+            ],
+            'letter' => [
+                'signature_name' => $data['letter_signature_name'] ?? '',
+                'signature_tagline' => $data['letter_signature_tagline'] ?? '',
+            ],
+            'company_intro' => [
+                'eyebrow' => $data['intro_eyebrow'] ?? '',
+                'title' => $data['intro_title'] ?? '',
+                'lead' => $data['intro_lead'] ?? '',
+                'content' => $data['intro_content'] ?? '',
+                'credentials' => $this->lines($data['credentials_text'] ?? null),
+            ],
+            'story' => [
+                'eyebrow' => $data['story_eyebrow'] ?? '',
+                'fact' => $data['story_fact'] ?? '',
+                'photo_alt' => $data['story_photo_alt'] ?? '',
+                'photo_caption' => $data['story_photo_caption'] ?? '',
+            ],
+            'story_steps' => [
+                'eyebrow' => $data['story_steps_eyebrow'] ?? '',
+                'intro' => $data['story_steps_intro'] ?? '',
+                'items' => $this->entries(
+                    $data['story_steps_text'] ?? null,
+                    ['title', 'description'],
+                ),
+            ],
+            'values' => [
+                'eyebrow' => $data['values_eyebrow'] ?? '',
+                'title' => $data['values_title'] ?? '',
+                'intro' => $data['values_intro'] ?? '',
+            ],
+            'featured_products' => [
+                'eyebrow' => $data['products_eyebrow'] ?? '',
+                'title' => $data['products_title'] ?? '',
+                'intro' => $data['products_intro'] ?? '',
+                'items' => $this->entries(
+                    $data['products_text'] ?? null,
+                    ['icon', 'title', 'description'],
+                ),
+            ],
+            'support' => [
+                'eyebrow' => $data['support_eyebrow'] ?? '',
+                'title' => $data['support_title'] ?? '',
+                'intro' => $data['support_intro'] ?? '',
+                'service_ids' => collect($data['support_service_ids'] ?? [])
+                    ->map(fn ($id): int => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all(),
+            ],
+            'leaders' => [
+                'eyebrow' => $data['leaders_eyebrow'] ?? '',
+                'title' => $data['leaders_title'] ?? '',
+                'intro' => $data['leaders_intro'] ?? '',
+                'ceo_role' => $data['ceo_role'] ?? '',
+                'deputy_role' => $data['deputy_role'] ?? '',
+            ],
+            'clients' => [
+                'eyebrow' => $data['clients_eyebrow'] ?? '',
+                'title' => $data['clients_title'] ?? '',
+                'intro' => $data['clients_intro'] ?? '',
+                'items' => $this->entries(
+                    $data['clients_text'] ?? null,
+                    ['name', 'image'],
+                ),
+            ],
+            'organisation' => [
+                'eyebrow' => $data['organisation_eyebrow'] ?? '',
+                'title' => $data['organisation_title'] ?? '',
+                'intro' => $data['organisation_intro'] ?? '',
+                'cta_label' => $data['organisation_cta_label'] ?? '',
+                'departments' => $this->lines($data['departments_text'] ?? null),
+                'offices' => $this->entries(
+                    $data['offices_text'] ?? null,
+                    ['icon', 'label', 'address'],
+                ),
+            ],
+            'contact' => [
+                'tagline' => $data['contact_tagline'] ?? '',
+            ],
+        ];
+
+        unset(
+            $data['core_values_text'],
+            $data['markets_text'],
+            $data['commitments_text'],
+            $data['audiences_text'],
+            $data['hero_kicker'],
+            $data['hero_cta_label'],
+            $data['letter_signature_name'],
+            $data['letter_signature_tagline'],
+            $data['intro_eyebrow'],
+            $data['intro_title'],
+            $data['intro_lead'],
+            $data['intro_content'],
+            $data['credentials_text'],
+            $data['story_eyebrow'],
+            $data['story_fact'],
+            $data['story_photo_alt'],
+            $data['story_photo_caption'],
+            $data['story_steps_eyebrow'],
+            $data['story_steps_intro'],
+            $data['story_steps_text'],
+            $data['values_eyebrow'],
+            $data['values_title'],
+            $data['values_intro'],
+            $data['products_eyebrow'],
+            $data['products_title'],
+            $data['products_intro'],
+            $data['products_text'],
+            $data['support_eyebrow'],
+            $data['support_title'],
+            $data['support_intro'],
+            $data['support_service_ids'],
+            $data['leaders_eyebrow'],
+            $data['leaders_title'],
+            $data['leaders_intro'],
+            $data['ceo_role'],
+            $data['deputy_role'],
+            $data['clients_eyebrow'],
+            $data['clients_title'],
+            $data['clients_intro'],
+            $data['clients_text'],
+            $data['organisation_eyebrow'],
+            $data['organisation_title'],
+            $data['organisation_intro'],
+            $data['organisation_cta_label'],
+            $data['departments_text'],
+            $data['offices_text'],
+            $data['contact_tagline'],
+        );
+
+        return $this->update($data);
+    }
+
+    /** @return array<int, string> */
+    private function lines(?string $value): array
+    {
+        return collect(preg_split('/\\R/u', (string) $value))
+            ->map(fn ($line) => trim($line))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param array<int, string> $keys
+     * @return array<int, array<string, string>>
+     */
+    private function entries(?string $value, array $keys): array
+    {
+        return collect($this->lines($value))
+            ->map(function (string $line) use ($keys): array {
+                $parts = array_map(
+                    'trim',
+                    explode('|', $line, count($keys)),
+                );
+
+                return array_combine(
+                    $keys,
+                    array_pad($parts, count($keys), ''),
+                );
+            })
+            ->filter(fn (array $entry): bool => filled(reset($entry)))
+            ->values()
+            ->all();
+    }
+
     /** @return array<int, int> */
     private function defaultSupportServiceIds(): array
     {
