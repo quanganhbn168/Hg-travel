@@ -112,15 +112,15 @@
                         </select>
                     </div>
 
-                    <div class="col-12 d-flex justify-content-end gap-2">
-                        <a href="{{ route('admin.destinations.index') }}" class="btn btn-default">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>
-                            Xóa lọc
-                        </a>
-                        <button class="btn btn-primary" type="submit">
-                            <i class="bi bi-funnel me-1"></i>
-                            Lọc danh sách
-                        </button>
+                    <div class="col-xl-2 col-lg-4">
+                        <x-admin.per-page />
+                    </div>
+
+                    <div class="col-xl-10 col-lg-8">
+                        <x-admin.filter-actions
+                            :reset-url="route('admin.destinations.index')"
+                            submit-label="Lọc danh sách"
+                        />
                     </div>
                 </form>
             </x-slot:filters>
