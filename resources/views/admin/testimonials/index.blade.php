@@ -80,7 +80,7 @@
                             </small>
                         </td>
 
-                        <td>{{ IlluminateSupportStr::limit($testimonial->content, 90) }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit($testimonial->content, 90) }}</td>
                         <td class="text-center">{{ $testimonial->rating }}/5</td>
 
                         <td class="text-center">
