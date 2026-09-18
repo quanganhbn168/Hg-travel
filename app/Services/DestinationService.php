@@ -10,8 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class DestinationService
 {
-    private const PARENT_TYPES = ['continent', 'country', 'region'];
-
     public function __construct(
         private readonly DestinationTreeService $destinationTree,
         private readonly MediaReferenceService $mediaReferences,
@@ -28,20 +26,30 @@ class DestinationService
         $parentOptions = $this->parentOptions(null, $nodes);
         $quickParentOptions = $this->parentOptions(null, $activeNodes);
 
+        $quickParentMeta = collect($quickParentOptions)->mapWithKeys(
+            fn (array $option): array => [
+                (string) $option['id'] => [
+                    'name' => $option['path'],
+                    'type' => $option['type'],
+                    'market' => $option['market'],
+                    'allowed_child_types' => $this->destinationTree->allowedChildTypes($option['type']),
+                ],
+            ],
+        )->all();
+
+        $quickParentMeta['__root__'] = [
+            'name' => 'Điểm đến gốc',
+            'type' => null,
+            'market' => 'international',
+            'allowed_child_types' => $this->destinationTree->allowedChildTypes(),
+        ];
+
         return [
             'destinations' => $this->paginate($filters, $tourCounts),
             'destinationTree' => $this->destinationTree->treeRows($nodes),
             'parentOptions' => $parentOptions,
             'quickParentOptions' => $quickParentOptions,
-            'quickParentMeta' => collect($quickParentOptions)->mapWithKeys(
-                fn (array $option): array => [
-                    (string) $option['id'] => [
-                        'name' => $option['path'],
-                        'type' => $option['type'],
-                        'market' => $option['market'],
-                    ],
-                ],
-            )->all(),
+            'quickParentMeta' => $quickParentMeta,
             'destinationStats' => [
                 'total' => $nodes->count(),
                 'countries' => $nodes->where('type', 'country')->count(),
@@ -120,7 +128,7 @@ class DestinationService
     {
         return collect($this->destinationTree->selectOptions($nodes, $exclude))
             ->filter(
-                fn (array $option): bool => in_array($option['type'], self::PARENT_TYPES, true)
+                fn (array $option): bool => $this->destinationTree->allowedChildTypes($option['type']) !== []
             )
             ->values()
             ->all();
@@ -186,33 +194,29 @@ class DestinationService
         $parent = $parentId ? Destination::query()->find($parentId) : null;
         $type = (string) ($data['type'] ?? 'city');
 
-        if ($parent?->type === 'city') {
+        if ($parentId && ! $parent) {
             throw ValidationException::withMessages([
-                'parent_id' => 'Điểm đến cha phải là châu lục, quốc gia hoặc khu vực.',
+                'parent_id' => 'Điểm đến cha không tồn tại hoặc đã bị xóa.',
             ]);
         }
 
-        if ($type === 'continent' && $parentId) {
-            throw ValidationException::withMessages([
-                'parent_id' => 'Châu lục không thể nằm dưới một điểm đến khác.',
-            ]);
-        }
+        $allowedChildTypes = $this->destinationTree->allowedChildTypes($parent);
 
-        if ($type === 'country' && $parent?->type !== 'continent') {
-            throw ValidationException::withMessages([
-                'parent_id' => 'Quốc gia phải nằm dưới một châu lục.',
-            ]);
-        }
+        if (! in_array($type, $allowedChildTypes, true)) {
+            if ($allowedChildTypes === []) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Điểm đến đã chọn không thể chứa thêm điểm đến con.',
+                ]);
+            }
 
-        if ($type === 'region' && $parent?->type !== 'country') {
-            throw ValidationException::withMessages([
-                'parent_id' => 'Khu vực phải nằm dưới một quốc gia.',
-            ]);
-        }
+            $allowedLabels = collect($allowedChildTypes)
+                ->map(fn (string $allowedType): string => DestinationTreeService::TYPES[$allowedType] ?? $allowedType)
+                ->implode(' hoặc ');
 
-        if ($type === 'city' && ! in_array($parent?->type, ['country', 'region'], true)) {
             throw ValidationException::withMessages([
-                'parent_id' => 'Thành phố / điểm đến phải nằm dưới một quốc gia hoặc khu vực.',
+                'type' => $parent
+                    ? $parent->name.' chỉ có thể chứa '.$allowedLabels.'.'
+                    : 'Điểm đến gốc chỉ có thể là '.$allowedLabels.'.',
             ]);
         }
 
