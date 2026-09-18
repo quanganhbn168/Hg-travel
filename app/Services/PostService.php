@@ -14,6 +14,17 @@ class PostService
         private readonly PostContentService $contentService,
     ) {}
 
+    public function indexContext(array $filters): array
+    {
+        return [
+            'posts' => $this->paginate($filters),
+            'categories' => PostCategory::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ];
+    }
+
     public function paginate(array $filters): LengthAwarePaginator
     {
         $paginator = Post::with(['category', 'author'])
