@@ -71,7 +71,7 @@
                         <td>
                             <strong>{{ $submission->subject ?: 'Không có chủ đề' }}</strong>
                             <small class="d-block text-body-secondary">
-                                {{ IlluminateSupportStr::limit($submission->message, 100) }}
+                                {{ \Illuminate\Support\Str::limit($submission->message, 100) }}
                             </small>
                         </td>
 
