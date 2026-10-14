@@ -161,8 +161,8 @@
 </form>
 
 @pushOnce('css')
-<link rel="stylesheet" href="{{ asset('css/admin-tour.css') }}?v={{ filemtime(public_path('css/admin-tour.css')) }}">
+<link rel="stylesheet" href="@versioned('css/admin-tour.css')">
 @endPushOnce
 @pushOnce('js')
-<script src="{{ asset('js/admin-tour.js') }}?v={{ filemtime(public_path('js/admin-tour.js')) }}"></script>
+<script src="@versioned('js/admin-tour.js')"></script>
 @endPushOnce

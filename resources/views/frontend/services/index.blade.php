@@ -5,7 +5,7 @@
 @section('body_class', 'services-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/services.css') }}?v={{ filemtime(public_path('css/services.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/services.css')">
 @endpush
 
 @section('breadcrumb')

@@ -8,8 +8,8 @@
 @section('body_class', 'about-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/about.css') }}?v={{ filemtime(public_path('css/about.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/about-profile.css') }}?v={{ filemtime(public_path('css/about-profile.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/about.css')">
+    <link rel="stylesheet" href="@versioned('css/about-profile.css')">
 @endpush
 
 @section('content')

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/tom-select/css/tom-select.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/dropzone.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin-tree.css') }}?v={{ filemtime(public_path('css/admin-tree.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/admin-tree.css')">
     @stack('css')
 </head>
 
@@ -53,9 +53,9 @@
     </script>
     <script src="{{ asset('vendor/sortable/sortable.min.js') }}"></script>
     <script src="{{ asset('vendor/tom-select/js/tom-select.complete.min.js') }}"></script>
-    <script src="{{ asset('js/admin.js') }}?v={{ filemtime(public_path('js/admin.js')) }}"></script>
-    <script src="{{ asset('js/admin-tree.js') }}?v={{ filemtime(public_path('js/admin-tree.js')) }}"></script>
-    <script src="{{ asset('js/admin-index-view.js') }}?v={{ filemtime(public_path('js/admin-index-view.js')) }}"></script>
+    <script src="@versioned('js/admin.js')"></script>
+    <script src="@versioned('js/admin-tree.js')"></script>
+    <script src="@versioned('js/admin-index-view.js')"></script>
     <script>
         window.hgMediaConfig = {
             list: @json(route('admin.media.list')),
@@ -63,7 +63,7 @@
             editor: @json(route('admin.media.upload.editor'))
         };
     </script>
-    <script src="{{ asset('js/media.js') }}?v={{ filemtime(public_path('js/media.js')) }}"></script>
+    <script src="@versioned('js/media.js')"></script>
     @stack('js')
 
     @if (session('success'))

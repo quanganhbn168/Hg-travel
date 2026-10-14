@@ -6,8 +6,8 @@
 @section('body_class', 'destination-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/destination.css') }}?v={{ filemtime(public_path('css/destination.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/tour.css')">
+    <link rel="stylesheet" href="@versioned('css/destination.css')">
 @endpush
 
 @section('structured_data')

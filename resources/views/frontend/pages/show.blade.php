@@ -6,7 +6,7 @@
 @section('body_class', 'static-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/page.css') }}?v={{ filemtime(public_path('css/page.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/page.css')">
 @endpush
 
 @section('content')

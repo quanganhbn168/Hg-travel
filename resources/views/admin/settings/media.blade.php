@@ -20,7 +20,7 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Favicon đang dùng</label>
                                     <div class="border rounded-3 bg-light p-3 d-flex align-items-center gap-3">
-                                        <img src="{{ asset('favicon-32x32.png') }}?v={{ filemtime(public_path('favicon-master.png')) }}" width="32" height="32" alt="Favicon hiện tại">
+                                        <img src="@versioned('favicon-32x32.png', 'favicon-master.png')" width="32" height="32" alt="Favicon hiện tại">
                                         <span class="small text-muted">Bộ favicon tĩnh đã được tạo từ file master.</span>
                                     </div>
                                 </div>

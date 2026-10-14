@@ -10,8 +10,8 @@
 
 @push('page_styles')
     <link rel="stylesheet" href="{{ asset('vendor/swiper/swiper-bundle.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/detail-tour.css') }}?v={{ filemtime(public_path('css/detail-tour.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/detail-tour.css')">
+    <link rel="stylesheet" href="@versioned('css/tour.css')">
 @endpush
 
 @push('scripts')

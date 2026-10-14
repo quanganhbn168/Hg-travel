@@ -5,7 +5,7 @@
 @section('body_class', 'booking-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/contact.css') }}?v={{ filemtime(public_path('css/contact.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/contact.css')">
 @endpush
 
 @section('content')

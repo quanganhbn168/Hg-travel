@@ -6,7 +6,7 @@
 @section('body_class', 'tour-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/tour.css')">
 @endpush
 
 @section('structured_data')

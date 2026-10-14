@@ -4,7 +4,7 @@
 @section('page-title', 'Điểm đến')
 
 @push('css')
-    <link rel="stylesheet" href="{{ asset('css/admin-destinations.css') }}?v={{ filemtime(public_path('css/admin-destinations.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/admin-destinations.css')">
 @endpush
 
 @section('breadcrumbs')
@@ -599,5 +599,5 @@
 @endsection
 
 @push('js')
-    <script src="{{ asset('js/admin-destinations.js') }}?v={{ filemtime(public_path('js/admin-destinations.js')) }}"></script>
+    <script src="@versioned('js/admin-destinations.js')"></script>
 @endpush

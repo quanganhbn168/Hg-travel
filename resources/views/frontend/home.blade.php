@@ -9,15 +9,15 @@
     <link rel="stylesheet" href="{{ asset('vendor/aos/aos.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/swiper/swiper-bundle.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/css/glightbox.min.css">
-    <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ filemtime(public_path('css/home.css')) }}">
-    <link rel="stylesheet" href="{{ asset('css/tour.css') }}?v={{ filemtime(public_path('css/tour.css')) }}">
+    <link rel="stylesheet" href="@versioned('css/home.css')">
+    <link rel="stylesheet" href="@versioned('css/tour.css')">
 @endpush
 
 @push('scripts')
     <script src="{{ asset('vendor/aos/aos.js') }}"></script>
     <script src="{{ asset('vendor/swiper/swiper-bundle.min.js') }}"></script>
     <script src="{{ asset('js/home-swiper.js') }}"></script>
-    <script src="{{ asset('js/home.js') }}?v={{ filemtime(public_path('js/home.js')) }}"></script>
+    <script src="@versioned('js/home.js')"></script>
     <script src="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/js/glightbox.min.js"></script>
     <script src="{{ asset('js/home-gallery.js') }}"></script>
 @endpush
