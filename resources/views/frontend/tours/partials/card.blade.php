@@ -15,7 +15,7 @@
             <div class="home-placeholder-image"><i class="bi bi-map"></i></div>
         @endif
         @if (! $showPromotionMeta && $hasDiscount)
-            <span class="tour-card-sale-burst" aria-label="Giảm {{ $discountPercent }} phần trăm">Giảm <strong>{{ $discountPercent }}%</strong></span>
+            <span class="tour-card-sale-burst" aria-label="Giảm {{ $tour['discount_label'] ?? $discountPercent.'%' }}">Giảm <strong>{{ $tour['discount_label'] ?? $discountPercent.'%' }}</strong></span>
         @endif
     </a>
     @if ($showPromotionMeta && (($tour['next_departure_at'] ?? null) || $promotionSeatsLabel))

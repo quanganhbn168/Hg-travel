@@ -29,7 +29,7 @@ class Tour extends Model implements HasMedia
      * (sale price if set, else list price), falling back to the tour's
      * starting price and the given promotion.
      *
-     * @return array{price: float, sale_price: ?float, discount_percent: ?int}
+     * @return array{price: float, sale_price: ?float, discount_percent: ?int, discount_label: ?string}
      */
     public function priceSummary(?Promotion $promotion = null): array
     {
@@ -51,7 +51,8 @@ class Tour extends Model implements HasMedia
                 return [
                     'price' => $price,
                     'sale_price' => $scheduleSale,
-                    'discount_percent' => min(100, max(1, (int) round((1 - $scheduleSale / $price) * 100))),
+                    'discount_percent' => $percent = min(100, max(1, (int) round((1 - $scheduleSale / $price) * 100))),
+                    'discount_label' => self::discountLabel($price - $scheduleSale, $percent),
                 ];
             }
         } else {
@@ -59,18 +60,40 @@ class Tour extends Model implements HasMedia
         }
 
         if (! $promotion || $price <= 0) {
-            return ['price' => $price, 'sale_price' => null, 'discount_percent' => null];
+            return ['price' => $price, 'sale_price' => null, 'discount_percent' => null, 'discount_label' => null];
         }
 
         $isPercentage = $promotion->discount_type === 'percentage';
         $value = (float) $promotion->discount_value;
         $percent = $isPercentage ? $value : ($value / $price) * 100;
 
+        $salePrice = $isPercentage ? max(0, $price * (1 - $value / 100)) : max(0, $price - $value);
+        $percent = min(100, max(1, (int) round($percent)));
+
         return [
             'price' => $price,
-            'sale_price' => $isPercentage ? max(0, $price * (1 - $value / 100)) : max(0, $price - $value),
-            'discount_percent' => min(100, max(1, (int) round($percent))),
+            'sale_price' => $salePrice,
+            'discount_percent' => $percent,
+            'discount_label' => self::discountLabel($price - $salePrice, $percent),
         ];
+    }
+
+    /** Small percentages look weak, so show the saved amount instead (e.g. "1 triệu" rather than "1%"). */
+    private static function discountLabel(float $amount, int $percent): string
+    {
+        if ($percent >= 5 || $amount <= 0) {
+            return $percent.'%';
+        }
+
+        if ($amount >= 1_000_000) {
+            return rtrim(rtrim(number_format($amount / 1_000_000, 1, ',', ''), '0'), ',').' triệu';
+        }
+
+        if ($amount >= 1_000) {
+            return number_format(round($amount / 1_000), 0, ',', '.').' nghìn';
+        }
+
+        return number_format($amount, 0, ',', '.').'đ';
     }
 
     /**

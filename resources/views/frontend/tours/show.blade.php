@@ -287,7 +287,7 @@
                         <div class="tour-booking-price">
                             <small>Giá khởi điểm / khách</small>
                             @if ($tour['discount_percent'] && $tour['sale_price_label'])
-                                <div class="tour-booking-discount">Giảm {{ $tour['discount_percent'] }}%</div>
+                                <div class="tour-booking-discount">Giảm {{ $tour['discount_label'] ?? $tour['discount_percent'].'%' }}</div>
                                 <del>{{ $tour['price_label'] }}</del>
                                 <strong class="tour-booking-sale-price">{{ $tour['sale_price_label'] }}</strong>
                             @else

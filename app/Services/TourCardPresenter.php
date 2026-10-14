@@ -44,6 +44,7 @@ class TourCardPresenter
             'price_label' => $this->moneyLabel($pricing['price']),
             'sale_price_label' => $pricing['sale_price'] !== null ? $this->moneyLabel($pricing['sale_price']) : null,
             'discount_percent' => $pricing['discount_percent'],
+            'discount_label' => $pricing['discount_label'],
             'schedule_options' => $tour->scheduleOptions(),
             'currency' => $tour->currency ?: 'VND',
         ];
