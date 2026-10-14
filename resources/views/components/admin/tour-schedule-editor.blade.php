@@ -37,7 +37,7 @@
                     <div class="col-md-3"><x-input name="schedules[{{ $index }}][departure_date]" type="date" label="Ngày khởi hành" :value="$item['departure_date'] ?? ''" required /></div>
                     <div class="col-md-3"><x-input name="schedules[{{ $index }}][return_date]" type="date" label="Ngày về" :value="$item['return_date'] ?? ''" /></div>
                     <div class="col-md-2"><x-input name="schedules[{{ $index }}][seats_total]" type="number" min="0" label="Số khách tối đa" :value="$item['seats_total'] ?? 0" required /></div>
-                    <div class="col-md-2"><label class="form-label">Đã giữ / còn</label><div class="form-control-plaintext fw-semibold">{{ $item['seats_reserved'] ?? 0 }} / {{ (int) ($item['seats_total'] ?? 0) > 0 ? max(0, (int) $item['seats_total'] - (int) ($item['seats_reserved'] ?? 0)) : '—' }}</div></div>
+                    <div class="col-md-2"><x-input name="schedules[{{ $index }}][seats_reserved]" type="number" min="0" label="Đã đăng ký" :value="$item['seats_reserved'] ?? 0" /><div class="form-text">Còn: {{ (int) ($item['seats_total'] ?? 0) > 0 ? max(0, (int) $item['seats_total'] - (int) ($item['seats_reserved'] ?? 0)) : '—' }}</div></div>
                     <div class="col-md-2"><x-select name="schedules[{{ $index }}][status]" label="Trạng thái" :options="['open' => 'Mở bán', 'closed' => 'Đóng', 'cancelled' => 'Hủy']" :selected="$item['status'] ?? 'open'" :tom-select="false" /></div>
                     <div class="col-md-4"><x-money-input name="schedules[{{ $index }}][price]" label="Giá niêm yết / khách" :value="$item['price'] ?? 0" :min="0" required /></div>
                     <div class="col-md-4"><x-money-input name="schedules[{{ $index }}][sale_price]" label="Giá giảm / khách" :value="$item['sale_price'] ?? ''" :min="0" placeholder="Để trống nếu không giảm" /></div>
@@ -56,7 +56,7 @@
                 <div class="col-md-3"><label class="form-label">Ngày khởi hành <span class="text-danger">*</span></label><input class="form-control" type="date" name="schedules[__INDEX__][departure_date]" required></div>
                 <div class="col-md-3"><label class="form-label">Ngày về</label><input class="form-control" type="date" name="schedules[__INDEX__][return_date]"></div>
                 <div class="col-md-2"><label class="form-label">Số khách tối đa <span class="text-danger">*</span></label><input class="form-control" type="number" min="0" name="schedules[__INDEX__][seats_total]" value="0" required></div>
-                <div class="col-md-2"><label class="form-label">Đã giữ / còn</label><div class="form-control-plaintext fw-semibold">0 / —</div></div>
+                <div class="col-md-2"><label class="form-label">Đã đăng ký</label><input class="form-control" type="number" min="0" name="schedules[__INDEX__][seats_reserved]" value="0"></div>
                 <div class="col-md-2"><label class="form-label">Trạng thái</label><select class="form-select" name="schedules[__INDEX__][status]"><option value="open">Mở bán</option><option value="closed">Đóng</option><option value="cancelled">Hủy</option></select></div>
                 <div class="col-md-4"><x-money-input name="schedules[__INDEX__][price]" label="Giá niêm yết / khách" value="0" :min="0" required /></div>
                 <div class="col-md-4"><x-money-input name="schedules[__INDEX__][sale_price]" label="Giá giảm / khách" :min="0" placeholder="Để trống nếu không giảm" /></div>

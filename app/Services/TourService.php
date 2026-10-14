@@ -274,9 +274,11 @@ class TourService
             }
 
             $seatsTotal = (int) $scheduleData['seats_total'];
-            $reserved = (int) ($schedule?->seats_reserved ?? 0);
+            $reserved = filled($scheduleData['seats_reserved'] ?? null)
+                ? (int) $scheduleData['seats_reserved']
+                : (int) ($schedule?->seats_reserved ?? 0);
             if ($seatsTotal > 0 && $seatsTotal < $reserved) {
-                throw ValidationException::withMessages(['schedules.'.$index.'.seats_total' => 'Số chỗ tổng không thể thấp hơn '.$reserved.' chỗ đã giữ.']);
+                throw ValidationException::withMessages(['schedules.'.$index.'.seats_reserved' => 'Số chỗ đã đăng ký ('.$reserved.') không thể lớn hơn số khách tối đa ('.$seatsTotal.').']);
             }
 
             $price = (float) $scheduleData['price'];
@@ -289,6 +291,7 @@ class TourService
                 'departure_date' => $scheduleData['departure_date'],
                 'return_date' => $scheduleData['return_date'] ?? null,
                 'seats_total' => $seatsTotal,
+                'seats_reserved' => $reserved,
                 'price' => $price,
                 'sale_price' => $salePrice && $salePrice > 0 ? $salePrice : null,
                 'transport' => filled($scheduleData['transport'] ?? null) ? trim((string) $scheduleData['transport']) : null,
@@ -299,7 +302,7 @@ class TourService
             if ($schedule) {
                 $schedule->update($payload);
             } else {
-                $tour->schedules()->create($payload + ['seats_reserved' => 0]);
+                $tour->schedules()->create($payload);
             }
         }
     }

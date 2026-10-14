@@ -86,6 +86,7 @@ class StoreTourRequest extends FormRequest
             'schedules.*.departure_date' => ['required', 'date'],
             'schedules.*.return_date' => ['nullable', 'date', 'after_or_equal:schedules.*.departure_date'],
             'schedules.*.seats_total' => ['required', 'integer', 'min:0', 'max:65535'],
+            'schedules.*.seats_reserved' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'schedules.*.price' => ['required', 'numeric', 'min:0'],
             'schedules.*.sale_price' => ['nullable', 'numeric', 'min:0'],
             'schedules.*.transport' => ['nullable', 'string', 'max:120'],
