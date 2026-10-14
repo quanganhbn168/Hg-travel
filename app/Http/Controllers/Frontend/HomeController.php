@@ -44,14 +44,20 @@ class HomeController extends Controller
         $siteAsset = SiteAsset::query()->where('key', 'site')->first();
         $homepageHeroUrl = $this->imageUrl($mediaSettings->homepage_hero_url)
             ?: $this->mediaUrl($siteAsset, 'homepage_hero');
-        $heroSlides = $sliderItems->map(fn ($slide): array => [
-            'eyebrow' => 'Mỗi hành trình, một câu chuyện',
-            'title' => $slide->title ?: 'Chạm vào những miền đất đáng nhớ',
-            'description' => $slide->subtitle ?: 'Khám phá thế giới theo cách riêng của bạn với những hành trình được thiết kế chỉn chu, chân thành và đầy cảm hứng.',
-            'image_url' => $this->imageUrl($slide->image_path) ?: $homepageHeroUrl,
-            'button_label' => $slide->button_label ?: 'Khám phá hành trình',
-            'button_url' => $this->linkUrl($slide->button_url ?: '/tours'),
-        ])->values()->all();
+        $heroSlides = $sliderItems->map(function ($slide) use ($homepageHeroUrl): array {
+            $imageOnly = blank($slide->title) && blank($slide->subtitle) && blank($slide->button_label);
+
+            return [
+                'image_only' => $imageOnly,
+                'link_url' => filled($slide->button_url) ? $this->linkUrl($slide->button_url) : null,
+                'eyebrow' => 'Mỗi hành trình, một câu chuyện',
+                'title' => $slide->title ?: 'Chạm vào những miền đất đáng nhớ',
+                'description' => $slide->subtitle ?: 'Khám phá thế giới theo cách riêng của bạn với những hành trình được thiết kế chỉn chu, chân thành và đầy cảm hứng.',
+                'image_url' => $this->imageUrl($slide->image_path) ?: $homepageHeroUrl,
+                'button_label' => $slide->button_label ?: 'Khám phá hành trình',
+                'button_url' => $this->linkUrl($slide->button_url ?: '/tours'),
+            ];
+        })->values()->all();
 
         $heroFallback = [
             'eyebrow' => 'Mỗi hành trình, một câu chuyện',
