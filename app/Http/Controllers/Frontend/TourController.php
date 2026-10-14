@@ -412,6 +412,7 @@ class TourController extends Controller
             'price_label' => $this->moneyLabel($pricing['price'], $tour->currency),
             'sale_price_label' => $pricing['sale_price'] !== null ? $this->moneyLabel($pricing['sale_price'], $tour->currency) : null,
             'discount_percent' => $pricing['discount_percent'],
+            'schedule_options' => $tour->scheduleOptions(),
             'currency' => $tour->currency,
         ];
     }

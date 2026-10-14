@@ -2,7 +2,8 @@
 @php($hasDiscount = $discountPercent > 0 && filled($tour['sale_price_label'] ?? null))
 @php($showPromotionMeta = $showPromotionMeta ?? false)
 @php($promotionSeatsLabel = array_key_exists('seats_left', $tour) && $tour['seats_left'] !== null ? 'Còn '.(int) $tour['seats_left'].' chỗ' : ($tour['seats_label'] ?? null))
-@php($departureDates = $tour['departure_dates'] ?? [])
+@php($scheduleOptions = $tour['schedule_options'] ?? [])
+@php($firstOption = $scheduleOptions[0] ?? null)
 @php($canBook = (bool) ($tour['booking_open'] ?? true))
 @php($bookingModalId = 'tour-card-booking-modal')
 
@@ -37,13 +38,17 @@
                 @if ($tour['transport'] ?? null)
                     <span><i class="bi bi-airplane"></i><span>{{ $tour['transport'] }}</span></span>
                 @endif
-                @if ($departureDates)
+                @if ($scheduleOptions)
                     <span class="tour-card-departure-label"><i class="bi bi-calendar3"></i><span>Ngày khởi hành:</span></span>
                     <div class="tour-card-departure-picker" aria-label="Các ngày khởi hành">
                         <span class="tour-card-departure-arrow" aria-hidden="true">‹</span>
                         <div class="tour-card-departure-dates">
-                            @foreach (array_slice($departureDates, 0, 4) as $departureDate)
-                                <span class="tour-card-departure-date">{{ $departureDate }}</span>
+                            @foreach (array_slice($scheduleOptions, 0, 4) as $option)
+                                @if ($canBook)
+                                    <button type="button" class="tour-card-departure-date" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}" data-schedule-id="{{ $option['id'] }}" data-schedule-label="{{ $option['summary'] }}" title="Đặt tour ngày {{ $option['date'] }}">{{ $option['date'] }}</button>
+                                @else
+                                    <span class="tour-card-departure-date">{{ $option['date'] }}</span>
+                                @endif
                             @endforeach
                         </div>
                         <span class="tour-card-departure-arrow" aria-hidden="true">›</span>
@@ -71,7 +76,7 @@
             </div>
             @if ($showPromotionMeta)
                 @if ($canBook)
-                    <a class="btn btn-brand tour-card-booking-action" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}">ĐẶT NGAY</a>
+                    <a class="btn btn-brand tour-card-booking-action" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}" @if ($firstOption) data-schedule-id="{{ $firstOption['id'] }}" data-schedule-label="{{ $firstOption['summary'] }}" @endif>ĐẶT NGAY</a>
                 @else
                     <span class="btn btn-brand tour-card-booking-action disabled" aria-disabled="true">ĐẶT NGAY</span>
                 @endif
@@ -79,7 +84,7 @@
                 <div class="tour-card-actions">
                     <a class="btn btn-sm btn-outline-brand" href="{{ route('tours.show', ['tour' => $tour['slug']]) }}">Xem chi tiết</a>
                     @if ($canBook)
-                        <a class="btn btn-sm btn-brand" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}">Đặt ngay</a>
+                        <a class="btn btn-sm btn-brand" href="#{{ $bookingModalId }}" data-bs-toggle="modal" data-bs-target="#{{ $bookingModalId }}" data-tour-booking-trigger data-tour-id="{{ $tour['id'] }}" data-tour-name="{{ $tour['name'] }}" @if ($firstOption) data-schedule-id="{{ $firstOption['id'] }}" data-schedule-label="{{ $firstOption['summary'] }}" @endif>Đặt ngay</a>
                     @else
                         <span class="btn btn-sm btn-brand disabled" aria-disabled="true">Đặt ngay</span>
                     @endif

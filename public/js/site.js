@@ -9,6 +9,10 @@
     const cardBookingModal = document.querySelector('#tour-card-booking-modal');
     const cardBookingTitle = cardBookingModal?.querySelector('[data-tour-booking-title]');
     const cardBookingTourId = cardBookingModal?.querySelector('[data-tour-booking-tour-id]');
+    const cardBookingSchedule = cardBookingModal?.querySelector('[data-tour-booking-schedule]');
+    const cardBookingScheduleLabel = cardBookingModal?.querySelector('[data-tour-booking-schedule-label]');
+    const cardBookingScheduleGroup = cardBookingModal?.querySelector('[data-tour-booking-schedule-group]');
+    const cardBookingDateGroup = cardBookingModal?.querySelector('[data-tour-booking-date-group]');
 
     const setSearchOpen = (open) => {
         if (!searchPanel) return;
@@ -40,6 +44,15 @@
     bookingTriggers.forEach((trigger) => trigger.addEventListener('click', () => {
         if (cardBookingTitle) cardBookingTitle.textContent = trigger.dataset.tourName || 'Đặt tour';
         if (cardBookingTourId) cardBookingTourId.value = trigger.dataset.tourId || '';
+        const scheduleId = trigger.dataset.scheduleId || '';
+        if (cardBookingSchedule) cardBookingSchedule.value = scheduleId;
+        if (cardBookingScheduleLabel) cardBookingScheduleLabel.textContent = scheduleId ? `Đã chọn ${trigger.dataset.scheduleLabel || ''}` : '';
+        if (cardBookingScheduleGroup) cardBookingScheduleGroup.hidden = !scheduleId;
+        if (cardBookingDateGroup) {
+            cardBookingDateGroup.hidden = !!scheduleId;
+            const dateInput = cardBookingDateGroup.querySelector('input');
+            if (dateInput) dateInput.required = !scheduleId;
+        }
     }));
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') setSearchOpen(false);

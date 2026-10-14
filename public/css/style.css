@@ -252,3 +252,13 @@ body .page-banner p, body .page-banner .section-description, body .page-banner .
     .site-search-form > .btn { flex: 1 1 auto; }
     .floating-actions { right: .85rem; }
 }
+
+/* Booking modal is rendered globally from layouts/master */
+.tour-booking-modal .modal-content { max-height: calc(100vh - 2rem); border-radius: var(--radius-lg); }
+.tour-booking-modal .modal-header { align-items: flex-start; padding: 1.35rem 1.5rem 1rem; border-bottom-color: var(--brand-line); }
+.tour-booking-modal .tour-booking-form { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
+.tour-booking-modal .modal-body { flex: 1 1 auto; min-height: 0; padding: 1.25rem 1.5rem; overflow-y: auto; }
+.tour-booking-modal .modal-footer { padding: 1rem 1.5rem 1.35rem; border-top-color: var(--brand-line); }
+.tour-booking-selected-schedule { display: flex; align-items: center; gap: .65rem; padding: .8rem .9rem; border: 1px solid var(--brand-teal); border-radius: var(--radius-md); background: color-mix(in srgb, var(--brand-teal) 8%, var(--color-surface)); color: var(--brand-ink); font-weight: 700; }
+.tour-booking-selected-schedule i { color: var(--brand-teal); font-size: 1.1rem; }
+.tour-booking-selected-schedule.is-empty { border-color: var(--brand-line); color: var(--brand-muted); background: var(--color-surface-soft); }

@@ -4,6 +4,7 @@
     'formId' => 'tour-booking-form',
     'fieldPrefix' => 'tour-booking',
     'autoOpen' => true,
+    'dynamicSchedule' => false,
 ])
 
 @php
@@ -36,11 +37,19 @@
 
                     <input type="hidden" name="source" value="tour_detail">
                     <input type="hidden" name="tour_id" value="{{ $tour['id'] }}" data-tour-booking-tour-id>
-                    @if ($hasSchedules)
+                    @if ($hasSchedules || $dynamicSchedule)
                         <input type="hidden" name="tour_schedule_id" value="{{ $selectedScheduleId }}" data-tour-booking-schedule>
                     @endif
 
                     <div class="row g-3">
+                        @if ($dynamicSchedule)
+                            <div class="col-12" data-tour-booking-schedule-group hidden>
+                                <div class="tour-booking-selected-schedule" data-tour-booking-schedule-summary>
+                                    <i class="bi bi-calendar2-check"></i>
+                                    <span data-tour-booking-schedule-label></span>
+                                </div>
+                            </div>
+                        @endif
                         @if ($hasSchedules)
                             <div class="col-12">
                                 <div class="tour-booking-selected-schedule {{ $selectedSchedule ? '' : 'is-empty' }}" data-tour-booking-schedule-summary>
@@ -50,7 +59,7 @@
                                 @error('tour_schedule_id')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
                             </div>
                         @else
-                            <div class="col-md-6"><label class="form-label" for="{{ $fieldId('departure') }}">Ngày khởi hành dự kiến *</label><input id="{{ $fieldId('departure') }}" class="form-control @error('departure_date') is-invalid @enderror" type="date" name="departure_date" value="{{ old('departure_date') }}" min="{{ now()->toDateString() }}" required>@error('departure_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                            <div class="col-md-6" data-tour-booking-date-group><label class="form-label" for="{{ $fieldId('departure') }}">Ngày khởi hành dự kiến *</label><input id="{{ $fieldId('departure') }}" class="form-control @error('departure_date') is-invalid @enderror" type="date" name="departure_date" value="{{ old('departure_date') }}" min="{{ now()->toDateString() }}" required>@error('departure_date')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                         @endif
                         <div class="col-md-6"><label class="form-label" for="{{ $fieldId('name') }}">Họ và tên *</label><input id="{{ $fieldId('name') }}" class="form-control @error('customer_name') is-invalid @enderror" name="customer_name" value="{{ old('customer_name') }}" required>@error('customer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
                         <div class="col-md-6"><label class="form-label" for="{{ $fieldId('phone') }}">Số điện thoại *</label><input id="{{ $fieldId('phone') }}" class="form-control @error('customer_phone') is-invalid @enderror" name="customer_phone" value="{{ old('customer_phone') }}" inputmode="tel" required>@error('customer_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>

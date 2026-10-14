@@ -73,6 +73,32 @@ class Tour extends Model implements HasMedia
         ];
     }
 
+    /**
+     * Bookable schedules (loaded `schedules` relation) shaped for booking triggers.
+     *
+     * @return list<array{id: int, date: string, iso: string, summary: string}>
+     */
+    public function scheduleOptions(): array
+    {
+        if (! $this->relationLoaded('schedules')) {
+            return [];
+        }
+
+        return $this->getRelation('schedules')
+            ->filter(fn (TourSchedule $schedule): bool => $schedule->isAvailable() && $schedule->departure_date?->gte(today()))
+            ->sortBy('departure_date')
+            ->map(fn (TourSchedule $schedule): array => [
+                'id' => $schedule->getKey(),
+                'date' => $schedule->departure_date->format('d/m'),
+                'iso' => $schedule->departure_date->format('Y-m-d'),
+                'summary' => $schedule->departure_date->format('d/m/Y')
+                    .($schedule->effectivePrice() > 0 ? ' · '.number_format($schedule->effectivePrice(), 0, ',', '.').'đ' : '')
+                    .' · '.$schedule->slotLabel(),
+            ])
+            ->values()
+            ->all();
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TourCategory::class, 'tour_category_tour')->withPivot('sort_order')->withTimestamps()->orderByPivot('sort_order');

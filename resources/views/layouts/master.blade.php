@@ -230,6 +230,7 @@
         form-id="tour-card-booking-form"
         field-prefix="tour-card-booking"
         :auto-open="false"
+        :dynamic-schedule="true"
     />
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>

@@ -449,9 +449,7 @@ class HomeController extends Controller
             'countdown_label' => $this->countdownLabel($nextDeparture),
             'seats_left' => $nextSchedule?->seatsLeft(),
             'seats_label' => $nextSchedule?->slotLabel(),
-            'departure_dates' => $tour->relationLoaded('schedules')
-                ? $tour->getRelation('schedules')->pluck('departure_date')->filter()->map(fn ($date): string => $date->format('d/m'))->values()->all()
-                : [],
+            'schedule_options' => $tour->scheduleOptions(),
             'price' => $pricing['price'],
             'price_label' => $this->moneyLabel($pricing['price'], $tour->currency),
             'sale_price_label' => $pricing['sale_price'] !== null ? $this->moneyLabel($pricing['sale_price'], $tour->currency) : null,

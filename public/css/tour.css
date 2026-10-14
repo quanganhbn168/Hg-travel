@@ -56,7 +56,9 @@
 .tour-card-departure-picker { display: flex; align-items: center; gap: .45rem; min-width: 0; margin-top: -.1rem; }
 .tour-card-departure-arrow { display: grid; flex: 0 0 1.65rem; width: 1.65rem; height: 1.65rem; place-items: center; border: 1px solid var(--color-card-border); border-radius: 50%; color: var(--brand-muted); font-size: 1.2rem; line-height: 1; }
 .tour-card-departure-dates { display: flex; flex: 1 1 auto; gap: .4rem; min-width: 0; overflow: hidden; }
-.tour-card-departure-date { flex: 0 0 auto; padding: .42rem .62rem; border: 1px solid var(--color-price); border-radius: .4rem; color: var(--color-price); font-size: .79rem; line-height: 1; }
+.tour-card-departure-date { flex: 0 0 auto; padding: .42rem .62rem; border: 1px solid var(--color-price); border-radius: .4rem; background: transparent; color: var(--color-price); font-family: inherit; font-size: .79rem; line-height: 1; }
+button.tour-card-departure-date { cursor: pointer; transition: background-color .15s, color .15s; }
+button.tour-card-departure-date:hover, button.tour-card-departure-date:focus-visible { background: var(--color-price); color: #fff; }
 .tour-card--promotion .tour-card-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: .8rem; margin-top: 1.15rem; padding-top: 1rem; }
 .tour-card--promotion .tour-card-price small { font-size: .85rem; }
 .tour-card--promotion .tour-card-price strong { font-size: 1.35rem; }

@@ -140,14 +140,6 @@
 .tour-booking-form-section { scroll-margin-top: 6.5rem; padding: 1.5rem; border: 1px solid var(--brand-line); border-radius: var(--radius-lg); background: var(--color-surface-soft); }
 .tour-booking-form-section .tour-detail-section-heading { margin-bottom: 1.25rem; }
 .tour-booking-form-section .tour-detail-section-heading p { margin: .45rem 0 0; color: var(--brand-muted); }
-.tour-booking-modal .modal-content { max-height: calc(100vh - 2rem); border-radius: var(--radius-lg); }
-.tour-booking-modal .modal-header { align-items: flex-start; padding: 1.35rem 1.5rem 1rem; border-bottom-color: var(--brand-line); }
-.tour-booking-modal .tour-booking-form { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; }
-.tour-booking-modal .modal-body { flex: 1 1 auto; min-height: 0; padding: 1.25rem 1.5rem; overflow-y: auto; }
-.tour-booking-modal .modal-footer { padding: 1rem 1.5rem 1.35rem; border-top-color: var(--brand-line); }
-.tour-booking-selected-schedule { display: flex; align-items: center; gap: .65rem; padding: .8rem .9rem; border: 1px solid var(--brand-teal); border-radius: var(--radius-md); background: color-mix(in srgb, var(--brand-teal) 8%, var(--color-surface)); color: var(--brand-ink); font-weight: 700; }
-.tour-booking-selected-schedule i { color: var(--brand-teal); font-size: 1.1rem; }
-.tour-booking-selected-schedule.is-empty { border-color: var(--brand-line); color: var(--brand-muted); background: var(--color-surface-soft); }
 .tour-schedule-picker [aria-disabled="true"] { pointer-events: none; opacity: .55; }
 @media (max-width: 991.98px) { .tour-detail-navigation { position: static; } .tour-detail-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tour-booking-card { position: static; } }
 @media (max-width: 767.98px) { .tour-detail-hero { padding: 3rem 0; } .tour-detail-title { font-size: 1.35rem; } .tour-detail-showcase { padding: 2.5rem 0; } .tour-media-gallery-thumbs .swiper-slide { width: 74px; height: 60px; } .tour-showcase-meta { gap: 1rem; } .tour-detail-navigation-inner { gap: 1rem; min-height: 52px; } .tour-detail-navigation .tour-detail-navigation-cta { margin-left: 0; } .tour-detail-body { padding-top: 1.5rem; } .tour-gallery { grid-template-columns: 1fr; grid-template-rows: auto; } .tour-gallery-main { grid-row: auto; } .tour-gallery-main img { min-height: 280px; } .tour-gallery-side-image { min-height: 150px; } .tour-detail-section { scroll-margin-top: 1rem; padding-bottom: 2rem; } .tour-detail-section + .tour-detail-section { padding-top: 2rem; } .tour-inclusion-grid { grid-template-columns: 1fr; } }
