@@ -36,7 +36,19 @@ class TourSchedule extends Model
 
     public function slotLabel(): string
     {
+        if ($this->status === 'cancelled') {
+            return 'Đã hủy';
+        }
+
         $seatsLeft = $this->seatsLeft();
+
+        if ($seatsLeft === 0) {
+            return 'Đã Full';
+        }
+
+        if ($this->status === 'closed') {
+            return 'Ngừng nhận đặt';
+        }
 
         return $seatsLeft === null
             ? 'Đang cập nhật'
