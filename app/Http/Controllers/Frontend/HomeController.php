@@ -50,11 +50,10 @@ class HomeController extends Controller
             return [
                 'image_only' => $imageOnly,
                 'link_url' => filled($slide->button_url) ? $this->linkUrl($slide->button_url) : null,
-                'eyebrow' => 'Mỗi hành trình, một câu chuyện',
-                'title' => $slide->title ?: 'Chạm vào những miền đất đáng nhớ',
-                'description' => $slide->subtitle ?: 'Khám phá thế giới theo cách riêng của bạn với những hành trình được thiết kế chỉn chu, chân thành và đầy cảm hứng.',
+                'title' => $slide->title,
+                'description' => $slide->subtitle,
                 'image_url' => $this->imageUrl($slide->image_path) ?: $homepageHeroUrl,
-                'button_label' => $slide->button_label ?: 'Khám phá hành trình',
+                'button_label' => $slide->button_label,
                 'button_url' => $this->linkUrl($slide->button_url ?: '/tours'),
             ];
         })->values()->all();

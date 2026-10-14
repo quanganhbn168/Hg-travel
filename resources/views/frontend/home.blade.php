@@ -45,10 +45,9 @@
                         @unless ($slide['image_only'])
                             <div class="home-hero-shade"></div>
                             <div class="container"><div class="home-hero-content">
-                                <span class="home-hero-eyebrow">{{ $slide['eyebrow'] }}</span>
-                                <h2 class="home-hero-title">{{ $slide['title'] }}</h2>
-                                <p class="home-hero-description">{{ $slide['description'] }}</p>
-                                <div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $slide['button_url'] }}">{{ $slide['button_label'] }} <i class="bi bi-arrow-right"></i></a><a class="btn btn-outline-light btn-lg rounded-pill" href="{{ route('about') }}">Về chúng tôi</a></div>
+                                @if (filled($slide['title']))<h2 class="home-hero-title">{{ $slide['title'] }}</h2>@endif
+                                @if (filled($slide['description']))<p class="home-hero-description">{{ $slide['description'] }}</p>@endif
+                                @if (filled($slide['button_label']))<div class="home-hero-actions"><a class="btn btn-brand btn-lg" href="{{ $slide['button_url'] }}">{{ $slide['button_label'] }} <i class="bi bi-arrow-right"></i></a></div>@endif
                             </div></div>
                         @endunless
                     </article>
