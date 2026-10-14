@@ -16,10 +16,10 @@
 @push('scripts')
     <script src="{{ asset('vendor/aos/aos.js') }}"></script>
     <script src="{{ asset('vendor/swiper/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('js/home-swiper.js') }}"></script>
+    <script src="@versioned('js/home-swiper.js')"></script>
     <script src="@versioned('js/home.js')"></script>
     <script src="https://cdn.jsdelivr.net/npm/glightbox@3.3.1/dist/js/glightbox.min.js"></script>
-    <script src="{{ asset('js/home-gallery.js') }}"></script>
+    <script src="@versioned('js/home-gallery.js')"></script>
 @endpush
 
 @section('structured_data')

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte4/css/adminlte.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/tom-select/css/tom-select.bootstrap5.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/dropzone.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link rel="stylesheet" href="@versioned('css/admin.css')">
     <link rel="stylesheet" href="@versioned('css/admin-tree.css')">
     @stack('css')
 </head>

@@ -5,7 +5,7 @@
 @section('body_class', 'blog-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/blog.css') }}">
+    <link rel="stylesheet" href="@versioned('css/blog.css')">
 @endpush
 
 @section('breadcrumb')

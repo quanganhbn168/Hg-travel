@@ -16,7 +16,7 @@
 
 @push('scripts')
     <script src="{{ asset('vendor/swiper/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('js/detail-tour.js') }}"></script>
+    <script src="@versioned('js/detail-tour.js')"></script>
 @endpush
 
 @section('structured_data')

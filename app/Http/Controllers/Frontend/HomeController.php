@@ -245,8 +245,8 @@ class HomeController extends Controller
                 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order'),
                 'promotions' => fn ($query) => $this->activePromotion($query)->orderBy('discount_value'),
             ])
-            ->orderBy('next_departure_date')
             ->orderBy('sort_order')
+            ->orderBy('next_departure_date')
             ->orderBy('id');
 
         $tours = $query

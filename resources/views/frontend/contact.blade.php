@@ -5,7 +5,7 @@
 @section('body_class', 'contact-page')
 
 @push('page_styles')
-    <link rel="stylesheet" href="{{ asset('css/contact.css') }}">
+    <link rel="stylesheet" href="@versioned('css/contact.css')">
 @endpush
 
 @section('breadcrumb')
