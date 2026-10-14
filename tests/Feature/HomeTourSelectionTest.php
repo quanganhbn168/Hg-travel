@@ -11,17 +11,16 @@ class HomeTourSelectionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_featured_tours_keep_editorial_priority_and_fill_three_places(): void
+    public function test_featured_tours_only_include_flagged_tours(): void
     {
-        $first = $this->tour('first');
-        $second = $this->tour('second');
+        $this->tour('first');
+        $this->tour('second');
         $featured = $this->tour('featured', ['is_featured' => true, 'sort_order' => 100]);
-        $this->tour('extra');
         $this->tour('draft', ['status' => 'draft', 'is_featured' => true, 'sort_order' => -1]);
         $this->tour('inactive', ['is_active' => false, 'is_featured' => true, 'sort_order' => -1]);
         $this->tour('future', ['published_at' => now()->addDay(), 'is_featured' => true, 'sort_order' => -1]);
 
-        $this->get('/')->assertOk()->assertViewHas('featuredTours', fn (array $tours) => array_column($tours, 'id') === [$featured->id, $first->id, $second->id]);
+        $this->get('/')->assertOk()->assertViewHas('featuredTours', fn (array $tours) => array_column($tours, 'id') === [$featured->id]);
     }
 
     public function test_three_selected_featured_tours_are_not_replaced_by_fallbacks(): void
@@ -32,37 +31,24 @@ class HomeTourSelectionTest extends TestCase
         $this->get('/')->assertOk()->assertViewHas('featuredTours', fn (array $tours) => array_column($tours, 'id') === $selected->pluck('id')->all());
     }
 
-    public function test_sparse_promotions_add_available_tours_without_inventing_discounts(): void
+    public function test_promotions_only_include_tours_with_an_active_promotion(): void
     {
         $promoted = $this->tour('promoted');
         $this->promotion($promoted);
-        $ordinary = $this->tour('ordinary');
+        $this->tour('ordinary');
         $expired = $this->tour('expired');
         $this->promotion($expired, ['ends_at' => now()->subDay()]);
         $this->tour('booking-closed', ['booking_open' => false, 'sort_order' => -1]);
         $full = $this->tour('full', ['sort_order' => -1]);
         $full->schedules()->update(['seats_total' => 10, 'seats_reserved' => 10]);
-        $past = $this->tour('past', ['sort_order' => -1]);
-        $past->schedules()->update(['departure_date' => today()->subDay()]);
-        $closed = $this->tour('closed', ['sort_order' => -1]);
-        $closed->schedules()->update(['status' => 'closed']);
-        $this->tour('draft', ['status' => 'draft', 'sort_order' => -1]);
-        $this->tour('inactive', ['is_active' => false, 'sort_order' => -1]);
-        $this->tour('future', ['published_at' => now()->addDay(), 'sort_order' => -1]);
-        $this->tour('deleted', ['sort_order' => -1])->delete();
+        $this->promotion($full);
 
         $response = $this->get('/')->assertOk()
-            ->assertViewHas('promotionTitle', 'Ưu đãi & khởi hành sắp tới');
+            ->assertViewHas('promotionTitle', 'Ưu đãi đang diễn ra');
         $tours = $response->viewData('promotionalTours');
-        $this->assertSame([$promoted->id, $ordinary->id, $expired->id], array_column($tours, 'id'));
+        $this->assertSame([$promoted->id], array_column($tours, 'id'));
         $this->assertSame(10, $tours[0]['discount_percent']);
         $this->assertSame('9.000.000đ', $tours[0]['sale_price_label']);
-        foreach (array_slice($tours, 1) as $tour) {
-            $this->assertNull($tour['discount_percent']);
-            $this->assertNull($tour['sale_price_label']);
-            $this->assertSame('10.000.000đ', $tour['price_label']);
-        }
-        $this->assertSame(0, $ordinary->promotions()->count());
     }
 
     public function test_full_promotion_selection_and_empty_catalog_remain_truthful(): void
@@ -81,14 +67,12 @@ class HomeTourSelectionTest extends TestCase
             ->assertViewHas('promotionalTours', fn (array $tours) => count($tours) === 6);
     }
 
-    public function test_upcoming_tours_use_an_accurate_heading_when_no_promotion_is_active(): void
+    public function test_promotions_are_empty_when_no_promotion_is_active(): void
     {
         $tour = $this->tour('no-sale');
         $this->promotion($tour, ['starts_at' => now()->addDay()]);
 
-        $this->get('/')->assertOk()
-            ->assertViewHas('promotionTitle', 'Hành trình sắp khởi hành')
-            ->assertViewHas('promotionalTours', fn (array $tours) => count($tours) === 1 && $tours[0]['sale_price_label'] === null);
+        $this->get('/')->assertOk()->assertViewHas('promotionalTours', []);
     }
 
     private function tour(string $slug, array $attributes = []): Tour
