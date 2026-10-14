@@ -420,9 +420,7 @@ class HomeController extends Controller
 
     private function tourCard(Tour $tour, ?Promotion $promotion = null): array
     {
-        $price = (float) $tour->starting_price;
-        $salePrice = $this->salePrice($price, $promotion);
-        $discountPercent = $this->discountPercent($price, $promotion);
+        $pricing = $tour->priceSummary($promotion);
         $nextSchedule = $this->nextSchedule($tour);
         $nextDeparture = $nextSchedule?->departure_date
             ?: (filled($tour->getAttribute('next_departure_date'))
@@ -454,10 +452,10 @@ class HomeController extends Controller
             'departure_dates' => $tour->relationLoaded('schedules')
                 ? $tour->getRelation('schedules')->pluck('departure_date')->filter()->map(fn ($date): string => $date->format('d/m'))->values()->all()
                 : [],
-            'price' => $price,
-            'price_label' => $this->moneyLabel($price, $tour->currency),
-            'sale_price_label' => $discountPercent ? $this->moneyLabel($salePrice, $tour->currency) : null,
-            'discount_percent' => $discountPercent,
+            'price' => $pricing['price'],
+            'price_label' => $this->moneyLabel($pricing['price'], $tour->currency),
+            'sale_price_label' => $pricing['sale_price'] !== null ? $this->moneyLabel($pricing['sale_price'], $tour->currency) : null,
+            'discount_percent' => $pricing['discount_percent'],
             'currency' => $tour->currency ?: 'VND',
             'destination' => $destinations->pluck('name')->filter()->implode(' · '),
             'category' => $categories->pluck('name')->filter()->implode(' · '),
@@ -466,30 +464,6 @@ class HomeController extends Controller
                 ?: $this->imageUrl($primaryDestination?->cover_image)
                 ?: $this->mediaUrl($primaryDestination, 'cover'),
         ];
-    }
-
-    private function salePrice(float $price, ?Promotion $promotion): float
-    {
-        if (! $promotion) {
-            return $price;
-        }
-
-        return $promotion->discount_type === 'percentage'
-            ? max(0, $price * (1 - ((float) $promotion->discount_value / 100)))
-            : max(0, $price - (float) $promotion->discount_value);
-    }
-
-    private function discountPercent(float $price, ?Promotion $promotion): ?int
-    {
-        if (! $promotion || $price <= 0) {
-            return null;
-        }
-
-        $percent = $promotion->discount_type === 'percentage'
-            ? (float) $promotion->discount_value
-            : ((float) $promotion->discount_value / $price) * 100;
-
-        return min(100, max(1, (int) round($percent)));
     }
 
     private function moneyLabel(float|string|null $amount, ?string $currency): string

@@ -38,6 +38,7 @@ class DestinationController extends Controller
                 'categories',
                 'destinations',
                 'images' => fn ($query) => $query->orderByDesc('is_cover')->orderBy('sort_order'),
+                'schedules' => fn ($query) => $query->where('status', 'open')->whereDate('departure_date', '>=', today())->orderBy('departure_date'),
             ])
             ->withMin([
                 'schedules as next_departure_date' => fn (Builder $query) => $query

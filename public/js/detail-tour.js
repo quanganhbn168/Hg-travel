@@ -96,6 +96,21 @@
             };
 
             options.forEach((option) => option.addEventListener('change', () => selectSchedule(option)));
+
+            const bookingModal = document.querySelector('#tour-booking-modal');
+            picker.querySelectorAll('[data-schedule-row]').forEach((row) => {
+                const option = row.querySelector('[data-schedule-option]');
+                if (!option || option.disabled) return;
+
+                row.addEventListener('click', (event) => {
+                    if (event.target.closest('a, button')) return;
+                    option.checked = true;
+                    selectSchedule(option);
+                    if (bookingModal && window.bootstrap?.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(bookingModal).show();
+                    }
+                });
+            });
             const initialOption = options.find((option) => option.checked && !option.disabled)
                 || options.find((option) => !option.disabled);
             if (initialOption) selectSchedule(initialOption);

@@ -24,6 +24,55 @@ class Tour extends Model implements HasMedia
         return ['starting_price' => 'decimal:2', 'is_featured' => 'boolean', 'is_active' => 'boolean', 'booking_open' => 'boolean', 'published_at' => 'datetime'];
     }
 
+    /**
+     * Display price shared by every tour card: cheapest bookable schedule
+     * (sale price if set, else list price), falling back to the tour's
+     * starting price and the given promotion.
+     *
+     * @return array{price: float, sale_price: ?float, discount_percent: ?int}
+     */
+    public function priceSummary(?Promotion $promotion = null): array
+    {
+        $schedule = $this->relationLoaded('schedules')
+            ? $this->getRelation('schedules')
+                ->filter(fn (TourSchedule $schedule): bool => $schedule->isAvailable()
+                    && $schedule->departure_date?->gte(today())
+                    && $schedule->effectivePrice() > 0)
+                ->sortBy(fn (TourSchedule $schedule): float => $schedule->effectivePrice())
+                ->first()
+            : null;
+
+        if ($schedule) {
+            $listPrice = (float) $schedule->price;
+            $scheduleSale = (float) $schedule->sale_price;
+            $price = $listPrice > 0 ? $listPrice : $scheduleSale;
+
+            if ($scheduleSale > 0 && $scheduleSale < $price) {
+                return [
+                    'price' => $price,
+                    'sale_price' => $scheduleSale,
+                    'discount_percent' => min(100, max(1, (int) round((1 - $scheduleSale / $price) * 100))),
+                ];
+            }
+        } else {
+            $price = (float) $this->starting_price;
+        }
+
+        if (! $promotion || $price <= 0) {
+            return ['price' => $price, 'sale_price' => null, 'discount_percent' => null];
+        }
+
+        $isPercentage = $promotion->discount_type === 'percentage';
+        $value = (float) $promotion->discount_value;
+        $percent = $isPercentage ? $value : ($value / $price) * 100;
+
+        return [
+            'price' => $price,
+            'sale_price' => $isPercentage ? max(0, $price * (1 - $value / 100)) : max(0, $price - $value),
+            'discount_percent' => min(100, max(1, (int) round($percent))),
+        ];
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(TourCategory::class, 'tour_category_tour')->withPivot('sort_order')->withTimestamps()->orderByPivot('sort_order');

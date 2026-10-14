@@ -183,3 +183,5 @@
 .tour-content-toggle:focus-visible, .tour-policy-item summary:focus-visible, .tour-itinerary-item summary:focus-visible { outline: 2px solid var(--brand-teal); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .tour-detail-page *, .tour-detail-page *::before, .tour-detail-page *::after { scroll-behavior: auto !important; transition: none !important; } }
 @media print { .tour-itinerary-item::details-content, .tour-policy-item::details-content { content-visibility: visible; } }
+
+.tour-schedule-table [data-schedule-row]:not(.is-full) { cursor: pointer; }

@@ -373,8 +373,7 @@ class TourController extends Controller
     private function cardData(Tour $tour, ?Promotion $promotion = null): array
     {
         $promotion ??= $tour->relationLoaded('promotions') ? $tour->promotions->first() : null;
-        $price = (float) $tour->starting_price;
-        $discountPercent = $this->discountPercent($price, $promotion);
+        $pricing = $tour->priceSummary($promotion);
 
         $destinations = $tour->relationLoaded('destinations')
             ? $tour->getRelation('destinations')
@@ -409,36 +408,12 @@ class TourController extends Controller
             'next_departure' => filled($tour->getAttribute('next_departure_date'))
                 ? Carbon::parse($tour->getAttribute('next_departure_date'))->format('d/m/Y')
                 : null,
-            'price' => $price,
-            'price_label' => $this->moneyLabel($tour->starting_price, $tour->currency),
-            'sale_price_label' => $discountPercent ? $this->moneyLabel($this->salePrice($price, $promotion), $tour->currency) : null,
-            'discount_percent' => $discountPercent,
+            'price' => $pricing['price'],
+            'price_label' => $this->moneyLabel($pricing['price'], $tour->currency),
+            'sale_price_label' => $pricing['sale_price'] !== null ? $this->moneyLabel($pricing['sale_price'], $tour->currency) : null,
+            'discount_percent' => $pricing['discount_percent'],
             'currency' => $tour->currency,
         ];
-    }
-
-    private function salePrice(float $price, ?Promotion $promotion): float
-    {
-        if (! $promotion) {
-            return $price;
-        }
-
-        return $promotion->discount_type === 'percentage'
-            ? max(0, $price * (1 - ((float) $promotion->discount_value / 100)))
-            : max(0, $price - (float) $promotion->discount_value);
-    }
-
-    private function discountPercent(float $price, ?Promotion $promotion): ?int
-    {
-        if (! $promotion || $price <= 0) {
-            return null;
-        }
-
-        $percent = $promotion->discount_type === 'percentage'
-            ? (float) $promotion->discount_value
-            : ((float) $promotion->discount_value / $price) * 100;
-
-        return min(100, max(1, (int) round($percent)));
     }
 
     private function detailData(Tour $tour): array
