@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Services\SitemapService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 
 class GenerateSitemap extends Command
 {
@@ -14,13 +13,7 @@ class GenerateSitemap extends Command
 
     public function handle(SitemapService $sitemap): int
     {
-        $document = $sitemap->build();
-        $path = $this->option('export') ?: public_path('sitemap.xml');
-
-        // Render first, then replace atomically so readers never receive partial XML.
-        File::replace($path, $document->render(), 0644);
-
-        $count = collect($document->getTags())->unique('url')->count();
+        ['path' => $path, 'count' => $count] = $sitemap->generate($this->option('export') ?: null);
         $this->info("Static sitemap generated: {$path} ({$count} URLs).");
 
         return self::SUCCESS;

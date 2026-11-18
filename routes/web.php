@@ -85,6 +85,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'admin', 'admi
     Route::get('settings/seo', [SettingController::class, 'seo'])->name('settings.seo');
     Route::put('settings/seo', [SettingController::class, 'updateSeo'])->name('settings.seo.update');
     Route::put('settings/robots', [SettingController::class, 'updateRobots'])->name('settings.robots.update');
+    Route::post('settings/sitemap', [SettingController::class, 'generateSitemap'])->name('settings.sitemap.generate');
     Route::get('settings/contact', [SettingController::class, 'contact'])->name('settings.contact');
     Route::put('settings/contact', [SettingController::class, 'updateContact'])->name('settings.contact.update');
     Route::get('settings/tour', [SettingController::class, 'tour'])->name('settings.tour');

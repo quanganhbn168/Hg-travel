@@ -35,7 +35,8 @@ class AdminIndexContractTest extends TestCase
         $resources = [];
 
         foreach ($files as $file) {
-            preg_match_all('/\bresource="([^"]+)"/', file_get_contents($file), $matches);
+            // Only the index-card declares the view's resource; row/toolbar components repeat the same attribute.
+            preg_match_all('/<x-admin\.index-card\b[^>]*?\bresource="([^"]+)"/s', file_get_contents($file), $matches);
             $resources = [...$resources, ...$matches[1]];
         }
 

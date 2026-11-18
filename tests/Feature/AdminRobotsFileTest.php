@@ -47,6 +47,17 @@ class AdminRobotsFileTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_admin_can_generate_sitemap_from_seo_screen_using_app_url(): void
+    {
+        $this->actingAs($this->editor, 'admin')
+            ->post(route('admin.settings.sitemap.generate'))
+            ->assertRedirect(route('admin.settings.seo').'#sitemap-settings')
+            ->assertSessionHas('success');
+
+        $this->assertFileExists(public_path('sitemap.xml'));
+        $this->assertStringContainsString('https://canonical.example', File::get(public_path('sitemap.xml')));
+    }
+
     public function test_seo_screen_reads_current_file_and_has_a_separate_robots_form(): void
     {
         $content = "# Existing content\nUser-agent: *\nAllow: /\n";

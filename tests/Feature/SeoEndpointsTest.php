@@ -141,7 +141,7 @@ class SeoEndpointsTest extends TestCase
     {
         $this->artisan('sitemap:generate')->assertSuccessful();
         $before = File::get(public_path('sitemap.xml'));
-        $this->mock(SitemapService::class)->shouldReceive('build')->once()->andThrow(new RuntimeException('Generation failed'));
+        $this->mock(SitemapService::class)->shouldReceive('generate')->once()->andThrow(new RuntimeException('Generation failed'));
 
         try {
             $this->artisan('sitemap:generate')->run();

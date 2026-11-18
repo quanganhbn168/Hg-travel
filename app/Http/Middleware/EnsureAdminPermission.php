@@ -41,6 +41,7 @@ class EnsureAdminPermission
             str_ends_with($routeName, '.settings.media.update'),
             str_ends_with($routeName, '.settings.seo.update'),
             str_ends_with($routeName, '.settings.robots.update'),
+            str_ends_with($routeName, '.settings.sitemap.generate'),
             str_ends_with($routeName, '.settings.contact.update'),
             str_ends_with($routeName, '.settings.tour.update') => 'settings.update',
             $routeName === 'admin.media.index',

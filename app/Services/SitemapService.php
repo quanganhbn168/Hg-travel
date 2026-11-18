@@ -10,11 +10,24 @@ use App\Models\Tour;
 use App\Models\TourCategory;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\File;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
 class SitemapService
 {
+    /** @return array{path: string, count: int} */
+    public function generate(?string $path = null): array
+    {
+        $document = $this->build();
+        $path ??= public_path('sitemap.xml');
+
+        // Render first, then replace atomically so readers never receive partial XML.
+        File::replace($path, $document->render(), 0644);
+
+        return ['path' => $path, 'count' => collect($document->getTags())->unique('url')->count()];
+    }
+
     public function build(): Sitemap
     {
         $destinationTree = app(DestinationTreeService::class);

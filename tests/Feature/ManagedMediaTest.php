@@ -399,7 +399,7 @@ class ManagedMediaTest extends TestCase
         $cases = [
             [app(TourCategoryService::class), 'create', 'update', ['name' => 'Tour kind', 'slug' => 'tour-kind']],
             [app(ServiceCatalogAdminService::class), 'createService', 'updateService', ['name' => 'Service', 'slug' => 'service', 'service_category_id' => $category->id]],
-            [app(DestinationService::class), 'create', 'update', ['name' => 'Place', 'slug' => 'place']],
+            [app(DestinationService::class), 'create', 'update', ['name' => 'Place', 'slug' => 'place', 'type' => 'continent']],
         ];
         foreach ($cases as [$service, $create, $update, $data]) {
             $model = $service->$create($data + ['cover_image' => 'media:'.$media->id]);

@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\UpdateTourSettingsRequest;
 use App\Http\Requests\Admin\UpdateWebsiteSettingsRequest;
 use App\Services\RobotsFileService;
 use App\Services\SettingService;
+use App\Services\SitemapService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -85,6 +86,14 @@ class SettingController extends Controller
 
         return redirect()->to(route('admin.settings.seo').'#robots-settings')
             ->with('success', 'Đã ghi file public/robots.txt. Nội dung có hiệu lực ngay, không cần chạy command.');
+    }
+
+    public function generateSitemap(SitemapService $sitemap): RedirectResponse
+    {
+        $result = $sitemap->generate();
+
+        return redirect()->to(route('admin.settings.seo').'#sitemap-settings')
+            ->with('success', "Đã tạo lại sitemap.xml ({$result['count']} URL) theo APP_URL.");
     }
 
     public function contact(): View

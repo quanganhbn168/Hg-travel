@@ -44,5 +44,24 @@
             </div>
         </div>
     </form>
+    <div class="row g-3 mt-1" id="sitemap-settings">
+        <div class="col-xl-8">
+            <x-card type="primary" title="Sitemap">
+                <p class="text-muted small">Sitemap được tạo tự động mỗi giờ. Nhấn nút bên dưới để tạo lại ngay (ví dụ sau khi đổi domain hoặc thêm nhiều nội dung). URL trong sitemap lấy theo <code>APP_URL</code>: <code>{{ rtrim(config('app.url'), '/') }}</code></p>
+                @if (is_file(public_path('sitemap.xml')))
+                    <p class="small mb-2">Cập nhật lần cuối: <strong>{{ \Illuminate\Support\Carbon::createFromTimestamp(filemtime(public_path('sitemap.xml')))->format('d/m/Y H:i') }}</strong>
+                        · <a href="{{ route('sitemap') }}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Xem sitemap.xml</a></p>
+                @else
+                    <div class="alert alert-warning small" role="status">Chưa có file sitemap.xml.</div>
+                @endif
+                @if ($canUpdateSettings)
+                    <form action="{{ route('admin.settings.sitemap.generate') }}" method="POST">
+                        @csrf
+                        <button class="btn btn-outline-primary"><i class="bi bi-diagram-3 me-1"></i>Tạo lại sitemap</button>
+                    </form>
+                @endif
+            </x-card>
+        </div>
+    </div>
     </x-admin.settings-layout>
 @endsection
