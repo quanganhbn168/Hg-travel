@@ -21,9 +21,8 @@
         if ($extraQuery->isEmpty() && $pageNumber > 1) {
             $canonicalUrl .= '?page='.$pageNumber;
         }
-        $robotsContent = $extraQuery->isNotEmpty() ? 'noindex, follow' : 'index, follow';
     @endphp
-    <meta name="robots" content="{{ $robotsContent }}">
+    <meta name="robots" content="index, follow">
     <meta name="format-detection" content="telephone=no">
     <link rel="canonical" href="{{ $canonicalUrl }}">
 
