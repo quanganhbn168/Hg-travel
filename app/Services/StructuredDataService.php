@@ -21,6 +21,11 @@ class StructuredDataService
     {
         $siteUrl = rtrim(url('/'), '/');
         $siteName = $settings->company_name ?: $settings->site_name ?: config('app.name', 'Du lịch');
+        // Google "site name" uses the short brand name; company name and spacing/case variants are alternates.
+        $brandName = $settings->site_name ?: $siteName;
+        $alternateNames = collect([$settings->company_name, $siteName, Str::upper($brandName), str_replace(' ', '', $brandName)])
+            ->filter(fn (?string $name): bool => filled($name) && $name !== $brandName)
+            ->unique()->values()->all();
         $socialLinks = collect([
             $settings->facebook_url,
             $settings->instagram_url,
@@ -52,8 +57,9 @@ class StructuredDataService
                 [
                     '@type' => 'WebSite',
                     '@id' => $siteUrl.'#website',
-                    'url' => $siteUrl,
-                    'name' => $siteName,
+                    'url' => $siteUrl.'/',
+                    'name' => $brandName,
+                    ...($alternateNames ? ['alternateName' => $alternateNames] : []),
                     'inLanguage' => str_replace('_', '-', app()->getLocale()),
                     'publisher' => ['@id' => $siteUrl.'#organization'],
                     'potentialAction' => [
