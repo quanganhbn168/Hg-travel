@@ -14,14 +14,14 @@
     <meta name="description" content="@yield('meta_description', $siteSettings->seo_description ?: '')">
     <meta name="keywords" content="@yield('meta_keywords', $siteSettings->seo_keywords ?: '')">
     <meta name="author" content="{{ $siteSettings->site_name }}">
-    @php
+<?php
         $extraQuery = collect(request()->query())->except('page')->filter(fn ($v) => $v !== null && $v !== '');
         $pageNumber = (int) request()->query('page', 1);
         $canonicalUrl = url()->current();
         if ($extraQuery->isEmpty() && $pageNumber > 1) {
             $canonicalUrl .= '?page='.$pageNumber;
         }
-    @endphp
+    ?>
     <meta name="robots" content="index, follow">
     <meta name="format-detection" content="telephone=no">
     <link rel="canonical" href="{{ $canonicalUrl }}">
